@@ -1,5 +1,4 @@
 {
-  // Volle TypeScript-Unterstützung für Nuxt 4
   "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
     "target": "ES2022",
