@@ -66,9 +66,9 @@ const sectionClasses = computed(() => {
 })
 
 const wrapperClasses = computed(() => {
-    const w = props.width === 'wide' ? 'max-w-4xl' : 'max-w-2xl'
-    const a = props.align === 'center' ? 'text-center mx-auto' : ''
-    return [w, a].join(' ')
+  const w = props.width === 'wide' ? 'max-w-4xl' : 'max-w-2xl'
+  const a = props.align === 'center' ? 'text-center mx-auto' : ''
+  return [w, a, 'px-4 sm:px-0'].join(' ')
 })
 
 const baseText = computed(() => (props.tone === 'muted' ? 'text-[#01497e]/80' : 'text-[#01497e]'))

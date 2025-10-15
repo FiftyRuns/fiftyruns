@@ -1,5 +1,5 @@
 <template #QuoteCardInner="{ author, role, authorImage, compact, $slots }">
-    <div :class="[constrain ? 'mx-auto' : '', maxWidthClass]">
+    <div :class="[constrain ? 'mx-auto' : '', maxWidthClass, 'mb-8 sm:mb-6']">
         <figure :class="[
             'relative rounded-3xl border border-[#a2c92d] bg-white/70 backdrop-blur-sm shadow-sm text-[#01497e]',
             compact ? 'p-5 sm:p-6 pb-16 sm:pb-20' : 'p-6 sm:p-8 pb-20 sm:pb-24'
