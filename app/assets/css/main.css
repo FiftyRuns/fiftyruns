@@ -1,1 +1,22 @@
 @import "tailwindcss";
+
+/* === Globale Farbdefinitionen === */
+:root {
+  --color-primary: #01497e;   /* Congress Blue – Hauptfarbe (Text, Buttons) */
+  --color-accent: #a2c92d; /* Akzentfarbe (Trennlinien, Hover, Highlights) */
+}
+
+body {
+  padding-top: 72px;
+}
+
+html, body {
+  color: var(--color-primary);
+  background-color: white;
+  font-family: system-ui, sans-serif;
+}
+
+hr {
+  border-color: var(--color-secondary);
+  border-width: 1px;
+}

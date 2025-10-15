@@ -1,10 +1,3 @@
-// prisma/schema.prisma
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,119 +7,235 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                 String   @id @default(cuid())
-  email              String   @unique
-  emailVerified      Boolean  @default(false)
-  passwordHash       String
-  name               String?
-  slug               String?  @unique
-  avatarUrl          String?
-  donationMultiplier Int      @default(1)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+model Group {
+  id     String @id @default(uuid())
+  name   String @unique
+  nameId String @unique
+  users  User[]
 
-  groups     Group[]   @relation("UsersInGroups")
-  posts      Post[]
-  comments   Comment[]
-  reactions  Reaction[]
-  sessions   Session[]
-  statistics RunningStatistic[]
+  // OPTIONAL: Falls es gruppenspezifische Challenges geben soll
+  challenges Challenge[]
 }
 
-model Group {
-  id        String   @id @default(cuid())
-  name      String
-  slug      String   @unique
-  createdAt DateTime @default(now())
+model User {
+  id                            String              @id @default(uuid())
+  name                          String              @unique
+  nameId                        String              @unique
+  email                         String              @unique
+  emailVerified                 Boolean             @default(false)
+  emailVerificationToken        String?
+  password                      String
+  passwordResetToken            String?
+  passwordResetTokenExpiry      DateTime?
+  image                         String?
+  runDonationMultiplier         DonationMultiplier?
+  runDonationMultiplierAskAgain DateTime?
+  groupId                       String?
+  createdAt                     DateTime?           @default(now())
+  garminAccessToken             String?
+  garminAccessTokenSecret       String?
+  comments                      Comment[]
+  GarminAuth                    GarminAuth?
+  postings                      Posting[]
+  reactions                     Reaction[]
+  readNotifications             ReadNotification[]
+  runningStatistic              RunningStatistic?
+  sessions                      Session[]
+  group                         Group?              @relation(fields: [groupId], references: [id])
 
-  users User[] @relation("UsersInGroups")
-  posts Post[]
+  // NEU: Challenge-Beziehungen
+  challengesAdmin   Challenge[]        @relation("ChallengeAdmin")
+  challengeMembers  ChallengeMember[]
+  challengeScores   ChallengeHighscore[]
+
+  @@unique([nameId, email])
+  @@index([emailVerificationToken])
+  @@index([runDonationMultiplierAskAgain, runDonationMultiplier])
+}
+
+model GarminAuth {
+  oauthToken       String @id
+  oauthTokenSecret String
+  userId           String @unique
+  user             User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Session {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
   token     String   @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-enum PostVisibility {
-  PUBLIC
-  PROTECTED
-  PRIVATE
-}
-
-enum PostType {
-  POST
-  RUNNING_EXERCISE
-  DONATION
-}
-
-model Post {
-  id           String         @id @default(cuid())
-  authorId     String
-  author       User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  groupId      String?
-  group        Group?         @relation(fields: [groupId], references: [id], onDelete: SetNull)
-  type         PostType       @default(POST)
-  visibility   PostVisibility @default(PUBLIC)
-  text         String?
-  imageUrl     String?
-  // Running:
-  distanceM    Int?
-  durationS    Int?
-  // Donation:
-  donationCent Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  comments  Comment[]
-  reactions Reaction[]
+model Posting {
+  id                String           @id @default(uuid())
+  date              DateTime
+  text              String?
+  image             String?
+  userId            String
+  visibility        Visibility       @default(protected)
+  runningExerciseId String?
+  season            String
+  comments          Comment[]
+  donation          Donation?
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions         Reaction[]
+  runningExercise   RunningExercise?
 }
 
 model Comment {
-  id        String   @id @default(cuid())
-  postId    String
-  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
-  authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
   text      String
-  createdAt DateTime @default(now())
-}
-
-enum ReactionType {
-  FIFTY
-  LIKE
-  LOVE
-  WOW
-  SAD
+  date      DateTime @default(now())
+  userId    String
+  postingId String
+  posting   Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Reaction {
-  id        String       @id @default(cuid())
-  postId    String
-  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+  id        String   @id @default(uuid())
+  type      String
+  date      DateTime @default(now())
   userId    String
-  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type      ReactionType
-  createdAt DateTime     @default(now())
+  postingId String?
+  Posting   Posting? @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([postId, userId]) // pro User/Beitrag genau 1 Reaktion (Typwechsel via Update)
+  @@unique([userId, postingId])
+}
+
+model Donation {
+  id           String   @id @default(uuid())
+  amountInCent Int
+  date         DateTime @default(now())
+  postingId    String   @unique
+  posting      Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
+}
+
+model RunningExercise {
+  id                String  @id @default(uuid())
+  distanceInMeters  Int
+  durationInSeconds Int
+  postingId         String  @unique
+  garminActivityId  String? @unique
+  posting           Posting @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now())
 }
 
 model RunningStatistic {
-  id            String   @id @default(cuid())
-  userId        String
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  season        Int
-  runsCount     Int      @default(0)
-  distanceM     Int      @default(0)
-  durationS     Int      @default(0)
-  donationsCent Int      @default(0)
+  id                String @id @default(uuid())
+  numberOfRuns      Int
+  distanceInMeters  Int
+  durationInSeconds Int
+  userId            String @unique
+  season            String
+  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  @@unique([userId, season])
+model ReadNotification {
+  id             String   @id @default(uuid())
+  userId         String
+  notificationId String
+  readAt         DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, notificationId])
+}
+
+model Challenge {
+  id                  String              @id @default(uuid())
+  name                String
+  nameId              String              @unique
+  description         String?             // Erklärungstext
+  prize               String?             // Gewinn/Beschreibung des Preises
+  image               String?
+  startAt             DateTime
+  endAt               DateTime
+
+  goalType            ChallengeGoalType
+  goalDistanceMeters  Int?                
+  goalDurationSeconds Int?                
+  goalRuns            Int?                
+
+  minDistanceMeters   Int?
+  minDurationSeconds  Int?
+
+  visibility          Visibility          @default(public)
+  sponsorLogos        String[]          
+
+
+  adminUserId         String
+  admin               User                @relation("ChallengeAdmin", fields: [adminUserId], references: [id], onDelete: Cascade)
+
+  groupId             String?
+  group               Group?              @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+
+  members             ChallengeMember[]
+  highscores          ChallengeHighscore[]
+
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  @@index([startAt, endAt])
+  @@index([visibility])
+}
+
+model ChallengeMember {
+  id           String     @id @default(uuid())
+  challengeId  String
+  userId       String
+  joinedAt     DateTime   @default(now())
+
+  challenge    Challenge  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+  @@index([userId])
+}
+
+model ChallengeHighscore {
+  id                  String     @id @default(uuid())
+  challengeId         String
+  userId              String
+
+  // aggregierte Werte innerhalb der Challenge
+  runsCount           Int        @default(0)
+  distanceInMeters    Int        @default(0)
+  durationInSeconds   Int        @default(0)
+
+  // abgeleiteter Fortschritt in Prozent (0–100, als Int gespeichert)
+  progressPercent     Int        @default(0)
+
+  updatedAt           DateTime   @updatedAt
+  createdAt           DateTime   @default(now())
+
+  challenge           Challenge  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user                User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([challengeId, userId])
+  @@index([progressPercent])
+}
+
+enum Visibility {
+  public
+  protected
+  private
+}
+
+enum DonationMultiplier {
+  x1
+  x2
+  x5
+  x10
+}
+
+// Zieltypen einer Challenge
+enum ChallengeGoalType {
+  DISTANCE
+  TIME
+  RUNS
 }
