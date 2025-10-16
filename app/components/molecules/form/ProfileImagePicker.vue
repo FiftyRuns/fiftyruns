@@ -1,0 +1,173 @@
+<template>
+  <div :class="wrapperClasses">
+    <label v-if="props.label" :for="props.id" :class="labelClasses">
+      <slot name="label">{{ props.label }}</slot>
+    </label>
+
+    <div :class="containerClasses">
+      <input
+        ref="fileInput"
+        :id="props.id"
+        type="file"
+        accept="image/*"
+        class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        :aria-invalid="Boolean(props.error)"
+        :aria-describedby="errorId"
+        :aria-label="preview ? props.changeLabel : props.uploadLabel"
+        @change="onSelect"
+        v-bind="inputAttrs"
+      />
+
+      <template v-if="preview">
+        <img :src="preview" alt="Profilbild Vorschau" class="h-full w-full rounded-full object-cover" />
+      </template>
+
+      <template v-else>
+        <slot name="empty">
+          <div class="flex h-full flex-col items-center justify-center px-2 text-center text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" class="mb-2 h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5.121 17.804A7 7 0 0112 15a7 7 0 016.879 2.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
+            <span class="select-none text-xs">{{ props.emptyStateText }}</span>
+          </div>
+        </slot>
+      </template>
+    </div>
+
+    <p v-if="props.error" :id="errorId" :class="errorClasses">
+      <slot name="error">{{ props.error }}</slot>
+    </p>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, useAttrs, watch } from 'vue'
+
+defineOptions({ inheritAttrs: false })
+
+type ClassValue = string | string[] | Record<string, boolean> | undefined
+
+const props = withDefaults(
+  defineProps<{
+    id?: string
+    modelValue: File | null
+    label?: string
+    error?: string
+    maxSize?: number
+    wrapperClass?: ClassValue
+    containerClass?: ClassValue
+    labelClass?: ClassValue
+    errorClass?: ClassValue
+    uploadLabel?: string
+    changeLabel?: string
+    emptyStateText?: string
+  }>(),
+  {
+    id: 'profilePicture',
+    label: 'Profilbild',
+    maxSize: 2 * 1024 * 1024,
+    uploadLabel: 'Bild hochladen',
+    changeLabel: 'Neues Bild auswählen',
+    emptyStateText: 'Klicke, um ein Bild hochzuladen',
+  }
+)
+
+const emit = defineEmits<{
+  (event: 'update:modelValue', value: File | null): void
+  (event: 'error', message: string | undefined): void
+}>()
+
+const attrs = useAttrs()
+const fileInput = ref<HTMLInputElement | null>(null)
+const preview = ref('')
+
+const inputAttrs = computed(() => {
+  const { class: _class, ...rest } = attrs as Record<string, unknown>
+  return rest
+})
+
+const wrapperClasses = computed(() => ['flex flex-col', props.wrapperClass])
+const containerClasses = computed(() => [
+  'relative mx-auto h-32 w-32 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-gray-300 bg-gray-50 transition-colors hover:border-[var(--color-primary)] focus-within:border-[var(--color-primary)]',
+  props.containerClass,
+])
+const labelClasses = computed(() => ['mb-2 block text-sm font-semibold text-gray-800', props.labelClass])
+const errorId = computed(() => (props.error ? `${props.id ?? 'file'}-error` : undefined))
+const errorClasses = computed(() => ['mt-2 text-center text-xs text-red-600', props.errorClass])
+const formattedMaxSize = computed(() => {
+  const sizeMb = props.maxSize / (1024 * 1024)
+  return Number.isInteger(sizeMb) ? String(sizeMb) : sizeMb.toFixed(1)
+})
+
+const resetInput = () => {
+  preview.value = ''
+  if (fileInput.value) fileInput.value.value = ''
+}
+
+const toDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+
+const setError = (message: string | undefined) => {
+  emit('error', message)
+}
+
+const onSelect = async (event: Event) => {
+  const file = (event.target as HTMLInputElement).files?.[0] ?? null
+  if (!file) {
+    emit('update:modelValue', null)
+    resetInput()
+    return
+  }
+
+  if (!file.type.startsWith('image/')) {
+    setError('Nur Bilddateien sind erlaubt.')
+    emit('update:modelValue', null)
+    resetInput()
+    return
+  }
+
+  if (file.size > props.maxSize) {
+    setError(`Bild darf höchstens ${formattedMaxSize.value} MB groß sein.`)
+    emit('update:modelValue', null)
+    resetInput()
+    return
+  }
+
+  try {
+    preview.value = await toDataUrl(file)
+    setError(undefined)
+    emit('update:modelValue', file)
+  } catch (error) {
+    setError('Bild konnte nicht geladen werden.')
+    emit('update:modelValue', null)
+    resetInput()
+  }
+}
+
+watch(
+  () => props.modelValue,
+  async (file) => {
+    if (!file) {
+      resetInput()
+      return
+    }
+
+    try {
+      preview.value = await toDataUrl(file)
+    } catch {
+      resetInput()
+    }
+  },
+  { immediate: true }
+)
+</script>

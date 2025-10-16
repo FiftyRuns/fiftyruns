@@ -28,8 +28,13 @@ model User {
   passwordResetToken            String?
   passwordResetTokenExpiry      DateTime?
   image                         String?
+  bio                           String?
+  profileVisibility             Visibility          @default(protected)
+  notificationsEnabled          Boolean             @default(true)
   runDonationMultiplier         DonationMultiplier?
   runDonationMultiplierAskAgain DateTime?
+  autoDonate                    Boolean             @default(false)
+  donationUpdatedAt             DateTime?
   groupId                       String?
   createdAt                     DateTime?           @default(now())
   garminAccessToken             String?

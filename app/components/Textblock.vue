@@ -17,13 +17,12 @@
                     {{ lead }}
                 </p>
 
-                <!-- Inhalt (reiner Text) -->
+                <!-- Inhalt -->
                 <div :class="contentClasses">
-                    <!-- Default Slot für Fließtext, Listen etc. -->
                     <slot />
                 </div>
 
-                <!-- Optionaler Actions-Slot (z. B. Links/Buttons) -->
+                <!-- Optionaler Actions-Slot -->
                 <div v-if="$slots.actions" :class="actionsClasses">
                     <slot name="actions" />
                 </div>
@@ -42,21 +41,13 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-    /** Überschrift des Abschnitts */
     title: { type: String, default: '' },
-    /** Eyebrow/Kicker über dem Titel (klein in Sekundärfarbe) */
     eyebrow: { type: String, default: '' },
-    /** Untertitel/Lead unter dem Titel */
     lead: { type: String, default: '' },
-    /** Textausrichtung */
     align: { type: String as () => 'left' | 'center', default: 'left' },
-    /** Maximalbreite */
     width: { type: String as () => 'narrow' | 'wide', default: 'narrow' },
-    /** Vertikaler Abstand */
     spacing: { type: String as () => 'sm' | 'md' | 'lg', default: 'md' },
-    /** Hell/Dunkel-Kontrast (nur Textfarben, kein Hintergrund) */
     tone: { type: String as () => 'default' | 'muted', default: 'default' },
-    /** Wrapper-Tag (section/div) */
     tag: { type: String, default: 'section' },
 })
 
@@ -72,7 +63,6 @@ const wrapperClasses = computed(() => {
 })
 
 const baseText = computed(() => (props.tone === 'muted' ? 'text-[#01497e]/80' : 'text-[#01497e]'))
-
 const secondaryText = computed(() => (props.tone === 'muted' ? 'text-[#a2c92d]/80' : 'text-[#a2c92d]'))
 
 const titleClasses = computed(() => [
@@ -93,7 +83,6 @@ const contentClasses = computed(() => [
     '[&>ol]:list-decimal [&>ol]:pl-6',
     '[&>hr]:my-6 [&>hr]:h-0 [&>hr]:border-0 [&>hr]:border-t [&>hr]:border-[var(--divider-color)]'
 ].join(' '))
-
 const actionsClasses = computed(() => [
     'mt-8 flex flex-wrap items-center gap-3',
     props.align === 'center' ? 'justify-center' : ''
@@ -154,7 +143,7 @@ USAGE-BEISPIELE
     <p>Starte jetzt – die Anmeldung dauert nur 2 Minuten.</p>
     <template #actions>
       <NuxtLink
-        to="/registrieren"
+        to="/register"
         class="inline-flex items-center rounded-2xl bg-[#a2c92d] px-5 py-2.5 text-sm font-semibold text-[#01497e] shadow transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#a2c92d]/50"
       >
         Jetzt registrieren

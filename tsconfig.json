@@ -12,14 +12,23 @@
     "allowJs": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./*"],
+      "~~/*": ["./*"],
+      "@/*": ["./app/*"],
+      "@@/*": ["./app/*"],
+      "#imports": ["./.nuxt/imports.d.ts"]
+    }
   },
   "include": [
     ".nuxt",
     "nuxt.config.ts",
     "app.config.ts",
-    "types/**/*.d.ts",
+    "app/types/**/*.d.ts",
     "plugins/**/*.ts",
+    "server/**/*.ts",
     "pages/**/*.vue",
     "components/**/*.vue"
   ],

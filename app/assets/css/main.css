@@ -17,6 +17,6 @@ html, body {
 }
 
 hr {
-  border-color: var(--color-secondary);
+  border-color: var(--color-accent);
   border-width: 1px;
 }

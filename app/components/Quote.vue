@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import { computed, defineProps } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
     author: { type: String, required: true },

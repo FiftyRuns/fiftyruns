@@ -24,7 +24,7 @@
                     </p>
 
                     <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:items-center">
-                        <NuxtLink to="/registrieren"
+                        <NuxtLink to="/register"
                             class="inline-flex items-center rounded-2xl bg-[#a2c92d] px-6 py-3 text-base font-semibold text-[#01497e] shadow transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#a2c92d]/50"
                             aria-label="Jetzt registrieren">
                             Jetzt registrieren
@@ -42,7 +42,7 @@
         </div>
     </section>
     <TextBlock width="wide" align="center" eyebrow="DIE IDEE" title="Mit jeder Einheit etwas Gutes tun"
-        :divider-color="'#a2c92d'" lead="Deine Aktivität schafft Mehrwert – für dich und andere.">
+        lead="Deine Aktivität schafft Mehrwert – für dich und andere.">
         <p>
             Jede registrierte Laufeinheit trägt zu einer Spende an eine wohltätige Organisation (eine Auswahl findest du
             <a href="https://service.bmf.gv.at/service/allg/spenden/show_mast.asp#aw"
@@ -52,23 +52,27 @@
         <hr />
     </TextBlock>
 
+    <TextDivider text="#50runs 🏃" :repeat="5" textColor="var(--color-accent)" />
+
     <TextBlock width="wide" align="center" eyebrow="WIESO 50 LÄUFE?" title="Die Story dahinter"
-        :divider-color="'#a2c92d'" lead="Aus einer spontanen Idee wurde eine Bewegung – 50 Runs.">
+        lead="Aus einer spontanen Idee wurde eine Bewegung – 50 Runs.">
         <p>
             Auf einem meiner Laufausflüge im Herbst 2013 hatte ich die Idee eine bestimmte Anzahl an Läufen im Winter zu
             schaffen. Einfach um ein wenig Sport zu betreiben.
             Und irgendwie kam ich von 50 Läufen auf Fifty Shades of Grey und davon wiederum auf Fifty Runs `till May. 😉
             Wiederum bei einem Laufausflug hat mich ein Freund (Danke Stefan!) dann auf die Idee gebracht die 50 Läufe
             unter einen Charity-Stern zu stellen.
-            Im {{ season }} starten die 50runs bereits zum {{ numberSeasonsWinter }}. Mal. Eine Sommer Edition gab es auch
+            Im {{ season }} starten die 50runs bereits zum {{ numberSeasonsWinter }}. Mal. Eine Sommer Edition gab es
+            auch
             bereits {{ numberSeasonsSummer }} Mal!
         </p>
         <hr />
     </TextBlock>
 
+    <TextDivider text="Mitlaufen? Auf jeden! #GemeinsamStark 💪🏃‍♀️" :repeat="1" textColor="var(--color-primary)" />
+
     <TextBlock width="wide" align="center" eyebrow="BIST DU DABEI?" title="Die Grundidee hinter 50 Runs"
-        :divider-color="'#a2c92d'"
-        lead="Gemeinsam laufen, motivieren und Gutes tun – Schritt für Schritt zur Challenge.">
+        lead=" Gemeinsam laufen, motivieren und Gutes tun – Schritt für Schritt zur Challenge.">
         <p>
             Von {{ startDate }} bis {{ endDate }} versuche ich die 50 Läufe zu schaffen.
             Du machst es mir nach und läufst ebenfalls mindestens 50x.
@@ -76,6 +80,8 @@
         </p>
         <hr />
     </TextBlock>
+
+    <TextDivider text="#CommunityfeiertEs 🚀" :repeat="1" textColor="car(--color-accent)" />
 
     <TextBlock width="wide" align="center" eyebrow="💬 ECHTE STIMMEN VON 50RUNNERS"
         title="Erfolgsstories unserer Community 🌟"
@@ -109,13 +115,13 @@
     <div class="container mx-auto mt-20">
         <Faq />
     </div>
-
 </template>
 
 <script setup lang="ts">
 import TextBlock from '../components/Textblock.vue';
 import QuoteCard from '../components/Quote.vue';
 import Faq from '../components/Faq.vue';
+import TextDivider from '../components/atoms/TextDivider.vue';
 import { useHead } from 'nuxt/app';
 
 /**

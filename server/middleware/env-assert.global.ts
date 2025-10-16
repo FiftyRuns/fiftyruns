@@ -1,5 +1,4 @@
-import { H3Event, createError } from 'h3'
-import { EventHandler } from 'h3'
+import { createError, eventHandler } from 'h3'
 
 function expectedSchema() {
   const vercelEnv = process.env.VERCEL_ENV || (process.env.NODE_ENV === 'production' ? 'production' : 'development')
@@ -15,7 +14,7 @@ function actualSchemaFromDbUrl(url = process.env.DATABASE_URL || '') {
   return tail.split('&')[0]
 }
 
-export default defineEventHandler((event: H3Event) => {
+export default eventHandler(() => {
   const expected = expectedSchema()
   const actual = actualSchemaFromDbUrl()
   if (!actual) return
@@ -27,7 +26,3 @@ export default defineEventHandler((event: H3Event) => {
     throw createError({ statusCode: 500, statusMessage: `Env-Guard: erwartetes Schema "stage", gefunden "${actual}".` })
   }
 })
-function defineEventHandler(handler: (event: H3Event) => void): EventHandler {
-    return handler as EventHandler
-}
-

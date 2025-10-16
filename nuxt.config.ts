@@ -25,10 +25,10 @@ export default defineNuxtConfig({
 
   app: {
     head: {
-      title: "Fifty Runs",
+      title: "50runs",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { name: "description", content: "Fifty Runs – Running & Giving" }
+        { name: "description", content: "50runs" }
       ],
       link: [{ rel: "icon", href: "/favicon.ico" }]
     }

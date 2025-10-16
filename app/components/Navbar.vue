@@ -1,6 +1,6 @@
 <template>
     <nav :class="[
-        'pointer-events-auto fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 sm:px-10 py-4 transition-all duration-300',
+        'pointer-events-auto fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-4 sm:px-10 py-4 transition-all duration-300',
         scrolled ? 'bg-white/80 shadow backdrop-blur-md' : 'bg-white/60 shadow-sm backdrop-blur'
     ]">
         <!-- Logo -->
@@ -15,16 +15,34 @@
                     Leaderboard</NuxtLink>
             </li>
             <li>
-                <NuxtLink to="/beitraege" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
+                <NuxtLink to="/postings" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
                     Beiträge</NuxtLink>
             </li>
-            <li>
-                <NuxtLink to="/anmelden" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
+            <li v-if="!isLoggedIn">
+                <NuxtLink to="/login" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
                     Anmelden</NuxtLink>
             </li>
-            <li>
-                <NuxtLink to="/registrieren" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
+            <li v-if="!isLoggedIn">
+                <NuxtLink to="/register" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
                     Registrieren</NuxtLink>
+            </li>
+            <li v-else>
+                <NuxtLink to="/profile" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
+                    {{ displayName }}
+                </NuxtLink>
+            </li>
+            <li v-if="isLoggedIn">
+                <button
+                    type="button"
+                    class="hover:text-[color:var(--color-accent)] transition cursor-pointer disabled:opacity-60"
+                    :disabled="logoutPending"
+                    @click="handleLogout"
+                >
+                    Abmelden
+                </button>
+            </li>
+            <li v-if="isLoggedIn && logoutError" class="text-sm font-normal text-red-600">
+                {{ logoutError }}
             </li>
         </ul>
 
@@ -54,40 +72,70 @@
             <ul
                 class="flex flex-col items-center justify-center text-center gap-4 py-6 text-[color:var(--color-primary)] font-medium">
                 <li>
-                    <NuxtLink @click.native="close()" to="/leaderboard"
+                    <NuxtLink @click="close()" to="/leaderboard"
                         class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
                         Leaderboard</NuxtLink>
                 </li>
                 <li>
-                    <NuxtLink @click.native="close()" to="/postings"
+                    <NuxtLink @click="close()" to="/postings"
                         class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
                         Beiträge</NuxtLink>
                 </li>
-                <li>
-                    <NuxtLink @click.native="close()" to="/anmelden"
+                <li v-if="!isLoggedIn">
+                    <NuxtLink @click="close()" to="/login"
                         class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
                         Anmelden</NuxtLink>
                 </li>
-                <li>
-                    <NuxtLink @click.native="close()" to="/registrieren"
+                <li v-if="!isLoggedIn">
+                    <NuxtLink @click="close()" to="/register"
                         class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
                         Registrieren</NuxtLink>
                 </li>
+                <li v-else>
+                    <NuxtLink @click="close()" to="/profile"
+                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
+                        {{ displayName }}
+                    </NuxtLink>
+                </li>
+                <li v-if="isLoggedIn">
+                    <button
+                        type="button"
+                        class="block px-3 py-2 text-[color:var(--color-primary)] hover:text-[color:var(--color-accent)] transition cursor-pointer disabled:opacity-60"
+                        :disabled="logoutPending"
+                        @click="handleLogout"
+                    >
+                        Abmelden
+                    </button>
+                </li>
             </ul>
+            <p v-if="logoutError" class="px-6 pb-4 text-sm text-red-600">{{ logoutError }}</p>
         </div>
     </Transition>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
+import { useAuthUser } from '../composables/useAuthUser'
+import { useLogout } from '../composables/useLogout'
 
 const open = ref(false)
 const scrolled = ref(false)
+const authUser = useAuthUser()
+const isLoggedIn = computed(() => Boolean(authUser.value))
+const displayName = computed(() => authUser.value?.name ?? 'Profil')
+const { logout, pending: logoutPending, error: logoutError } = useLogout()
 
 const onScroll = () => { scrolled.value = window.scrollY > 8 }
 const onResize = () => { if (window.innerWidth >= 768) open.value = false }
 const toggle = () => { open.value = !open.value }
 const close = () => { open.value = false }
+
+const handleLogout = async () => {
+    const success = await logout({ redirectTo: '/login?loggedOut=1' })
+    if (success) {
+        close()
+    }
+}
 
 onMounted(() => {
     onScroll()
