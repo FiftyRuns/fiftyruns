@@ -142,7 +142,7 @@ useHead({
         {
             name: 'description',
             content:
-                'Schließe dich #50runs an: Mit einer Challenge fit werden und gleichzeitig Gutes tun. Jetzt registrieren!'
+                'Schließe dich #50runs an: Mit einer Challenge fit werden & gleichzeitig Gutes tun. Jetzt registrieren!'
         }
     ]
 });
