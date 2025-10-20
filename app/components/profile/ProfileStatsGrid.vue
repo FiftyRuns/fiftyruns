@@ -14,8 +14,8 @@
 </template>
 
 <script setup lang="ts">
-import ProfilePanel from '~/components/profile/ProfilePanel.vue'
-import ProfileStatCard from '~/components/profile/ProfileStatCard.vue'
+import ProfilePanel from './ProfilePanel.vue'
+import ProfileStatCard from '../profile/ProfileStatCard.vue'
 
 export type ProfileStat = {
   label: string

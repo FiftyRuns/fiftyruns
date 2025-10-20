@@ -27,8 +27,28 @@
                     Registrieren</NuxtLink>
             </li>
             <li v-else>
-                <NuxtLink to="/profile" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                    {{ displayName }}
+                <NuxtLink
+                    to="/profile"
+                    class="flex items-center gap-3 hover:text-[color:var(--color-accent)] transition cursor-pointer"
+                >
+                    <span
+                        class="relative h-9 w-9 overflow-hidden rounded-full border-2 border-[color:var(--color-primary)]/30 bg-white shadow-sm"
+                        aria-hidden="true"
+                    >
+                        <img
+                            v-if="avatarUrl"
+                            :src="avatarUrl"
+                            :alt="avatarAlt"
+                            class="h-full w-full object-cover"
+                        />
+                        <span
+                            v-else
+                            class="grid h-full w-full place-items-center text-xs font-semibold uppercase text-[color:var(--color-primary)]"
+                        >
+                            {{ avatarInitials }}
+                        </span>
+                    </span>
+                    <span>{{ displayName }}</span>
                 </NuxtLink>
             </li>
             <li v-if="isLoggedIn">
@@ -93,8 +113,25 @@
                 </li>
                 <li v-else>
                     <NuxtLink @click="close()" to="/profile"
-                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                        {{ displayName }}
+                        class="flex items-center justify-center gap-3 px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
+                        <span
+                            class="relative h-10 w-10 overflow-hidden rounded-full border-2 border-[color:var(--color-primary)]/30 bg-white shadow-sm"
+                            aria-hidden="true"
+                        >
+                            <img
+                                v-if="avatarUrl"
+                                :src="avatarUrl"
+                                :alt="avatarAlt"
+                                class="h-full w-full object-cover"
+                            />
+                            <span
+                                v-else
+                                class="grid h-full w-full place-items-center text-sm font-semibold uppercase text-[color:var(--color-primary)]"
+                            >
+                                {{ avatarInitials }}
+                            </span>
+                        </span>
+                        <span>{{ displayName }}</span>
                     </NuxtLink>
                 </li>
                 <li v-if="isLoggedIn">
@@ -123,6 +160,19 @@ const scrolled = ref(false)
 const authUser = useAuthUser()
 const isLoggedIn = computed(() => Boolean(authUser.value))
 const displayName = computed(() => authUser.value?.name ?? 'Profil')
+const avatarUrl = computed(() => authUser.value?.image ?? null)
+const avatarInitials = computed(() => {
+    const name = authUser.value?.name ?? ''
+    return name
+        .split(' ')
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part.charAt(0).toUpperCase())
+        .join('') || 'P'
+})
+const avatarAlt = computed(() =>
+    authUser.value?.name ? `Profilbild von ${authUser.value.name}` : 'Profilbild'
+)
 const { logout, pending: logoutPending, error: logoutError } = useLogout()
 
 const onScroll = () => { scrolled.value = window.scrollY > 8 }

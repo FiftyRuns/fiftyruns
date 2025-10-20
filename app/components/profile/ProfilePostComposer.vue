@@ -1,94 +1,111 @@
 <template>
   <ProfilePanel
-    title="Neuen Beitrag erstellen"
-    description="Teile deine neuesten Runs mit der Community."
+    title="Neuen Lauf posten"
+    description="Foto, Kilometer, Zeit – fertig."
     :bleed="true"
   >
     <form class="space-y-5" @submit.prevent="onSubmit">
-      <div class="grid gap-4 md:grid-cols-[1fr,auto]">
-        <InputField
-          id="post-title"
-          :model-value="form.title"
-          label="Titel (optional)"
-          maxlength="80"
-          @update:model-value="updateField('title', $event)"
-        />
-        <select
-          class="mt-6 h-[42px] rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
-          :value="form.visibility"
-          @change="updateField('visibility', ($event.target as HTMLSelectElement).value as Visibility)"
-        >
-          <option value="public">Öffentlich</option>
-          <option value="protected">Community</option>
-          <option value="private">Nur ich</option>
-        </select>
-      </div>
-
-      <div class="grid gap-4 sm:grid-cols-2">
-        <!-- Kilometer -->
-        <div>
-          <label for="post-distance" class="mb-2 block text-sm font-medium text-gray-700">
-            Distanz (km)
-          </label>
+      <!-- Foto-Upload -->
+      <div class="rounded-2xl border border-dashed border-gray-300 bg-white/60 p-4">
+        <label for="post-photo" class="block cursor-pointer">
+          <div class="flex items-center justify-between gap-3">
+            <div class="text-sm">
+              <p class="font-medium text-gray-900">Foto hinzufügen</p>
+              <p class="text-gray-500">Ein Bild auswählen (optional)</p>
+            </div>
+            <span
+              class="rounded-xl bg-gray-100 px-3 py-1 text-xs text-gray-700"
+              v-if="photoName"
+            >{{ photoName }}</span>
+          </div>
           <input
-            id="post-distance"
-            type="number"
-            inputmode="decimal"
-            min="0"
-            step="0.1"
-            :value="form.distanceKm"
-            class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
-            placeholder="z. B. 8.5"
-            @input="updateField('distanceKm', ($event.target as HTMLInputElement).value)"
+            id="post-photo"
+            type="file"
+            accept="image/*"
+            class="sr-only"
+            @change="onPhotoSelected"
           />
-          <p v-if="distanceError" class="mt-1 text-xs text-red-600">
-            Bitte eine gültige Zahl ≥ 0 eingeben.
-          </p>
-        </div>
+        </label>
 
-        <!-- Zeit -->
-        <div>
-          <label for="post-duration" class="mb-2 block text-sm font-medium text-gray-700">
-            Zeit (hh:mm oder hh:mm:ss)
-          </label>
-          <input
-            id="post-duration"
-            type="text"
-            :value="form.duration"
-            class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
-            placeholder="z. B. 00:45:30"
-            @input="updateField('duration', ($event.target as HTMLInputElement).value)"
-          />
-          <p v-if="timeError" class="mt-1 text-xs text-red-600">
-            Bitte im Format hh:mm oder hh:mm:ss eingeben.
-          </p>
+        <div v-if="photoPreviewUrl" class="mt-3 overflow-hidden rounded-xl border border-gray-200">
+          <img :src="photoPreviewUrl" alt="Ausgewähltes Foto" class="h-56 w-full object-cover" />
         </div>
       </div>
 
+      <!-- Distanz -->
       <div>
-        <label for="post-content" class="mb-2 block text-sm font-medium text-gray-700">Inhalt</label>
+        <label for="post-distance" class="mb-2 block text-sm font-medium text-gray-700">
+          Distanz (km)
+        </label>
+        <input
+          id="post-distance"
+          type="number"
+          inputmode="decimal"
+          min="0"
+          step="0.1"
+          :value="form.distanceKm"
+          class="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+          placeholder="z. B. 8.5"
+          @input="updateField('distanceKm', ($event.target as HTMLInputElement).value)"
+        />
+        <p v-if="distanceError" class="mt-1 text-xs text-red-600">
+          Bitte eine gültige Zahl ≥ 0 eingeben.
+        </p>
+      </div>
+
+      <!-- Zeit (vereinfacht: Stunden / Minuten) -->
+      <div>
+        <label class="mb-2 block text-sm font-medium text-gray-700">
+          Zeit
+        </label>
+        <div class="flex items-center gap-2">
+          <input
+            id="post-hours"
+            type="number"
+            min="0"
+            max="23"
+            :value="hours"
+            class="w-20 rounded-xl border border-gray-300 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            placeholder="hh"
+            @input="updateHours(($event.target as HTMLInputElement).value)"
+          />
+          <span class="text-gray-500">:</span>
+          <input
+            id="post-minutes"
+            type="number"
+            min="0"
+            max="59"
+            :value="minutes"
+            class="w-20 rounded-xl border border-gray-300 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            placeholder="mm"
+            @input="updateMinutes(($event.target as HTMLInputElement).value)"
+          />
+        </div>
+        <p v-if="timeError" class="mt-1 text-xs text-red-600">
+          Bitte Stunden und Minuten korrekt eingeben.
+        </p>
+      </div>
+
+      <!-- Kurzer Text -->
+      <div>
+        <label for="post-content" class="mb-2 block text-sm font-medium text-gray-700">
+          Kurzer Text (optional)
+        </label>
         <textarea
           id="post-content"
-          rows="4"
+          rows="3"
           :value="form.content"
           class="w-full resize-none rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
-          placeholder="Wie verlief dein letzter Lauf? Hast du Tipps oder Eindrücke, die du teilen möchtest?"
-          maxlength="1200"
+          placeholder="Ein Satz zum Lauf …"
+          maxlength="240"
           @input="updateField('content', ($event.target as HTMLTextAreaElement).value)"
         />
-        <div class="mt-1 flex items-center justify-between text-xs text-gray-400">
-          <span>{{ form.content.length }}/1200 Zeichen</span>
-          <button
-            type="button"
-            class="text-[var(--color-accent)] underline-offset-2 hover:underline"
-            @click="$emit('open-media-library')"
-          >
-            Medien hinzufügen
-          </button>
+        <div class="mt-1 text-right text-xs text-gray-400">
+          <span>{{ form.content.length }}/240</span>
         </div>
       </div>
 
-      <!-- kleine Preview-Chips -->
+      <!-- Previewchips -->
       <div class="flex flex-wrap gap-2 text-xs text-gray-600">
         <span
           v-if="normalizedDistanceMeters !== null"
@@ -104,29 +121,38 @@
         </span>
       </div>
 
+      <!-- Aktionen -->
       <div class="flex flex-wrap items-center justify-between gap-3">
-        <p v-if="successMessage" class="text-xs text-green-600">{{ successMessage }}</p>
-        <p v-else-if="errorMessage" class="text-xs text-red-600">{{ errorMessage }}</p>
-        <div class="flex items-center gap-2">
-          <FormButton type="button" variant="secondary" label="Entwurf speichern" @click="$emit('save-draft', form)" />
-          <FormButton
-            type="submit"
-            variant="primary"
-            :loading="loading"
-            :disabled="!canSubmit"
-            label="Beitrag teilen"
-          />
-        </div>
+        <select
+          class="h-[40px] rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+          :value="form.visibility"
+          @change="updateField('visibility', ($event.target as HTMLSelectElement).value as Visibility)"
+        >
+          <option value="public">Öffentlich</option>
+          <option value="protected">Community</option>
+          <option value="private">Nur ich</option>
+        </select>
+
+        <FormButton
+          type="submit"
+          variant="primary"
+          :loading="loading"
+          :disabled="!canSubmit"
+          label="Teilen"
+        />
       </div>
+
+      <p v-if="successMessage" class="text-xs text-green-600">{{ successMessage }}</p>
+      <p v-else-if="errorMessage" class="text-xs text-red-600">{{ errorMessage }}</p>
     </form>
   </ProfilePanel>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import InputField from '../molecules/form/InputField.vue'
-import ProfilePanel from '../profile/ProfilePanel.vue'
+import { computed, ref } from 'vue'
+import ProfilePanel from './ProfilePanel.vue'
 import FormButton from '../atoms/form/FormButton.vue'
+import { upload } from '@vercel/blob/client'
 
 type Visibility = 'public' | 'protected' | 'private'
 
@@ -144,6 +170,8 @@ export type PostComposerSubmitPayload =
   PostComposerForm & {
     distanceInMeters: number | null
     durationInSeconds: number | null
+    photoFile?: File | null
+    imageUrl?: string | null
   }
 
 const props = withDefaults(
@@ -159,30 +187,67 @@ const props = withDefaults(
 const emit = defineEmits<{
   (e: 'update:modelValue', value: PostComposerForm): void
   (e: 'submit', value: PostComposerSubmitPayload): void
-  (e: 'save-draft', value: PostComposerForm): void
-  (e: 'open-media-library'): void
 }>()
 
 const form = computed(() => props.modelValue)
 
-/** Helpers */
+/** Foto-Upload **/
+const imageUrl = ref<string|null>(null)
+const photoFile = ref<File | null>(null)
+const photoPreviewUrl = ref<string | null>(null)
+const photoName = computed(() => photoFile.value?.name ?? '')
+
+function onPhotoSelected(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0] ?? null
+  photoFile.value = file ?? null
+
+  if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
+  photoPreviewUrl.value = file ? URL.createObjectURL(file) : null
+}
+
+/** Distanz **/
 function updateField<Key extends keyof PostComposerForm>(key: Key, value: PostComposerForm[Key]) {
   emit('update:modelValue', { ...form.value, [key]: value })
 }
 
 const distanceError = computed(() => {
   const v = form.value.distanceKm?.trim()
-  if (!v) return false
+  if (!v) return true // Pflichtfeld → leer ist Fehler
   const num = Number(v.replace(',', '.'))
   return !Number.isFinite(num) || num < 0
 })
 
+/** Zeit **/
+const hours = ref('')
+const minutes = ref('')
+
+function updateHours(v: string) {
+  hours.value = v
+  updateField('duration', `${(v || '0').padStart(2, '0')}:${(minutes.value || '0').padStart(2, '0')}`)
+}
+
+function updateMinutes(v: string) {
+  minutes.value = v
+  updateField('duration', `${(hours.value || '0').padStart(2, '0')}:${(v || '0').padStart(2, '0')}`)
+}
+
 const timeError = computed(() => {
-  const v = form.value.duration?.trim()
-  if (!v) return false
-  return !/^\d{1,2}:[0-5]\d(?::[0-5]\d)?$/.test(v)
+  // Pflichtfelder → beide müssen gesetzt und gültig sein
+  if (hours.value === '' || minutes.value === '') return true
+  const h = Number(hours.value)
+  const m = Number(minutes.value)
+  return (
+    !Number.isFinite(h) ||
+    !Number.isFinite(m) ||
+    h < 0 ||
+    h > 23 ||
+    m < 0 ||
+    m > 59
+  )
 })
 
+/** Normalisierte Werte **/
 const normalizedDistanceMeters = computed<number | null>(() => {
   const v = form.value.distanceKm?.trim()
   if (!v) return null
@@ -192,17 +257,17 @@ const normalizedDistanceMeters = computed<number | null>(() => {
 })
 
 const normalizedDurationSeconds = computed<number | null>(() => {
-  const v = form.value.duration?.trim()
-  if (!v) return null
-  const m = v.match(/^(\d{1,2}):([0-5]\d)(?::([0-5]\d))?$/)
-  if (!m) return null
-  const h = parseInt(m[1], 10)
-  const min = parseInt(m[2], 10)
-  const s = m[3] ? parseInt(m[3], 10) : 0
-  return h * 3600 + min * 60 + s
+  if (timeError.value) return null
+  const h = Number(hours.value)
+  const m = Number(minutes.value)
+  return h * 3600 + m * 60
 })
 
-const canSubmit = computed(() => !distanceError.value && !timeError.value && form.value.content.trim().length > 0)
+/** Validierung & Submit **/
+const canSubmit = computed(() =>
+  !distanceError.value &&
+  !timeError.value
+)
 
 function formatSeconds(total: number) {
   const s = Math.max(0, Math.floor(total))
@@ -212,11 +277,30 @@ function formatSeconds(total: number) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
 }
 
-function onSubmit() {
+
+async function onSubmit() {
+  // 1) validieren wie gehabt
+  if (!canSubmit.value) return
+
+  // 2) falls Foto vorhanden: direkt zu Vercel Blob hochladen
+  if (photoFile.value) {
+    const res = await upload(photoFile.value.name, photoFile.value, {
+      access: 'public',
+      handleUploadUrl: '/api/blob.upload',
+      multipart: true,
+    })
+    imageUrl.value = res.url
+  } else {
+    imageUrl.value = null
+  }
+
+  // 3) an Parent emittieren – jetzt inkl. imageUrl
   emit('submit', {
     ...form.value,
     distanceInMeters: normalizedDistanceMeters.value,
     durationInSeconds: normalizedDurationSeconds.value,
+    photoFile: null,              
+    imageUrl: imageUrl.value,     
   })
 }
 </script>

@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,14 +8,48 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Group {
-  id     String @id @default(uuid())
-  name   String @unique
-  nameId String @unique
-  users  User[]
+/* ===================== Enums ===================== */
 
-  // OPTIONAL: Falls es gruppenspezifische Challenges geben soll
+enum Visibility {
+  public
+  protected
+  private
+}
+
+enum DonationMultiplier {
+  x1
+  x2
+  x5
+  x10
+}
+
+enum ChallengeGoalType {
+  DISTANCE
+  TIME
+  RUNS
+}
+
+enum GroupRole {
+  MEMBER
+  ADMIN
+}
+
+/* ===================== Core Models ===================== */
+
+model Group {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  nameId    String   @unique
+
+  description String?
+  location    String?
+
+  users     User[]   @relation("UsersInGroup")
+
   challenges Challenge[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model User {
@@ -35,27 +70,34 @@ model User {
   runDonationMultiplierAskAgain DateTime?
   autoDonate                    Boolean             @default(false)
   donationUpdatedAt             DateTime?
-  groupId                       String?
-  createdAt                     DateTime?           @default(now())
-  garminAccessToken             String?
-  garminAccessTokenSecret       String?
-  comments                      Comment[]
-  GarminAuth                    GarminAuth?
-  postings                      Posting[]
-  reactions                     Reaction[]
-  readNotifications             ReadNotification[]
-  runningStatistic              RunningStatistic?
-  sessions                      Session[]
-  group                         Group?              @relation(fields: [groupId], references: [id])
 
-  // NEU: Challenge-Beziehungen
-  challengesAdmin   Challenge[]        @relation("ChallengeAdmin")
-  challengeMembers  ChallengeMember[]
-  challengeScores   ChallengeHighscore[]
+  // Gruppe ist optional; genau eine erlaubt
+  groupId   String?
+  group     Group?              @relation("UsersInGroup", fields: [groupId], references: [id], onDelete: SetNull)
+  groupRole GroupRole?          @default(MEMBER)
+
+  createdAt DateTime?           @default(now())
+
+  garminAccessToken        String?
+  garminAccessTokenSecret  String?
+
+  comments          Comment[]
+  GarminAuth        GarminAuth?
+  postings          Posting[]
+  reactions         Reaction[]
+  readNotifications ReadNotification[]
+  runningStatistic  RunningStatistic?
+  sessions          Session[]
+
+  // NEU: Challenge-Beziehungen (wie gehabt)
+  challengesAdmin  Challenge[]          @relation("ChallengeAdmin")
+  challengeMembers ChallengeMember[]
+  challengeScores  ChallengeHighscore[]
 
   @@unique([nameId, email])
   @@index([emailVerificationToken])
   @@index([runDonationMultiplierAskAgain, runDonationMultiplier])
+  @@index([groupId])
 }
 
 model GarminAuth {
@@ -71,7 +113,7 @@ model Session {
   userId    String
   createdAt DateTime @default(now())
   expiresAt DateTime
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Posting {
@@ -83,6 +125,7 @@ model Posting {
   visibility        Visibility       @default(protected)
   runningExerciseId String?
   season            String
+
   comments          Comment[]
   donation          Donation?
   user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -121,12 +164,12 @@ model Donation {
 }
 
 model RunningExercise {
-  id                String  @id @default(uuid())
+  id                String   @id @default(uuid())
   distanceInMeters  Int
   durationInSeconds Int
-  postingId         String  @unique
-  garminActivityId  String? @unique
-  posting           Posting @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  postingId         String   @unique
+  garminActivityId  String?  @unique
+  posting           Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
   createdAt         DateTime @default(now())
 }
 
@@ -150,34 +193,34 @@ model ReadNotification {
   @@unique([userId, notificationId])
 }
 
+/* ===================== Challenges ===================== */
+
 model Challenge {
   id                  String              @id @default(uuid())
   name                String
   nameId              String              @unique
-  description         String?             // Erklärungstext
-  prize               String?             // Gewinn/Beschreibung des Preises
+  description         String?
+  prize               String?
   image               String?
   startAt             DateTime
   endAt               DateTime
 
   goalType            ChallengeGoalType
-  goalDistanceMeters  Int?                
-  goalDurationSeconds Int?                
-  goalRuns            Int?                
+  goalDistanceMeters  Int?
+  goalDurationSeconds Int?
+  goalRuns            Int?
 
   minDistanceMeters   Int?
   minDurationSeconds  Int?
 
   visibility          Visibility          @default(public)
-  sponsorLogos        String[]          
-
+  sponsorLogos        String[]
 
   adminUserId         String
   admin               User                @relation("ChallengeAdmin", fields: [adminUserId], references: [id], onDelete: Cascade)
 
   groupId             String?
   group               Group?              @relation(fields: [groupId], references: [id], onDelete: SetNull)
-
 
   members             ChallengeMember[]
   highscores          ChallengeHighscore[]
@@ -207,12 +250,10 @@ model ChallengeHighscore {
   challengeId         String
   userId              String
 
-  // aggregierte Werte innerhalb der Challenge
   runsCount           Int        @default(0)
   distanceInMeters    Int        @default(0)
   durationInSeconds   Int        @default(0)
 
-  // abgeleiteter Fortschritt in Prozent (0–100, als Int gespeichert)
   progressPercent     Int        @default(0)
 
   updatedAt           DateTime   @updatedAt
@@ -223,24 +264,4 @@ model ChallengeHighscore {
 
   @@unique([challengeId, userId])
   @@index([progressPercent])
-}
-
-enum Visibility {
-  public
-  protected
-  private
-}
-
-enum DonationMultiplier {
-  x1
-  x2
-  x5
-  x10
-}
-
-// Zieltypen einer Challenge
-enum ChallengeGoalType {
-  DISTANCE
-  TIME
-  RUNS
 }

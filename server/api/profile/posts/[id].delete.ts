@@ -1,6 +1,7 @@
+// server/api/profile/posts/[id].delete.ts
 import { createError, eventHandler, getCookie, getHeader } from 'h3'
 import { prisma } from '../../../utils/prisma'
-import { resolveSession } from '../../../utils/session' 
+import { resolveSession } from '../../../utils/session'
 
 function assertCsrf(event: Parameters<typeof getHeader>[0]) {
   const header = getHeader(event, 'x-csrf-token') || ''
@@ -18,21 +19,51 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 401, message: 'Nicht angemeldet.' })
   }
 
-  const id = event.context.params?.id
+  const id = event.context.params?.id as string | undefined
   if (!id) {
     throw createError({ statusCode: 400, message: 'Post-ID fehlt.' })
   }
 
-  const post = await prisma.posting.findUnique({
-    where: { id },
-    select: { userId: true },
+  // Post inkl. Laufdaten laden & Ownership prüfen
+  const post = await prisma.posting.findFirst({
+    where: { id, userId: session.user.id },
+    select: {
+      id: true,
+      userId: true,
+      runningExercise: {
+        select: { distanceInMeters: true, durationInSeconds: true },
+      },
+    },
   })
 
-  if (!post || post.userId !== session.user.id) {
+  if (!post) {
     throw createError({ statusCode: 404, message: 'Beitrag nicht gefunden.' })
   }
 
-  await prisma.posting.delete({ where: { id } })
+  const hadRun = !!post.runningExercise
+  const dist = post.runningExercise?.distanceInMeters ?? 0
+  const dur  = post.runningExercise?.durationInSeconds ?? 0
+
+  await prisma.$transaction(async (tx) => {
+    // 1) Beitrag löschen (durch onDelete: Cascade werden RunningExercise, Comments, Reactions mitentfernt)
+    await tx.posting.delete({ where: { id: post.id } })
+
+    // 2) Statistik zurückrechnen, falls Laufdaten existierten
+    if (hadRun) {
+      const stat = await tx.runningStatistic.findUnique({ where: { userId: post.userId } })
+      if (stat) {
+        await tx.runningStatistic.update({
+          where: { userId: post.userId },
+          data: {
+            numberOfRuns: Math.max(0, stat.numberOfRuns - 1),
+            distanceInMeters: Math.max(0, stat.distanceInMeters - dist),
+            durationInSeconds: Math.max(0, stat.durationInSeconds - dur),
+          },
+        })
+      }
+      // Falls keine Statistik existiert, nichts zu tun (kein negatives Upsert).
+    }
+  })
 
   return { ok: true }
 })

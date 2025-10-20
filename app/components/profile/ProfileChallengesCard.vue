@@ -38,7 +38,7 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import ProfilePanel from '../profile/ProfilePanel.vue'
+import ProfilePanel from '../profile/UserPostsList.vue'
 import FormButton from '../atoms/form/FormButton.vue'
 
 export type ChallengeSummary = {

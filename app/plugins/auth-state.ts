@@ -1,5 +1,7 @@
-import { useRequestEvent, useNuxtApp } from '#imports'
-import type { AuthUser } from '~/types/auth'
+import { useRequestEvent, useNuxtApp, defineNuxtPlugin } from 'nuxt/app'
+import type { AuthUser } from '../types/auth'
+import { useAuthUser } from '../composables/useAuthUser'
+import { useFetch } from 'nuxt/app'
 
 export default defineNuxtPlugin(async () => {
   const userState = useAuthUser()

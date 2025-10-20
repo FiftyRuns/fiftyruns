@@ -1,52 +1,7 @@
-<template>
-  <div :class="wrapperClasses">
-    <label v-if="props.label" :for="props.id" :class="labelClasses">
-      <slot name="label">{{ props.label }}</slot>
-    </label>
-
-    <div :class="containerClasses">
-      <input
-        ref="fileInput"
-        :id="props.id"
-        type="file"
-        accept="image/*"
-        class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-        :aria-invalid="Boolean(props.error)"
-        :aria-describedby="errorId"
-        :aria-label="preview ? props.changeLabel : props.uploadLabel"
-        @change="onSelect"
-        v-bind="inputAttrs"
-      />
-
-      <template v-if="preview">
-        <img :src="preview" alt="Profilbild Vorschau" class="h-full w-full rounded-full object-cover" />
-      </template>
-
-      <template v-else>
-        <slot name="empty">
-          <div class="flex h-full flex-col items-center justify-center px-2 text-center text-gray-400">
-            <svg xmlns="http://www.w3.org/2000/svg" class="mb-2 h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M5.121 17.804A7 7 0 0112 15a7 7 0 016.879 2.804M15 10a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-            <span class="select-none text-xs">{{ props.emptyStateText }}</span>
-          </div>
-        </slot>
-      </template>
-    </div>
-
-    <p v-if="props.error" :id="errorId" :class="errorClasses">
-      <slot name="error">{{ props.error }}</slot>
-    </p>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed, ref, useAttrs, watch } from 'vue'
+import { upload } from '@vercel/blob/client' // ← neu
+import { useCookie } from 'nuxt/app'
 
 defineOptions({ inheritAttrs: false })
 
@@ -56,6 +11,11 @@ const props = withDefaults(
   defineProps<{
     id?: string
     modelValue: File | null
+    imageUrl?: string | null              
+    autoUpload?: boolean                   
+    handleUploadUrl?: string             
+    access?: 'public'
+    csrfToken?: string | null
     label?: string
     error?: string
     maxSize?: number
@@ -69,6 +29,11 @@ const props = withDefaults(
   }>(),
   {
     id: 'profilePicture',
+    imageUrl: null,
+    autoUpload: true,
+    handleUploadUrl: '/api/blob.upload',
+    access: 'public',
+    csrfToken: null,
     label: 'Profilbild',
     maxSize: 2 * 1024 * 1024,
     uploadLabel: 'Bild hochladen',
@@ -78,13 +43,18 @@ const props = withDefaults(
 )
 
 const emit = defineEmits<{
-  (event: 'update:modelValue', value: File | null): void
-  (event: 'error', message: string | undefined): void
+  (e: 'update:modelValue', v: File | null): void
+  (e: 'update:imageUrl', v: string | null): void
+  (e: 'uploaded', url: string): void           
+  (e: 'error', message: string | undefined): void
 }>()
 
 const attrs = useAttrs()
 const fileInput = ref<HTMLInputElement | null>(null)
 const preview = ref('')
+const uploading = ref(false)
+const csrfCookie = useCookie<string | null>('csrf_token')
+const csrfHeader = computed(() => props.csrfToken ?? csrfCookie.value ?? null)
 
 const inputAttrs = computed(() => {
   const { class: _class, ...rest } = attrs as Record<string, unknown>
@@ -104,7 +74,7 @@ const formattedMaxSize = computed(() => {
   return Number.isInteger(sizeMb) ? String(sizeMb) : sizeMb.toFixed(1)
 })
 
-const resetInput = () => {
+function resetInput() {
   preview.value = ''
   if (fileInput.value) fileInput.value.value = ''
 }
@@ -117,11 +87,11 @@ const toDataUrl = (file: File) =>
     reader.readAsDataURL(file)
   })
 
-const setError = (message: string | undefined) => {
+function setError(message: string | undefined) {
   emit('error', message)
 }
 
-const onSelect = async (event: Event) => {
+async function onSelect(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0] ?? null
   if (!file) {
     emit('update:modelValue', null)
@@ -147,8 +117,24 @@ const onSelect = async (event: Event) => {
     preview.value = await toDataUrl(file)
     setError(undefined)
     emit('update:modelValue', file)
-  } catch (error) {
-    setError('Bild konnte nicht geladen werden.')
+
+    if (props.autoUpload && props.handleUploadUrl) {
+      uploading.value = true
+      try {
+        const res = await upload(file.name, file, {
+          access: props.access,
+          handleUploadUrl: props.handleUploadUrl,
+          multipart: true,
+          ...(csrfHeader.value ? { headers: { 'x-csrf-token': csrfHeader.value } } : {}),
+        })
+        emit('uploaded', res.url)           // Event
+        emit('update:imageUrl', res.url)    // v-model:imageUrl
+      } finally {
+        uploading.value = false
+      }
+    }
+  } catch {
+    setError('Bild konnte nicht geladen/hochgeladen werden.')
     emit('update:modelValue', null)
     resetInput()
   }
@@ -161,7 +147,6 @@ watch(
       resetInput()
       return
     }
-
     try {
       preview.value = await toDataUrl(file)
     } catch {
@@ -171,3 +156,50 @@ watch(
   { immediate: true }
 )
 </script>
+
+<template>
+  <div :class="wrapperClasses">
+    <label v-if="props.label" :for="props.id" :class="labelClasses">
+      <slot name="label">{{ props.label }}</slot>
+    </label>
+
+    <div :class="containerClasses">
+      <input
+        ref="fileInput"
+        :id="props.id"
+        type="file"
+        accept="image/*"
+        class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+        :aria-invalid="Boolean(props.error)"
+        :aria-describedby="errorId"
+        :aria-label="preview ? props.changeLabel : props.uploadLabel"
+        @change="onSelect"
+        v-bind="inputAttrs"
+      />
+
+      <template v-if="preview">
+        <img :src="preview" alt="Profilbild Vorschau" class="h-full w-full rounded-full object-cover opacity-100" />
+        <div v-if="uploading" class="absolute inset-0 grid place-items-center bg-black/30 text-white text-xs">
+          lädt …
+        </div>
+      </template>
+
+      <template v-else>
+        <slot name="empty">
+          <div class="flex h-full flex-col items-center justify-center px-2 text-center text-gray-400">
+            <!-- Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="mb-2 h-10 w-10" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M5.121 17.804A7 7 0 0112 15a7 7 0 016.879 2.804M15 10a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            <span class="select-none text-xs">{{ props.emptyStateText }}</span>
+          </div>
+        </slot>
+      </template>
+    </div>
+
+    <p v-if="props.error" :id="errorId" :class="errorClasses">
+      <slot name="error">{{ props.error }}</slot>
+    </p>
+  </div>
+</template>

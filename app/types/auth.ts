@@ -4,4 +4,5 @@ export type AuthUser = {
   nameId: string
   email: string
   bio: string
+  image: string | null
 }

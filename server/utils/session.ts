@@ -80,6 +80,7 @@ export async function resolveSession(event: H3Event): Promise<ResolvedSession | 
     nameId: session.user.nameId,
     email: session.user.email,
     bio: session.user.bio || '',
+    image: session.user.image ?? null,
   }
 
   return { token, user, expiresAt: session.expiresAt }

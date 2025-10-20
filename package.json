@@ -24,6 +24,7 @@
     "@prisma/client": "^6.17.1",
     "@supabase/supabase-js": "^2.75.0",
     "@unhead/vue": "^2.0.19",
+    "@vercel/blob": "^2.0.0",
     "@vueuse/integrations": "^13.9.0",
     "argon2": "^0.44.0",
     "better-sqlite3": "^12.4.1",

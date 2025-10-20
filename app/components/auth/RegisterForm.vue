@@ -9,104 +9,57 @@
           <p class="mt-2 text-sm text-gray-600">Registriere dich, um 50runs zu nutzen.</p>
         </div>
 
-        <div
-          v-if="serverError"
-          class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-        >
+        <div v-if="serverError" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
           {{ serverError }}
         </div>
-        <div
-          v-if="serverSuccess"
-          class="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700"
-        >
+        <div v-if="serverSuccess"
+          class="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
           {{ serverSuccess }}
         </div>
 
         <form @submit.prevent="onSubmit" novalidate>
           <div class="space-y-5">
-            <ProfileImagePicker
-              v-model="form.profilePicture"
-              :error="errors.profilePicture"
+            <ProfileImagePicker v-model="form.profilePicture" v-model:imageUrl="form.avatarUrl"
               :max-size="MAX_PROFILE_IMAGE_SIZE"
-              @error="(message) => (errors.profilePicture = message)"
+              :auto-upload="true"
+              handle-upload-url="/api/blob.upload"
+              :csrf-token="csrfToken"
+              @error="(m) => (errors.profilePicture = m)"
             />
 
-            <InputField
-              id="name"
-              v-model.trim="form.name"
-              label="Benutzername"
-              autocomplete="username"
-              inputmode="text"
-              maxlength="32"
-              :error="errors.name"
-              hint='Nur Kleinbuchstaben, Zahlen und Bindestriche. Beispiel: "max-mustermann"'
-              @blur="syncNameIdFromName"
-            />
+              <InputField id="name" v-model.trim="form.name" label="Benutzername" autocomplete="username"
+                inputmode="text" maxlength="32" :error="errors.name"
+                hint='Nur Kleinbuchstaben, Zahlen und Bindestriche. Beispiel: "max-mustermann"'
+                @blur="syncNameIdFromName" />
 
-            <InputField
-              id="email"
-              v-model.trim="form.email"
-              label="E-Mail"
-              type="email"
-              inputmode="email"
-              autocomplete="email"
-              maxlength="100"
-              :error="errors.email"
-            />
+              <InputField id="email" v-model.trim="form.email" label="E-Mail" type="email" inputmode="email"
+                autocomplete="email" maxlength="100" :error="errors.email" />
 
-            <InputField
-              id="password"
-              v-model="form.password"
-              :type="showPassword ? 'text' : 'password'"
-              label="Passwort"
-              autocomplete="new-password"
-              minlength="8"
-              maxlength="72"
-              :error="errors.password"
-              hint="Mind. 8 Zeichen, Groß-/Kleinbuchstaben, Zahl und Sonderzeichen."
-            >
-              <template #trailing>
-                <button
-                  type="button"
-                  @click="togglePasswordVisibility"
-                  class="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-900 focus:outline-none"
-                  :aria-label="showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'"
-                >
-                  <Icon :icon="showPassword ? 'ph:eye-slash' : 'ph:eye'" class="h-5 w-5" />
-                </button>
-              </template>
-            </InputField>
+              <InputField id="password" v-model="form.password" :type="showPassword ? 'text' : 'password'"
+                label="Passwort" autocomplete="new-password" minlength="8" maxlength="72" :error="errors.password"
+                hint="Mind. 8 Zeichen, Groß-/Kleinbuchstaben, Zahl und Sonderzeichen.">
+                <template #trailing>
+                  <button type="button" @click="togglePasswordVisibility"
+                    class="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-900 focus:outline-none"
+                    :aria-label="showPassword ? 'Passwort verbergen' : 'Passwort anzeigen'">
+                    <Icon :icon="showPassword ? 'ph:eye-slash' : 'ph:eye'" class="h-5 w-5" />
+                  </button>
+                </template>
+              </InputField>
 
-            <InputField
-              id="passwordConfirm"
-              v-model="form.passwordConfirm"
-              :type="showPassword ? 'text' : 'password'"
-              label="Passwort wiederholen"
-              autocomplete="new-password"
-              minlength="8"
-              maxlength="72"
-              :error="errors.passwordConfirm"
-            />
+              <InputField id="passwordConfirm" v-model="form.passwordConfirm" :type="showPassword ? 'text' : 'password'"
+                label="Passwort wiederholen" autocomplete="new-password" minlength="8" maxlength="72"
+                :error="errors.passwordConfirm" />
 
-            <CheckboxField
-              id="tos"
-              v-model="form.accept"
-              :error="errors.accept"
-              error-class="-mt-2 text-xs text-red-600"
-            >
-              Ich akzeptiere die Nutzungsbedingungen und Datenschutzbestimmungen.
-            </CheckboxField>
+              <CheckboxField id="tos" v-model="form.accept" :error="errors.accept"
+                error-class="-mt-2 text-xs text-red-600">
+                Ich akzeptiere die Nutzungsbedingungen und Datenschutzbestimmungen.
+              </CheckboxField>
           </div>
 
           <div class="mt-6">
-            <FormButton
-              type="submit"
-              variant="primary"
-              :loading="pending"
-              loading-label="Wird erstellt…"
-              label="Registrieren"
-              block
-            />
+            <FormButton type="submit" variant="primary" :loading="pending" loading-label="Wird erstellt…"
+              label="Registrieren" block />
           </div>
 
           <p class="mt-6 text-center text-sm" :style="{ color: 'var(--color-accent)' }">
@@ -120,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { reactive, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import FormButton from '../atoms/form/FormButton.vue'
 import CheckboxField from '../molecules/form/CheckboxField.vue'
@@ -137,6 +90,7 @@ const form = reactive({
   passwordConfirm: '',
   accept: false,
   profilePicture: null as File | null,
+  avatarUrl: null as string | null, 
 })
 
 const errors = reactive<Record<string, string | undefined>>({})
@@ -219,6 +173,10 @@ const fetchCsrf = async () => {
   csrfToken.value = token
 }
 
+if (process.client) {
+  fetchCsrf()
+}
+
 const onSubmit = async () => {
   serverError.value = ''
   serverSuccess.value = ''
@@ -237,6 +195,7 @@ const onSubmit = async () => {
         nameId: form.nameId,
         email: form.email,
         password: form.password,
+        avatarUrl: form.avatarUrl,
       },
     })
     serverSuccess.value = 'Registrierung erfolgreich. Bitte E-Mail prüfen und Konto bestätigen.'
@@ -247,7 +206,4 @@ const onSubmit = async () => {
   }
 }
 
-onMounted(() => {
-  fetchCsrf()
-})
 </script>

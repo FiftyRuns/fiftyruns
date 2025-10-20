@@ -104,6 +104,8 @@ export default eventHandler(async (event) => {
       name: user.name,
       nameId: user.nameId,
       email: user.email,
+      bio: user.bio || '',
+      image: user.image ?? null,
     },
     expiresAt: session.expiresAt,
   }
