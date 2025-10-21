@@ -30,8 +30,12 @@
           class="rounded-3xl border border-black/5 bg-white/90 p-6 shadow-sm backdrop-blur transition hover:-translate-y-1 hover:shadow-lg"
         >
           <header class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div class="flex items-center gap-4">
-              <span class="relative h-12 w-12 overflow-hidden rounded-full border border-black/10 bg-gray-100">
+            <NuxtLink
+              :to="profilePath(post.author.nameId)"
+              class="group flex items-center gap-4 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
+              :aria-label="`Profil von ${post.author.name} öffnen`"
+            >
+              <span class="relative h-12 w-12 overflow-hidden rounded-full border border-black/10 bg-gray-100 transition group-hover:scale-105">
                 <NuxtImg
                   v-if="post.author.image"
                   :src="post.author.image"
@@ -48,12 +52,12 @@
                 </span>
               </span>
               <div>
-                <p class="text-base font-semibold text-gray-900">
+                <span class="text-base font-semibold text-gray-900 transition group-hover:text-[var(--color-primary)]">
                   {{ post.author.name }}
-                </p>
+                </span>
                 <p class="text-xs text-gray-500">{{ formatDate(post.createdAt) }}</p>
               </div>
-            </div>
+            </NuxtLink>
 
             <span
               class="inline-flex h-8 items-center justify-center rounded-full border border-black/10 bg-gray-50 px-3 text-xs font-medium uppercase tracking-wide text-gray-600"
@@ -124,7 +128,11 @@
                 class="rounded-2xl border border-gray-100 bg-gray-50/80 px-4 py-3"
               >
                 <div class="flex items-start gap-3">
-                  <span class="mt-1 h-8 w-8 shrink-0 overflow-hidden rounded-full border border-black/5 bg-white">
+                  <NuxtLink
+                    :to="profilePath(comment.author.nameId)"
+                    class="mt-1 h-8 w-8 shrink-0 overflow-hidden rounded-full border border-black/5 bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--color-primary)]"
+                    :aria-label="`Profil von ${comment.author.name} öffnen`"
+                  >
                     <NuxtImg
                       v-if="comment.author.image"
                       :src="comment.author.image"
@@ -139,10 +147,16 @@
                     >
                       {{ initials(comment.author.name) }}
                     </span>
-                  </span>
+                  </NuxtLink>
                   <div class="flex-1">
                     <div class="flex items-center justify-between text-xs text-gray-500">
-                      <span class="font-medium text-gray-700">{{ comment.author.name }}</span>
+                      <NuxtLink
+                        :to="profilePath(comment.author.nameId)"
+                        class="font-medium text-gray-700 transition hover:text-[var(--color-primary)] focus-visible:text-[var(--color-primary)] focus-visible:outline-none"
+                        :aria-label="`Profil von ${comment.author.name} öffnen`"
+                      >
+                        {{ comment.author.name }}
+                      </NuxtLink>
                       <span>{{ formatDate(comment.createdAt) }}</span>
                     </div>
                     <p class="mt-1 text-sm text-gray-700">{{ comment.text }}</p>
@@ -209,6 +223,10 @@ function formatDate(iso: string) {
   return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso))
 }
 
+function profilePath(nameId: string) {
+  return `/profile/${encodeURIComponent(nameId)}`
+}
+
 function formatDistance(meters: number | null) {
   if (meters == null) return '–'
   const km = meters / 1000
@@ -230,7 +248,7 @@ function initials(name: string) {
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part.charAt(0).toUpperCase())
-    .join('')
+    .join('') || '•'
 }
 
 function visibilityLabel(visibility: 'public' | 'protected') {
