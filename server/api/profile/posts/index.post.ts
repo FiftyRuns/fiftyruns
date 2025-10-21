@@ -1,7 +1,8 @@
 // server/api/posts/index.post.ts
-import { createError, eventHandler, getCookie, getHeader, readBody } from 'h3'
+import { createError, eventHandler, readBody } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
+import { assertCsrf } from '../../../utils/csrf'
 
 type CreatePostBody = {
   content: string
@@ -9,14 +10,6 @@ type CreatePostBody = {
   image?: string | null
   distanceInMeters?: number | null
   durationInSeconds?: number | null
-}
-
-function assertCsrf(event: Parameters<typeof getHeader>[0]) {
-  const header = getHeader(event, 'x-csrf-token') || ''
-  const cookie = getCookie(event, 'csrf_token') || ''
-  if (!header || !cookie || header !== cookie) {
-    throw createError({ statusCode: 403, message: 'CSRF-Prüfung fehlgeschlagen.' })
-  }
 }
 
 export default eventHandler(async (event) => {

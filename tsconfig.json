@@ -18,22 +18,16 @@
       "~/*": ["./*"],
       "~~/*": ["./*"],
       "@/*": ["./app/*"],
-      "@@/*": ["./app/*"],
-      "#imports": ["./.nuxt/imports.d.ts"]
+      "@@/*": ["./app/*"]
     }
   },
   "include": [
     ".nuxt",
     "nuxt.config.ts",
     "app.config.ts",
-    "app/types/**/*.d.ts",
-    "plugins/**/*.ts",
-    "server/**/*.ts",
-    "pages/**/*.vue",
-    "components/**/*.vue"
+    "app/**/*.ts",
+    "app/**/*.vue",
+    "server/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  "exclude": ["node_modules", "dist"]
 }

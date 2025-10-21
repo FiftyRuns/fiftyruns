@@ -4,7 +4,7 @@
       <article
         v-for="post in postsAugmented"
         :key="post.id"
-        class="group rounded-2xl border border-black/5 bg-white/70 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+        class="group rounded-2xl border border-[var(--color-accent)]/15 bg-white/80 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
       >
         <header class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -31,20 +31,30 @@
 
             <!-- Reaktionen / Kommentare -->
             <span class="inline-flex items-center gap-1 text-gray-500">
-              <Icon icon="ph:heart-duotone" class="h-4 w-4 text-rose-400" />
+              <Icon icon="ph:heart-duotone" class="h-4 w-4 text-[var(--color-accent)]" />
               {{ post.reactions }}
             </span>
             <span class="inline-flex items-center gap-1 text-gray-500">
-              <Icon icon="ph:chat-centered-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
+              <Icon icon="ph:chat-centered-duotone" class="h-4 w-4 text-[var(--color-accent)]/80" />
               {{ post.comments }}
             </span>
           </div>
         </header>
 
-        <!-- Nutzertext (voll, leicht begrenzt für Lesbarkeit) -->
-        <p class="mt-3 text-sm leading-relaxed text-gray-700 whitespace-pre-line">
-          {{ post.content || '—' }}
-        </p>
+        <div v-if="post.image" class="mt-3">
+          <figure class="overflow-hidden rounded-xl bg-gray-100">
+            <NuxtImg
+              :src="post.image"
+              :alt="post.title ? `Bild zu ${post.title}` : 'Bild zum Beitrag'"
+              width="800"
+              height="450"
+              sizes="(min-width: 1024px) 33vw, 100vw"
+              class="h-56 w-full object-cover sm:h-64 md:h-72"
+              format="webp"
+              loading="lazy"
+            />
+          </figure>
+        </div>
 
         <footer class="mt-4 flex items-center gap-3 text-xs text-gray-500">
           <button
@@ -115,6 +125,7 @@ export type PostSummary = {
   comments: number
   distanceInMeters?: number | null
   durationInSeconds?: number | null
+  image?: string | null
 }
 
 const props = defineProps<{ posts: PostSummary[] }>()

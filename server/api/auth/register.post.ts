@@ -3,6 +3,7 @@ import { eventHandler, getMethod, getHeader, createError, readBody, getCookie, H
 import { randomBytes } from 'node:crypto'
 import * as argon2 from 'argon2'
 import { prisma } from '../../utils/prisma'
+import { sendVerificationEmail } from '../../utils/sendVerificationEmail'
 
 const rateLimitMap = new Map<string, { count: number; expires: number }>()
 
@@ -100,6 +101,17 @@ export default eventHandler(async (event) => {
         image: avatarUrl || null, 
       },
     })
+
+    if (process.env.RESEND_API_KEY) {
+      try {
+        await sendVerificationEmail({ to: email, token: emailVerificationToken })
+      } catch (emailErr) {
+        console.error('Verification email failed', emailErr)
+      }
+    } else {
+      console.warn('RESEND_API_KEY not set – skipping verification email.')
+    }
+
     return { ok: true }
   } catch (err: any) {
     if (err?.code === 'P2002') {

@@ -13,11 +13,11 @@
     <div class="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
       <div class="flex flex-col gap-6 lg:flex-row lg:items-center">
         <div
-          class="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white shadow-xl ring-2 ring-[var(--color-primary)]/20">
+          class="relative h-28 w-28 overflow-hidden rounded-full border-4 border-white shadow-xl ring-2 ring-[var(--color-accent)]/30">
           <img v-if="user.image" :src="user.image" :alt="`Profilbild von ${user.name}`"
             class="h-full w-full object-cover" />
           <div v-else
-            class="flex h-full w-full items-center justify-center bg-white text-3xl font-semibold text-[var(--color-primary)]">
+            class="flex h-full w-full items-center justify-center bg-white text-3xl font-semibold text-[var(--color-accent)]">
             {{ initials }}
           </div>
         </div>
@@ -29,7 +29,7 @@
           </div>
 
           <div class="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-            <Icon icon="ph:envelope-simple" class="h-4 w-4" />
+            <Icon icon="ph:envelope-simple" class="h-4 w-4 text-[var(--color-primary)]" />
             <span>{{ user.email }}</span>
           </div>
 
@@ -44,7 +44,7 @@
             </button>
           </div>
           <button v-else type="button"
-            class="inline-flex items-center gap-2 rounded-full border border-dashed border-[var(--color-primary)]/40 px-4 py-2 text-sm font-semibold text-[var(--color-primary)] hover:bg-white hover:shadow"
+            class="inline-flex items-center gap-2 rounded-full border border-dashed border-[var(--color-primary)]/40 px-4 py-2 text-sm font-semibold text-[var(--color-primarys)] hover:bg-white hover:shadow"
             @click="$emit('manage-team')">
             <Icon icon="ph:user-plus-duotone" class="h-4 w-4" />
             Team beitreten
@@ -61,7 +61,7 @@
         </button>
 
         <button type="button"
-          class="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--color-primary)]/40 bg-white px-4 py-2 text-sm font-semibold text-[var(--color-primary)] shadow-sm hover:bg-[var(--color-primary)]/10 cursor-pointer"
+          class="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)]/40 bg-white px-4 py-2 text-sm font-semibold text-[var(--color-accent)] shadow-sm hover:bg-[var(--color-accent)]/10 cursor-pointer"
           @click="$emit('open-post-composer')">
           <Icon icon="ph:pen-nib-duotone" class="h-5 w-5" />
           Beitrag erstellen

@@ -5,7 +5,14 @@
     ]">
         <!-- Logo -->
         <NuxtLink to="/" class="flex items-center shrink-0" aria-label="Startseite">
-            <img src="/images/50runs_Logo.webp" alt="FiftyRuns Logo" class="h-8 sm:h-10 w-auto max-w-[160px]" />
+            <NuxtImg
+                src="/images/50runs_Logo.webp"
+                alt="FiftyRuns Logo"
+                format="webp"
+                class="h-8 sm:h-10 w-auto max-w-[160px]"
+                preload
+                fetchpriority="high"
+            />
         </NuxtLink>
 
         <!-- Desktop-Menü -->
@@ -40,6 +47,9 @@
                             :src="avatarUrl"
                             :alt="avatarAlt"
                             class="h-full w-full object-cover"
+                            width="36"
+                            height="36"
+                            loading="lazy"
                         />
                         <span
                             v-else
@@ -123,6 +133,9 @@
                                 :src="avatarUrl"
                                 :alt="avatarAlt"
                                 class="h-full w-full object-cover"
+                                width="40"
+                                height="40"
+                                loading="lazy"
                             />
                             <span
                                 v-else

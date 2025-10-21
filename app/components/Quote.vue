@@ -35,10 +35,18 @@
 
             <!-- Profilbild -->
             <div v-if="authorImage" class="absolute left-1/2 sm:left-6 -bottom-10 -translate-x-1/2 sm:translate-x-0">
-                <img :src="authorImage" :alt="author" :class="[
-                    'rounded-full border-2 border-[#a2c92d] object-cover bg-white',
-                    compact ? 'h-16 w-16 sm:h-20 sm:w-20' : 'h-20 w-20 sm:h-24 sm:w-24'
-                ]" loading="lazy" />
+                <NuxtImg
+                    :src="authorImage"
+                    :alt="author"
+                    :width="compact ? 80 : 96"
+                    :height="compact ? 80 : 96"
+                    format="webp"
+                    :class="[
+                        'rounded-full border-2 border-[#a2c92d] object-cover bg-white',
+                        compact ? 'h-16 w-16 sm:h-20 sm:w-20' : 'h-20 w-20 sm:h-24 sm:w-24'
+                    ]"
+                    loading="lazy"
+                />
             </div>
 
             <!-- Social Instagram -->

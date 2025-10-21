@@ -2,8 +2,8 @@
     <section class="relative min-h-svh">
         <!-- Hintergrundbild -->
         <div class="absolute inset-0">
-            <img src="/images/LandingPage_RV.webp" alt="Läufer auf einer Straße in der Natur"
-                class="h-full w-full object-cover" fetchpriority="high" />
+            <NuxtImg src="/images/LandingPage_RV.webp" alt="Läufer auf einer Straße in der Natur"
+                class="h-full w-full object-cover" fetchpriority="high" preload format="webp"/>
             <div class="absolute inset-0 bg-black/40" aria-hidden="true"></div>
         </div>
 
@@ -118,11 +118,13 @@
 </template>
 
 <script setup lang="ts">
-import TextBlock from '../components/Textblock.vue';
-import QuoteCard from '../components/Quote.vue';
-import Faq from '../components/Faq.vue';
-import TextDivider from '../components/atoms/TextDivider.vue';
+import { defineAsyncComponent } from 'vue';
 import { useHead } from 'nuxt/app';
+
+const TextBlock = defineAsyncComponent(() => import('../components/Textblock.vue'));
+const QuoteCard = defineAsyncComponent(() => import('../components/Quote.vue'));
+const Faq = defineAsyncComponent(() => import('../components/Faq.vue'));
+const TextDivider = defineAsyncComponent(() => import('../components/atoms/TextDivider.vue'));
 
 /**
  * === Einfache Anpassungen ===

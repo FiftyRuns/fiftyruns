@@ -128,7 +128,7 @@ export function useProfilePage() {
         comments: p.comments,
         distanceInMeters: p.distanceInMeters ?? null,
         durationInSeconds: p.durationInSeconds ?? null,
-        image: (p as any).image ?? null,
+        image: p.image ?? null,
       }))
       // Optional: nextCursor handling
     } catch (e) {

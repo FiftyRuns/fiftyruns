@@ -6,15 +6,15 @@
   >
     <form class="space-y-5" @submit.prevent="onSubmit">
       <!-- Foto-Upload -->
-      <div class="rounded-2xl border border-dashed border-gray-300 bg-white/60 p-4">
+      <div class="rounded-2xl border border-dashed border-[var(--color-primary)]/40 bg-white/60 p-4">
         <label for="post-photo" class="block cursor-pointer">
           <div class="flex items-center justify-between gap-3">
             <div class="text-sm">
-              <p class="font-medium text-gray-900">Foto hinzufügen</p>
+              <p class="font-medium text-[var(--color-primary)]">Foto hinzufügen</p>
               <p class="text-gray-500">Ein Bild auswählen (optional)</p>
             </div>
             <span
-              class="rounded-xl bg-gray-100 px-3 py-1 text-xs text-gray-700"
+              class="rounded-xl bg-[var(--color-primary)]/10 px-3 py-1 text-xs text-[var(--color-primary)]"
               v-if="photoName"
             >{{ photoName }}</span>
           </div>
@@ -27,7 +27,7 @@
           />
         </label>
 
-        <div v-if="photoPreviewUrl" class="mt-3 overflow-hidden rounded-xl border border-gray-200">
+        <div v-if="photoPreviewUrl" class="mt-3 overflow-hidden rounded-xl border border-[var(--color-primary)]/40">
           <img :src="photoPreviewUrl" alt="Ausgewähltes Foto" class="h-56 w-full object-cover" />
         </div>
       </div>
@@ -44,7 +44,7 @@
           min="0"
           step="0.1"
           :value="form.distanceKm"
-          class="w-full rounded-xl border border-gray-300 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+          class="w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
           placeholder="z. B. 8.5"
           @input="updateField('distanceKm', ($event.target as HTMLInputElement).value)"
         />
@@ -65,7 +65,7 @@
             min="0"
             max="23"
             :value="hours"
-            class="w-20 rounded-xl border border-gray-300 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            class="w-20 rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
             placeholder="hh"
             @input="updateHours(($event.target as HTMLInputElement).value)"
           />
@@ -76,7 +76,7 @@
             min="0"
             max="59"
             :value="minutes"
-            class="w-20 rounded-xl border border-gray-300 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            class="w-20 rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
             placeholder="mm"
             @input="updateMinutes(($event.target as HTMLInputElement).value)"
           />
@@ -95,7 +95,7 @@
           id="post-content"
           rows="3"
           :value="form.content"
-          class="w-full resize-none rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+          class="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
           placeholder="Ein Satz zum Lauf …"
           maxlength="240"
           @input="updateField('content', ($event.target as HTMLTextAreaElement).value)"
@@ -109,13 +109,13 @@
       <div class="flex flex-wrap gap-2 text-xs text-gray-600">
         <span
           v-if="normalizedDistanceMeters !== null"
-          class="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white/80 px-2 py-1"
+          class="inline-flex items-center gap-1 rounded-full border border-[var(--color-primary)]/40 bg-[var(--color-primary)]/10 px-2 py-1 text-[var(--color-primary)]"
         >
           ~ {{ (normalizedDistanceMeters / 1000).toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) }} km
         </span>
         <span
           v-if="normalizedDurationSeconds !== null"
-          class="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white/80 px-2 py-1"
+          class="inline-flex items-center gap-1 rounded-full border border-[var(--color-primary)]/40 bg-[var(--color-accent)]/10 px-2 py-1 text-[var(--color-primary)]"
         >
           {{ formatSeconds(normalizedDurationSeconds) }}
         </span>
@@ -124,7 +124,7 @@
       <!-- Aktionen -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <select
-          class="h-[40px] rounded-xl border border-gray-300 bg-white px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+          class="h-[40px] rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
           :value="form.visibility"
           @change="updateField('visibility', ($event.target as HTMLSelectElement).value as Visibility)"
         >
