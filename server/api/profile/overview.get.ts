@@ -60,6 +60,7 @@ export default eventHandler(async (event) => {
 
   const team = me?.group
     ? {
+        id: me.group.id,
         name: me.group.name,
         description: me.group.description ?? '',
         roleLabel: me.groupRole === 'ADMIN' ? 'Team Admin' : 'Mitglied',

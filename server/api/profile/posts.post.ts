@@ -2,6 +2,14 @@
 import { createError, eventHandler, getCookie, getHeader, readBody } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
+import { updateChallengesForRun } from '../../utils/challengeProgress'
+
+const DONATION_MULTIPLIER_TO_CENTS: Record<'x1' | 'x2' | 'x5' | 'x10', number> = {
+  x1: 100,
+  x2: 200,
+  x5: 500,
+  x10: 1000,
+}
 
 type CreatePostBody = {
   content: string
@@ -25,6 +33,11 @@ export default eventHandler(async (event) => {
 
   const session = await resolveSession(event)
   if (!session) throw createError({ statusCode: 401, message: 'Nicht angemeldet.' })
+
+  const donorPreferences = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { autoDonate: true, runDonationMultiplier: true },
+  })
 
   const body = (await readBody<CreatePostBody>(event)) || {}
 
@@ -65,6 +78,10 @@ export default eventHandler(async (event) => {
   const now = new Date()
   const season = `${now.getFullYear()}`
   const garminActivityId = body.garminActivityId ?? null
+  const donationAmountInCent =
+    donorPreferences?.autoDonate && donorPreferences.runDonationMultiplier
+      ? DONATION_MULTIPLIER_TO_CENTS[donorPreferences.runDonationMultiplier] ?? 0
+      : 0
 
   const result = await prisma.$transaction(async (tx) => {
     // 1) Posting mit Bild speichern
@@ -113,6 +130,25 @@ export default eventHandler(async (event) => {
         durationInSeconds: { increment: durationInSeconds },
       },
     })
+
+    await updateChallengesForRun(tx, {
+      userId: session.user.id,
+      runDate: now,
+      previous: null,
+      next: {
+        distanceInMeters,
+        durationInSeconds,
+      },
+    })
+
+    if (donationAmountInCent > 0) {
+      await tx.donation.create({
+        data: {
+          postingId: post.id,
+          amountInCent: donationAmountInCent,
+        },
+      })
+    }
 
     return post
   })

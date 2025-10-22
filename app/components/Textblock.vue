@@ -3,7 +3,7 @@
         <div class="container mx-auto">
             <div :class="wrapperClasses">
                 <!-- Eyebrow -->
-                <p v-if="eyebrow" class="mb-3 text-sm font-semibold tracking-wider text-[#a2c92d]">
+                <p v-if="eyebrow" class="mb-3 text-sm font-semibold tracking-wider text-[var(--color-accent)]">
                     {{ eyebrow }}
                 </p>
 
@@ -35,7 +35,7 @@
 /**
  * TextBlock – leichter, wiederverwendbarer Text-Abschnitt für die Landing Page.
  * Fokus: Reiner Text (Titel, Lead, Fließtext) – ohne Bilder/Media.
- * Farben: Primär (Schrift) #01497e, Sekundär (Akzent/Trennlinie) #a2c92d
+ * Farben: Primär (Schrift) var(--color-primary), Sekundär (Akzent/Trennlinie) var(--color-accent)
  */
 
 import { computed } from 'vue'
@@ -62,8 +62,8 @@ const wrapperClasses = computed(() => {
   return [w, a, 'px-4 sm:px-0'].join(' ')
 })
 
-const baseText = computed(() => (props.tone === 'muted' ? 'text-[#01497e]/80' : 'text-[#01497e]'))
-const secondaryText = computed(() => (props.tone === 'muted' ? 'text-[#a2c92d]/80' : 'text-[#a2c92d]'))
+const baseText = computed(() => (props.tone === 'muted' ? 'text-[rgb(var(--color-primary-rgb)/0.8)]' : 'text-[var(--color-primary)]'))
+const secondaryText = computed(() => (props.tone === 'muted' ? 'text-[rgb(var(--color-accent-rgb)/0.8)]' : 'text-[var(--color-accent)]'))
 
 const titleClasses = computed(() => [
     'text-3xl sm:text-4xl font-extrabold tracking-tight',
@@ -79,7 +79,7 @@ const contentClasses = computed(() => [
     'mt-6 space-y-4 leading-relaxed',
     baseText.value,
     '[&>p]:text-base [&>p]:sm:text-lg',
-    '[&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:marker:text-[#a2c92d]',
+    '[&>ul]:list-disc [&>ul]:pl-6 [&>ul>li]:marker:text-[var(--color-accent)]',
     '[&>ol]:list-decimal [&>ol]:pl-6',
     '[&>hr]:my-6 [&>hr]:h-0 [&>hr]:border-0 [&>hr]:border-t [&>hr]:border-[var(--divider-color)]'
 ].join(' '))
@@ -144,7 +144,7 @@ USAGE-BEISPIELE
     <template #actions>
       <NuxtLink
         to="/register"
-        class="inline-flex items-center rounded-2xl bg-[#a2c92d] px-5 py-2.5 text-sm font-semibold text-[#01497e] shadow transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#a2c92d]/50"
+        class="inline-flex items-center rounded-2xl bg-[var(--color-accent)] px-5 py-2.5 text-sm font-semibold text-[var(--color-primary)] shadow transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-accent)] focus-visible:ring-opacity-50"
       >
         Jetzt registrieren
       </NuxtLink>

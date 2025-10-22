@@ -14,7 +14,7 @@ type ReactionStat = {
   count: number
 }
 
-type Comment = {
+export type Comment = {
   id: string
   text: string
   createdAt: string
@@ -140,6 +140,57 @@ export function useCommunityFeed() {
     }
   }
 
+  async function updateComment(postId: string, commentId: string, text: string) {
+    const csrf = csrfCookie.value ?? ''
+    const trimmed = text.trim()
+    if (!trimmed) {
+      throw new Error('Kommentar darf nicht leer sein.')
+    }
+
+    try {
+      const response = await $fetch<{
+        id: string
+        text: string
+        createdAt: string
+        postingId: string
+      }>(`/api/postings/comments/${commentId}`, {
+        method: 'PATCH',
+        body: { text: trimmed },
+        headers: { 'x-csrf-token': csrf },
+        credentials: 'include',
+      })
+
+      const post = postsState.value.find((entry) => entry.id === postId)
+      if (!post) return
+      const comment = post.comments.find((item) => item.id === commentId)
+      if (!comment) return
+      comment.text = response.text
+      comment.createdAt = response.createdAt
+    } catch (error) {
+      console.error('Kommentar konnte nicht aktualisiert werden', error)
+      throw error
+    }
+  }
+
+  async function deleteComment(postId: string, commentId: string) {
+    const csrf = csrfCookie.value ?? ''
+
+    try {
+      await $fetch(`/api/postings/comments/${commentId}`, {
+        method: 'DELETE',
+        headers: { 'x-csrf-token': csrf },
+        credentials: 'include',
+      })
+
+      const post = postsState.value.find((entry) => entry.id === postId)
+      if (!post) return
+      post.comments = post.comments.filter((item) => item.id !== commentId)
+    } catch (error) {
+      console.error('Kommentar konnte nicht gelöscht werden', error)
+      throw error
+    }
+  }
+
   return {
     posts: postsState,
     loading: loadingState,
@@ -149,5 +200,7 @@ export function useCommunityFeed() {
     toggleReaction,
     removeReaction,
     addComment,
+    updateComment,
+    deleteComment,
   }
 }

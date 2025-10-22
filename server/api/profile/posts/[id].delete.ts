@@ -3,6 +3,7 @@ import { createError, eventHandler } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
 import { assertCsrf } from '../../../utils/csrf'
+import { updateChallengesForRun } from '../../../utils/challengeProgress'
 
 export default eventHandler(async (event) => {
   assertCsrf(event)
@@ -23,6 +24,7 @@ export default eventHandler(async (event) => {
     select: {
       id: true,
       userId: true,
+      date: true,
       runningExercise: {
         select: { distanceInMeters: true, durationInSeconds: true },
       },
@@ -36,6 +38,13 @@ export default eventHandler(async (event) => {
   const hadRun = !!post.runningExercise
   const dist = post.runningExercise?.distanceInMeters ?? 0
   const dur  = post.runningExercise?.durationInSeconds ?? 0
+  const previousSnapshot = hadRun
+    ? {
+        distanceInMeters: post.runningExercise!.distanceInMeters,
+        durationInSeconds: post.runningExercise!.durationInSeconds,
+      }
+    : null
+  const runDate = post.date
 
   await prisma.$transaction(async (tx) => {
     // 1) Beitrag löschen (durch onDelete: Cascade werden RunningExercise, Comments, Reactions mitentfernt)
@@ -55,6 +64,12 @@ export default eventHandler(async (event) => {
         })
       }
       // Falls keine Statistik existiert, nichts zu tun (kein negatives Upsert).
+      await updateChallengesForRun(tx, {
+        userId: post.userId,
+        runDate,
+        previous: previousSnapshot,
+        next: null,
+      })
     }
   })
 

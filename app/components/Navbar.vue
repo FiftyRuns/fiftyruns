@@ -22,6 +22,10 @@
                     Leaderboard</NuxtLink>
             </li>
             <li>
+                <NuxtLink to="/challenges" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
+                    Challenges</NuxtLink>
+            </li>
+            <li>
                 <NuxtLink to="/postings" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
                     Beiträge</NuxtLink>
             </li>
@@ -105,6 +109,11 @@
                     <NuxtLink @click="close()" to="/leaderboard"
                         class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
                         Leaderboard</NuxtLink>
+                </li>
+                <li>
+                    <NuxtLink @click="close()" to="/challenges"
+                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
+                        Challenges</NuxtLink>
                 </li>
                 <li>
                     <NuxtLink @click="close()" to="/postings"

@@ -2,8 +2,10 @@
 
 /* === Globale Farbdefinitionen === */
 :root {
-  --color-primary: #01497e;   /* Congress Blue – Hauptfarbe (Text, Buttons) */
-  --color-accent: #a2c92d; /* Akzentfarbe (Trennlinien, Hover, Highlights) */
+  --color-primary: #01497e;   /* Congress Blue – Hauptfarbe */
+  --color-primary-rgb: 1 73 126;
+  --color-accent: #a2c92d; /* Akzentfarbe */
+  --color-accent-rgb: 162 201 45;
 }
 
 body {

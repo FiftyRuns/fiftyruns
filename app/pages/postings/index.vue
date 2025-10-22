@@ -152,14 +152,64 @@
                     <div class="flex items-center justify-between text-xs text-gray-500">
                       <NuxtLink
                         :to="profilePath(comment.author.nameId)"
-                        class="font-medium text-gray-700 transition hover:text-[var(--color-primary)] focus-visible:text-[var(--color-primary)] focus-visible:outline-none"
-                        :aria-label="`Profil von ${comment.author.name} öffnen`"
-                      >
-                        {{ comment.author.name }}
-                      </NuxtLink>
+                    class="font-medium text-gray-700 transition hover:text-[var(--color-primary)] focus-visible:text-[var(--color-primary)] focus-visible:outline-none"
+                    :aria-label="`Profil von ${comment.author.name} öffnen`"
+                  >
+                    {{ comment.author.name }}
+                  </NuxtLink>
+                    <div class="flex items-center gap-2">
                       <span>{{ formatDate(comment.createdAt) }}</span>
+                      <template v-if="ownsComment(comment)">
+                        <button
+                          type="button"
+                          class="rounded-full p-1 text-gray-400 transition hover:text-[var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:opacity-50"
+                          :disabled="commentEditPending[comment.id] || commentDeletePending[comment.id]"
+                          :aria-label="commentEditMode[comment.id] ? 'Bearbeitung abbrechen' : 'Kommentar bearbeiten'"
+                          @click="commentEditMode[comment.id] ? cancelEditComment(comment) : startEditComment(comment)"
+                        >
+                          <Icon :icon="commentEditMode[comment.id] ? 'ph:x-circle-duotone' : 'ph:pencil-simple-line-duotone'" class="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          class="rounded-full p-1 text-gray-400 transition hover:text-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 disabled:opacity-50"
+                          :disabled="commentEditPending[comment.id] || commentDeletePending[comment.id]"
+                          aria-label="Kommentar löschen"
+                          @click="requestDeleteComment(post.id, comment.id)"
+                        >
+                          <Icon icon="ph:trash-duotone" class="h-4 w-4" />
+                        </button>
+                      </template>
                     </div>
-                    <p class="mt-1 text-sm text-gray-700">{{ comment.text }}</p>
+                  </div>
+                    <div v-if="commentEditMode[comment.id]" class="mt-2 space-y-2">
+                      <textarea
+                        v-model="commentEditTexts[comment.id]"
+                        rows="2"
+                        class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/25"
+                      ></textarea>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          class="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--color-primary)]/90 disabled:cursor-not-allowed disabled:opacity-60"
+                          :disabled="commentEditPending[comment.id]"
+                          @click="submitCommentEdit(post.id, comment)"
+                        >
+                          Speichern
+                        </button>
+                        <button
+                          type="button"
+                          class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+                          :disabled="commentEditPending[comment.id]"
+                          @click="cancelEditComment(comment)"
+                        >
+                          Abbrechen
+                        </button>
+                      </div>
+                      <p v-if="commentEditErrors[comment.id]" class="text-xs text-red-600">{{ commentEditErrors[comment.id] }}</p>
+                    </div>
+                    <p v-else class="mt-1 whitespace-pre-line text-sm text-gray-700">
+                      {{ comment.text }}
+                    </p>
                   </div>
                 </div>
               </li>
@@ -188,20 +238,95 @@
       </section>
     </div>
   </div>
+    <div
+      v-if="deleteModal.open"
+      class="fixed inset-0 z-50 flex items-center justify-center px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="comment-delete-title"
+    >
+      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="!deleteModal.loading && closeDeleteModal()"></div>
+      <div class="relative z-10 w-full max-w-sm rounded-2xl border border-black/10 bg-white p-6 shadow-xl">
+        <div class="flex items-center gap-3">
+          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
+            <Icon icon="ph:trash-duotone" class="h-6 w-6" aria-hidden="true" />
+          </span>
+          <h2 id="comment-delete-title" class="text-lg font-semibold text-gray-900">
+            Kommentar löschen?
+          </h2>
+        </div>
+        <p class="mt-3 text-sm text-gray-600">
+          Dieser Schritt kann nicht rückgängig gemacht werden. Der Kommentar wird dauerhaft entfernt.
+        </p>
+        <p v-if="deleteModal.error" class="mt-3 text-xs font-medium text-red-600">
+          {{ deleteModal.error }}
+        </p>
+        <div class="mt-6 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            class="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="deleteModal.loading"
+            @click="closeDeleteModal"
+          >
+            Abbrechen
+          </button>
+          <button
+            type="button"
+            class="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+            :disabled="deleteModal.loading"
+            @click="confirmDeleteComment"
+          >
+            {{ deleteModal.loading ? 'Wird gelöscht...' : 'Ja, löschen' }}
+          </button>
+        </div>
+      </div>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useCommunityFeed } from '@/composables/useCommunityFeed'
-import type { CommunityPost } from '@/composables/useCommunityFeed'
+import { useAuthUser } from '@/composables/useAuthUser'
+import type { CommunityPost, Comment } from '@/composables/useCommunityFeed'
 import type { ReactionEmoji } from '@/constants/reactions'
 
-const { posts, loading, error, loadFeed, toggleReaction, removeReaction, addComment } = useCommunityFeed()
+const {
+  posts,
+  loading,
+  error,
+  loadFeed,
+  toggleReaction,
+  removeReaction,
+  addComment,
+  updateComment: updateCommentRemote,
+  deleteComment: deleteCommentRemote,
+} = useCommunityFeed()
+
+const authUser = useAuthUser()
 
 const commentTexts = reactive<Record<string, string>>({})
 const commentPending = reactive<Record<string, boolean>>({})
 const commentErrors = reactive<Record<string, string>>({})
+const commentEditMode = reactive<Record<string, boolean>>({})
+const commentEditTexts = reactive<Record<string, string>>({})
+const commentEditErrors = reactive<Record<string, string>>({})
+const commentEditPending = reactive<Record<string, boolean>>({})
+const commentDeletePending = reactive<Record<string, boolean>>({})
+
+const deleteModal = reactive<{
+  open: boolean
+  postId: string
+  commentId: string
+  loading: boolean
+  error: string
+}>({
+  open: false,
+  postId: '',
+  commentId: '',
+  loading: false,
+  error: '',
+})
 
 onMounted(() => {
   loadFeed()
@@ -214,10 +339,99 @@ watch(
       if (!(post.id in commentTexts)) commentTexts[post.id] = ''
       if (!(post.id in commentPending)) commentPending[post.id] = false
       if (!(post.id in commentErrors)) commentErrors[post.id] = ''
+      for (const comment of post.comments) {
+        if (!(comment.id in commentEditMode)) commentEditMode[comment.id] = false
+        if (!(comment.id in commentEditTexts)) commentEditTexts[comment.id] = comment.text
+        if (!(comment.id in commentEditErrors)) commentEditErrors[comment.id] = ''
+        if (!(comment.id in commentEditPending)) commentEditPending[comment.id] = false
+        if (!(comment.id in commentDeletePending)) commentDeletePending[comment.id] = false
+      }
     }
   },
   { immediate: true },
 )
+
+function ownsComment(comment: Comment) {
+  return authUser.value?.id === comment.author.id
+}
+
+function startEditComment(comment: Comment) {
+  commentEditMode[comment.id] = true
+  commentEditTexts[comment.id] = comment.text
+  commentEditErrors[comment.id] = ''
+}
+
+function cancelEditComment(comment: Comment) {
+  commentEditMode[comment.id] = false
+  commentEditErrors[comment.id] = ''
+  commentEditTexts[comment.id] = comment.text
+}
+
+async function submitCommentEdit(postId: string, comment: Comment) {
+  const commentId = comment.id
+  const text = commentEditTexts[commentId] ?? ''
+  if (!text.trim()) {
+    commentEditErrors[commentId] = 'Kommentar darf nicht leer sein.'
+    return
+  }
+
+  commentEditErrors[commentId] = ''
+  commentEditPending[commentId] = true
+
+  try {
+    await updateCommentRemote(postId, commentId, text)
+    commentEditMode[commentId] = false
+    commentEditTexts[commentId] = comment.text
+  } catch (error) {
+    console.error(error)
+    commentEditErrors[commentId] = 'Kommentar konnte nicht aktualisiert werden.'
+  } finally {
+    commentEditPending[commentId] = false
+  }
+}
+
+function requestDeleteComment(postId: string, commentId: string) {
+  if (commentDeletePending[commentId]) return
+  deleteModal.open = true
+  deleteModal.postId = postId
+  deleteModal.commentId = commentId
+  deleteModal.error = ''
+}
+
+function closeDeleteModal() {
+  deleteModal.open = false
+  deleteModal.postId = ''
+  deleteModal.commentId = ''
+  deleteModal.loading = false
+  deleteModal.error = ''
+}
+
+async function confirmDeleteComment() {
+  if (!deleteModal.postId || !deleteModal.commentId) {
+    closeDeleteModal()
+    return
+  }
+
+  const commentId = deleteModal.commentId
+  commentDeletePending[commentId] = true
+  deleteModal.loading = true
+  deleteModal.error = ''
+
+  try {
+    await deleteCommentRemote(deleteModal.postId, commentId)
+    delete commentEditMode[commentId]
+    delete commentEditTexts[commentId]
+    delete commentEditErrors[commentId]
+    delete commentEditPending[commentId]
+    delete commentDeletePending[commentId]
+    closeDeleteModal()
+  } catch (error) {
+    console.error(error)
+    deleteModal.error = 'Kommentar konnte nicht gelöscht werden.'
+    deleteModal.loading = false
+    commentDeletePending[commentId] = false
+  }
+}
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso))

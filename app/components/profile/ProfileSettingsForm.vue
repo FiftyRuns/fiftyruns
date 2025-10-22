@@ -59,13 +59,17 @@
               :checked="form.notifications"
               @change="updateField('notifications', ($event.target as HTMLInputElement).checked)"
             />
-            Push & E-Mail aktivieren
+            Notifications-Center aktivieren
           </label>
         </div>
       </div>
 
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <p class="text-xs text-gray-500">Zuletzt aktualisiert {{ lastUpdated }}</p>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="space-y-1">
+          <p class="text-xs text-gray-500">Zuletzt aktualisiert {{ lastUpdated }}</p>
+          <p v-if="successMessage" class="text-xs font-medium text-green-600">{{ successMessage }}</p>
+          <p v-else-if="errorMessage" class="text-xs font-medium text-red-600">{{ errorMessage }}</p>
+        </div>
         <FormButton type="submit" variant="primary" :loading="loading" label="Änderungen speichern" />
       </div>
     </form>
@@ -83,8 +87,10 @@ const props = withDefaults(
   defineProps<{
     modelValue: ProfileSettings
     loading?: boolean
+    successMessage?: string
+    errorMessage?: string
   }>(),
-  { loading: false },
+  { loading: false, successMessage: '', errorMessage: '' },
 )
 
 const emit = defineEmits<{

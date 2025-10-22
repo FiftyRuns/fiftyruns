@@ -3,7 +3,7 @@
         <!-- Hintergrundbild -->
         <div class="absolute inset-0">
             <NuxtImg src="/images/LandingPage_RV.webp" alt="Läufer auf einer Straße in der Natur"
-                class="h-full w-full object-cover" fetchpriority="high" preload format="webp"/>
+                class="h-full w-full object-cover" fetchpriority="high" preload format="webp" />
             <div class="absolute inset-0 bg-black/40" aria-hidden="true"></div>
         </div>
 
@@ -12,28 +12,28 @@
             <div class="container mx-auto px-4">
                 <div class="mx-auto max-w-3xl rounded-3xl bg-white/70 p-6 shadow backdrop-blur sm:p-10">
                     <h1
-                        class="text-center text-5xl font-extrabold tracking-tight text-[#01497e] sm:text-left sm:text-6xl">
+                        class="text-center text-5xl font-extrabold tracking-tight text-[var(--color-primary)] sm:text-left sm:text-6xl">
                         <span class="sr-only">50runs</span>
                         #50runs 🚀
                     </h1>
 
                     <p
-                        class="mt-6 text-center text-xl font-medium leading-snug text-[#01497e] sm:text-left sm:text-2xl">
+                        class="mt-6 text-center text-xl font-medium leading-snug text-[var(--color-primary)] sm:text-left sm:text-2xl">
                         Mit einer Challenge fit werden<br class="hidden sm:block" />
                         und etwas Gutes tun.
                     </p>
 
                     <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:items-center">
                         <NuxtLink to="/register"
-                            class="inline-flex items-center rounded-2xl bg-[#a2c92d] px-6 py-3 text-base font-semibold text-[#01497e] shadow transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#a2c92d]/50"
+                            class="inline-flex items-center rounded-2xl bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-[var(--color-primary)] shadow transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-accent)] focus-visible:ring-opacity-50"
                             aria-label="Jetzt registrieren">
                             Jetzt registrieren
                         </NuxtLink>
 
                         <!-- Trennlinie in Zweitfarbe -->
-                        <span class="hidden h-6 w-px bg-[#a2c92d]/60 sm:inline-block" aria-hidden="true"></span>
+                        <span class="hidden h-6 w-px bg-[rgb(var(--color-accent-rgb)/0.6)] sm:inline-block" aria-hidden="true"></span>
 
-                        <span class="text-center text-sm font-medium text-[#01497e] sm:text-left sm:text-base">
+                        <span class="text-center text-sm font-medium text-[var(--color-primary)] sm:text-left sm:text-base">
                             Ab {{ startDate }} geht’s wieder los!
                         </span>
                     </div>
@@ -45,8 +45,8 @@
         lead="Deine Aktivität schafft Mehrwert – für dich und andere.">
         <p>
             Jede registrierte Laufeinheit trägt zu einer Spende an eine wohltätige Organisation (eine Auswahl findest du
-            <a href="https://service.bmf.gv.at/service/allg/spenden/show_mast.asp#aw"
-                style="text-decoration: underline;">hier</a>) Wahl bei.
+            <a href="https://service.bmf.gv.at/service/allg/spenden/show_mast.asp#aw" target="_blank"
+                rel="noopener noreferrer" style="text-decoration: underline;">hier</a>) Wahl bei.
             So wird dein Training zu einem Beitrag für soziale Projekte.
         </p>
         <hr />
@@ -81,7 +81,7 @@
         <hr />
     </TextBlock>
 
-    <TextDivider text="#CommunityfeiertEs 🚀" :repeat="1" textColor="car(--color-accent)" />
+    <TextDivider text="#CommunityfeiertEs 🚀" :repeat="1" textColor="var(--color-accent)" />
 
     <TextBlock width="wide" align="center" eyebrow="💬 ECHTE STIMMEN VON 50RUNNERS"
         title="Erfolgsstories unserer Community 🌟"
@@ -129,7 +129,7 @@ const TextDivider = defineAsyncComponent(() => import('../components/atoms/TextD
 /**
  * === Einfache Anpassungen ===
  * - Datum ändern: startDate unten anpassen
- * - Farben: Primär (Schrift) #01497e, Sekundär (Trennlinien/Buttons) #a2c92d
+ * - Farben: Primär (Schrift) var(--color-primary), Sekundär (Trennlinien/Buttons) var(--color-accent)
  */
 
 const startDate = '15. Oktober 2025';

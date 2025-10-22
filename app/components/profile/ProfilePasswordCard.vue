@@ -98,7 +98,7 @@
 import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import InputField from '../molecules/form/InputField.vue'
-import ProfilePanel from '../profile/UserPostsList.vue'
+import ProfilePanel from './ProfilePanel.vue'
 import FormButton from '../atoms/form/FormButton.vue'
 
 type PasswordForm = {

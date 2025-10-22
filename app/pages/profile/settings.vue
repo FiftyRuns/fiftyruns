@@ -19,6 +19,8 @@
           <ProfileSettingsForm
             :model-value="settingsForm"
             :loading="settingsState.loading"
+            :success-message="settingsState.success"
+            :error-message="settingsState.error"
             @update:model-value="onSettingsUpdate"          
             @submit="f => handleSettingsSubmit(f as any)"  
           />
@@ -27,8 +29,8 @@
           <ProfilePasswordCard
             :model-value="passwordForm"
             :loading="passwordState.loading"
-            :error="passwordState.error"
-            :success="passwordState.success"
+            :error-message="passwordState.error"
+            :success-message="passwordState.success"
             @update:model-value="onPasswordUpdate"
             @submit="handlePasswordSubmit"
           />
@@ -37,6 +39,8 @@
           <ProfileDonationCard
             :model-value="donationSettings"
             :loading="donationState.loading"
+            :success-message="donationState.success"
+            :error-message="donationState.error"
             @update:model-value="onDonationUpdate"         
             @save="handleDonationSave"
             @open-history="openDonationHistory"

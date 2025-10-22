@@ -2,6 +2,14 @@ import { createError, eventHandler, readBody } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
 import { assertCsrf } from '../../../utils/csrf'
+import { updateChallengesForRun } from '../../../utils/challengeProgress'
+
+const DONATION_MULTIPLIER_TO_CENTS: Record<'x1' | 'x2' | 'x5' | 'x10', number> = {
+  x1: 100,
+  x2: 200,
+  x5: 500,
+  x10: 1000,
+}
 
 type UpdatePostBody = {
   content?: string
@@ -37,6 +45,12 @@ export default eventHandler(async (event) => {
           durationInSeconds: true,
         },
       },
+      donation: {
+        select: {
+          amountInCent: true,
+        },
+      },
+      date: true,
     },
   })
 
@@ -156,6 +170,25 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Keine Änderungen übermittelt.' })
   }
 
+  const donorPreferences = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { autoDonate: true, runDonationMultiplier: true },
+  })
+
+  const donationAmountInCent =
+    donorPreferences?.autoDonate && donorPreferences.runDonationMultiplier
+      ? DONATION_MULTIPLIER_TO_CENTS[donorPreferences.runDonationMultiplier] ?? 0
+      : 0
+
+  const previousSnapshot = post.runningExercise
+    ? {
+        distanceInMeters: post.runningExercise.distanceInMeters,
+        durationInSeconds: post.runningExercise.durationInSeconds,
+      }
+    : null
+
+  const runDate = post.date
+
   await prisma.$transaction(async (tx) => {
     if (Object.keys(updateData).length) {
       await tx.posting.update({ where: { id }, data: updateData })
@@ -212,6 +245,44 @@ export default eventHandler(async (event) => {
           },
         })
       }
+    }
+
+    if (runAction === 'delete') {
+      if (post.donation) {
+        await tx.donation.delete({ where: { postingId: id } })
+      }
+    } else if (runAction === 'create' || runAction === 'update') {
+      if (donationAmountInCent > 0) {
+        await tx.donation.upsert({
+          where: { postingId: id },
+          create: {
+            postingId: id,
+            amountInCent: donationAmountInCent,
+          },
+          update: {
+            amountInCent: donationAmountInCent,
+          },
+        })
+      } else if (post.donation) {
+        await tx.donation.delete({ where: { postingId: id } })
+      }
+    }
+
+    if (runAction !== 'none') {
+      const nextSnapshot =
+        runAction === 'delete'
+          ? null
+          : {
+              distanceInMeters: nextDistance,
+              durationInSeconds: nextDuration,
+            }
+
+      await updateChallengesForRun(tx, {
+        userId: session.user.id,
+        runDate,
+        previous: previousSnapshot,
+        next: nextSnapshot,
+      })
     }
   })
 

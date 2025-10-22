@@ -21,6 +21,10 @@
             <Icon icon="ph:target-duotone" class="h-4 w-4" />
             {{ challenge.goal }}
           </span>
+          <span v-if="challenge.minRequirements" class="inline-flex items-center gap-1 text-xs text-gray-500">
+            <Icon icon="ph:check-circle-duotone" class="h-4 w-4" />
+            {{ challenge.minRequirements }}
+          </span>
           <span v-if="challenge.participants" class="inline-flex items-center gap-1 text-xs text-gray-500">
             <Icon icon="ph:users-three-duotone" class="h-4 w-4" />
             {{ challenge.participants }} Teilnehmende
@@ -38,7 +42,7 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import ProfilePanel from '../profile/UserPostsList.vue'
+import ProfilePanel from './ProfilePanel.vue'
 import FormButton from '../atoms/form/FormButton.vue'
 
 export type ChallengeSummary = {
@@ -48,6 +52,8 @@ export type ChallengeSummary = {
   period: string
   goal: string
   participants?: number
+  minRequirements?: string
+  isAdmin?: boolean
 }
 
 defineProps<{

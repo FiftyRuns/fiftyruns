@@ -59,7 +59,7 @@ const speed = props.speed ?? 6
 const direction = props.direction ?? 'left'
 
 const resolvedColor = computed(() =>
-  (props.textColor && props.textColor.trim()) || 'var(--accent, #a2c92d)'
+  (props.textColor && props.textColor.trim()) || 'var(--color-accent)'
 )
 
 // Fluid-Defaults (schönes Spektrum)

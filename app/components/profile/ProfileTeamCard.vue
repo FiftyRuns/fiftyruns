@@ -45,10 +45,11 @@
 
 <script setup lang="ts">
 import { Icon } from '@iconify/vue'
-import ProfilePanel from '../profile/UserPostsList.vue'
+import ProfilePanel from './ProfilePanel.vue'
 import FormButton from '../atoms/form/FormButton.vue'
 
 export type TeamInfo = {
+  id: string
   name: string
   description?: string | null
   roleLabel?: string | null

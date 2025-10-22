@@ -1,16 +1,16 @@
 <template #QuoteCardInner="{ author, role, authorImage, compact, $slots }">
     <div :class="[constrain ? 'mx-auto' : '', maxWidthClass, 'mb-8 sm:mb-6']">
         <figure :class="[
-            'relative rounded-3xl border border-[#a2c92d] bg-white/70 backdrop-blur-sm shadow-sm text-[#01497e]',
+            'relative rounded-3xl border border-[var(--color-accent)] bg-white/70 backdrop-blur-sm shadow-sm text-[var(--color-primary)]',
             compact ? 'p-5 sm:p-6 pb-16 sm:pb-20' : 'p-6 sm:p-8 pb-20 sm:pb-24'
         ]">
             <!-- Zitat-Icon links oben -->
-            <div class="absolute -top-4 left-6 h-8 w-8 rounded-md bg-[#a2c92d] text-white grid place-items-center">
+            <div class="absolute -top-4 left-6 h-8 w-8 rounded-md bg-[var(--color-accent)] text-white grid place-items-center">
                 <span class="text-xl leading-none">"</span>
             </div>
 
             <!-- Eyebrow Text -->
-            <p v-if="eyebrow" class="text-xs uppercase font-semibold tracking-wider text-[#a2c92d] mb-1">{{ eyebrow }}
+            <p v-if="eyebrow" class="text-xs uppercase font-semibold tracking-wider text-[var(--color-accent)] mb-1">{{ eyebrow }}
             </p>
 
             <!-- Title -->
@@ -18,7 +18,7 @@
             </h3>
 
             <!-- Lead Text -->
-            <p v-if="leadText" :class="compact ? 'text-sm text-[#01497e]/80 mb-4' : 'text-base text-[#01497e]/90 mb-6'">
+            <p v-if="leadText" :class="compact ? 'text-sm text-[rgb(var(--color-primary-rgb)/0.8)] mb-4' : 'text-base text-[rgb(var(--color-primary-rgb)/0.9)] mb-6'">
                 {{ leadText }}</p>
 
             <!-- Zitattext -->
@@ -29,7 +29,7 @@
 
             <!-- Autorinfos -->
             <figcaption class="mt-8 sm:mt-10 text-center sm:text-left">
-                <p class="font-extrabold text-[#a2c92d] text-lg leading-tight">{{ author }}</p>
+                <p class="font-extrabold text-[var(--color-accent)] text-lg leading-tight">{{ author }}</p>
                 <p v-if="role" class="text-sm text-black/80">{{ role }}</p>
             </figcaption>
 
@@ -42,7 +42,7 @@
                     :height="compact ? 80 : 96"
                     format="webp"
                     :class="[
-                        'rounded-full border-2 border-[#a2c92d] object-cover bg-white',
+                        'rounded-full border-2 border-[var(--color-accent)] object-cover bg-white',
                         compact ? 'h-16 w-16 sm:h-20 sm:w-20' : 'h-20 w-20 sm:h-24 sm:w-24'
                     ]"
                     loading="lazy"
@@ -52,7 +52,7 @@
             <!-- Social Instagram -->
             <div v-if="instagram" class="absolute bottom-4 right-5 sm:bottom-6 sm:right-8 flex items-center gap-3">
                 <NuxtLink :to="instagram" target="_blank" rel="noopener noreferrer"
-                    class="group flex items-center gap-2 text-[#01497e] hover:text-[#a2c92d] transition-colors">
+                    class="group flex items-center gap-2 text-[var(--color-primary)] hover:text-[var(--color-accent)] transition-colors">
                     <Icon icon="lucide:instagram"
                         class="h-6 w-6 sm:h-7 sm:w-7 group-hover:scale-110 transition-transform" />
                     <span class="text-sm hidden sm:inline font-semibold">Instagram</span>

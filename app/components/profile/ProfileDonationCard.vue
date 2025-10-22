@@ -43,8 +43,12 @@
         </label>
       </div>
 
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <p class="text-xs text-gray-500">Aktualisiert: {{ lastUpdated }}</p>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="space-y-1">
+          <p class="text-xs text-gray-500">Aktualisiert: {{ lastUpdated }}</p>
+          <p v-if="successMessage" class="text-xs font-medium text-green-600">{{ successMessage }}</p>
+          <p v-else-if="errorMessage" class="text-xs font-medium text-red-600">{{ errorMessage }}</p>
+        </div>
         <div class="flex items-center gap-2">
           <FormButton variant="secondary" label="Historie" @click="$emit('open-history')" />
           <FormButton variant="primary" :loading="loading" label="Plan speichern" @click="$emit('save')" />
@@ -65,8 +69,10 @@ const props = withDefaults(
   defineProps<{
     modelValue: DonationSettings
     loading?: boolean
+    successMessage?: string
+    errorMessage?: string
   }>(),
-  { loading: false },
+  { loading: false, successMessage: '', errorMessage: '' },
 )
 
 defineEmits<{

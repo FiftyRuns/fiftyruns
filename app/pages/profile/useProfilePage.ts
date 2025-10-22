@@ -10,9 +10,6 @@ import type { PostComposerForm, PostComposerSubmitPayload } from '../../componen
 import type { PostSummary } from '../../components/profile/ProfilePostsCard.vue'
 import type { ChallengeSummary } from '../../components/profile/ProfileChallengesCard.vue'
 import type { TeamInfo } from '../../components/profile/ProfileTeamCard.vue'
-type SubmitWithImage = PostComposerSubmitPayload & {
-  imageUrl?: string | null
-}
 
 // ZENTRALE Typen (einheitlich verwenden!)
 import type {
@@ -21,6 +18,31 @@ import type {
   DonationSettings,
   PasswordForm,
 } from '../../types/profile'
+
+type SubmitWithImage = PostComposerSubmitPayload & {
+  imageUrl?: string | null
+}
+
+type ProfileMeResponse = {
+  user: {
+    id: string
+    name: string
+    nameId: string
+    email: string
+    image: string | null
+  }
+  donation: {
+    amount: number
+    autoDonate: boolean
+    updatedAt: string | null
+  }
+  settings: {
+    bio: string | null
+    visibility: Visibility
+    notifications: boolean
+    updatedAt: string | null
+  }
+}
 
 export function useProfilePage() {
   const router = useRouter()
@@ -54,7 +76,7 @@ export function useProfilePage() {
     notifications: true,
     updatedAt: new Date().toISOString(), // zentral als string
   })
-  const settingsState = reactive({ loading: false })
+  const settingsState = reactive({ loading: false, success: '', error: '' })
 
   const passwordForm = reactive<PasswordForm>({
     currentPassword: '',
@@ -68,7 +90,7 @@ export function useProfilePage() {
     autoDonate: true,
     updatedAt: new Date().toISOString(), // zentral als string
   })
-  const donationState = reactive({ loading: false })
+  const donationState = reactive({ loading: false, success: '', error: '' })
 
   // Avatar
   const avatarPreview = ref<string | null>(authUser.value?.image ?? null)
@@ -85,9 +107,45 @@ export function useProfilePage() {
   const avatarState = reactive({ error: '' })
 
   onMounted(async () => {
-    await Promise.all([loadOverview(), loadPosts()])
-    // Optional: await loadChallenges()
+    await Promise.all([loadProfileData(), loadOverview(), loadPosts(), loadChallenges()])
   })
+
+  async function loadProfileData() {
+    try {
+      const data = await $fetch<ProfileMeResponse>('/api/profile/me', { credentials: 'include' })
+
+      const bio = (data.settings.bio ?? '').trim()
+      const visibility = data.settings.visibility ?? 'protected'
+      const notifications = data.settings.notifications ?? true
+
+      settingsForm.name = data.user.name
+      settingsForm.email = data.user.email
+      settingsForm.bio = bio
+      settingsForm.visibility = visibility
+      settingsForm.notifications = notifications
+      settingsForm.updatedAt = data.settings.updatedAt ?? settingsForm.updatedAt
+
+      const donationAmount = data.donation.amount
+      if ([1, 2, 5, 10].includes(donationAmount)) {
+        donationSettings.amount = donationAmount
+      }
+      donationSettings.autoDonate = Boolean(data.donation.autoDonate)
+      donationSettings.updatedAt = data.donation.updatedAt ?? donationSettings.updatedAt
+
+      avatarPreview.value = data.user.image ?? null
+
+      authUser.value = {
+        id: data.user.id,
+        name: data.user.name,
+        nameId: data.user.nameId,
+        email: data.user.email,
+        bio,
+        image: data.user.image ?? null,
+      }
+    } catch (e) {
+      console.error('Profil-Daten laden fehlgeschlagen', e)
+    }
+  }
 
   async function loadOverview() {
     try {
@@ -229,12 +287,18 @@ export function useProfilePage() {
     Object.assign(postComposerForm, val)
   }
   function onSettingsUpdate(val: ProfileSettings) {
+    settingsState.success = ''
+    settingsState.error = ''
     Object.assign(settingsForm, val)
   }
   function onPasswordUpdate(val: PasswordForm) {
+    passwordState.success = ''
+    passwordState.error = ''
     Object.assign(passwordForm, val)
   }
   function onDonationUpdate(val: DonationSettings) {
+    donationState.success = ''
+    donationState.error = ''
     Object.assign(donationSettings, val)
   }
 
@@ -292,15 +356,53 @@ export function useProfilePage() {
     }
   }
 
-  function handleSettingsSubmit(form: ProfileSettings) {
+  async function handleSettingsSubmit(form: ProfileSettings) {
     settingsState.loading = true
-    setTimeout(() => {
-      settingsState.loading = false
+    settingsState.success = ''
+    settingsState.error = ''
+
+    const name = form.name.trim()
+    const email = form.email.trim().toLowerCase()
+    const bio = form.bio.trim()
+
+    try {
+      const csrf = useCookie('csrf_token').value ?? ''
+      await $fetch('/api/profile/settings', {
+        method: 'PATCH',
+        headers: { 'x-csrf-token': csrf },
+        credentials: 'include',
+        body: {
+          name,
+          email,
+          bio,
+          visibility: form.visibility,
+          notifications: form.notifications,
+        },
+      })
+
+      settingsForm.name = name
+      settingsForm.email = email
+      settingsForm.bio = bio
+      settingsForm.visibility = form.visibility
+      settingsForm.notifications = form.notifications
       settingsForm.updatedAt = new Date().toISOString()
-    }, 800)
+
+      if (authUser.value) {
+        authUser.value.name = name
+        authUser.value.email = email
+        authUser.value.bio = bio
+      }
+
+      settingsState.success = 'Profil gespeichert.'
+    } catch (err: any) {
+      settingsState.error =
+        err?.data?.message || err?.message || 'Profil konnte nicht gespeichert werden.'
+    } finally {
+      settingsState.loading = false
+    }
   }
 
-  function handlePasswordSubmit(form: PasswordForm) {
+  async function handlePasswordSubmit(form: PasswordForm) {
     passwordState.loading = true
     passwordState.error = ''
     passwordState.success = ''
@@ -311,21 +413,55 @@ export function useProfilePage() {
       return
     }
 
-    setTimeout(() => {
-      passwordState.loading = false
+    try {
+      const csrf = useCookie('csrf_token').value ?? ''
+      await $fetch('/api/profile/password', {
+        method: 'PATCH',
+        headers: { 'x-csrf-token': csrf },
+        credentials: 'include',
+        body: {
+          currentPassword: form.currentPassword,
+          newPassword: form.newPassword,
+        },
+      })
+
       passwordState.success = 'Passwort aktualisiert.'
       passwordForm.currentPassword = ''
       passwordForm.newPassword = ''
       passwordForm.confirmPassword = ''
-    }, 1000)
+    } catch (err: any) {
+      passwordState.error =
+        err?.data?.message || err?.message || 'Passwort konnte nicht aktualisiert werden.'
+    } finally {
+      passwordState.loading = false
+    }
   }
 
-  function handleDonationSave() {
+  async function handleDonationSave() {
     donationState.loading = true
-    setTimeout(() => {
-      donationState.loading = false
+    donationState.success = ''
+    donationState.error = ''
+
+    try {
+      const csrf = useCookie('csrf_token').value ?? ''
+      await $fetch('/api/profile/donation', {
+        method: 'PATCH',
+        headers: { 'x-csrf-token': csrf },
+        credentials: 'include',
+        body: {
+          amount: donationSettings.amount,
+          autoDonate: donationSettings.autoDonate,
+        },
+      })
+
       donationSettings.updatedAt = new Date().toISOString()
-    }, 600)
+      donationState.success = 'Spendenplan gespeichert.'
+    } catch (err: any) {
+      donationState.error =
+        err?.data?.message || err?.message || 'Spendenplan konnte nicht gespeichert werden.'
+    } finally {
+      donationState.loading = false
+    }
   }
 
   function openDonationHistory() {
