@@ -16,7 +16,7 @@
         </NuxtLink>
 
         <!-- Desktop-Menü -->
-        <ul class="hidden md:flex items-center gap-8 text-[color:var(--color-primary)] font-bold text-lg">
+        <ul class="hidden md:flex items-center gap-8 text-[color:var(--color-primary)]  font-semibold text-lg">
             <li>
                 <NuxtLink to="/leaderboard" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
                     Leaderboard</NuxtLink>

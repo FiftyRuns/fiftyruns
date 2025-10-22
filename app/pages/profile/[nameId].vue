@@ -39,7 +39,7 @@
                 </span>
               </span>
               <div>
-                <h1 class="text-3xl font-bold text-gray-900">{{ profile.user.name }}</h1>
+                <h1 class="text-3xl  font-semibold text-black">{{ profile.user.name }}</h1>
                 <p v-if="profile.user.bio" class="mt-2 max-w-xl text-sm text-gray-700">
                   {{ profile.user.bio }}
                 </p>
@@ -54,7 +54,7 @@
                 class="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">
                 Season {{ profile.stats.season }}
               </span>
-              <p class="text-2xl font-semibold text-gray-900">
+              <p class="text-2xl font-semibold text-black">
                 {{ formattedDonations }}
               </p>
               <p class="text-xs text-gray-500">Gespendet über Läufe insgesamt</p>
@@ -73,7 +73,7 @@
           class="rounded-3xl border border-black/5 bg-white/90 p-6 shadow-sm backdrop-blur">
           <div class="flex items-center justify-between">
             <div>
-              <h2 id="profile-stats-title" class="text-lg font-semibold text-gray-900">Laufstatistiken</h2>
+              <h2 id="profile-stats-title" class="text-lg font-semibold text-black">Laufstatistiken</h2>
               <p class="mt-1 text-sm text-gray-600">
                 Gesamtwerte der aktuellen Season.
               </p>
@@ -90,7 +90,7 @@
         <section aria-labelledby="profile-posts-title" class="space-y-4">
           <div class="flex items-center justify-between">
             <div>
-              <h2 id="profile-posts-title" class="text-lg font-semibold text-gray-900">
+              <h2 id="profile-posts-title" class="text-lg font-semibold text-black">
                 Letzte Lauf-Updates
               </h2>
               <p class="text-sm text-gray-600">

@@ -14,7 +14,7 @@
             </p>
 
             <!-- Title -->
-            <h3 v-if="title" :class="compact ? 'text-lg font-bold mb-1' : 'text-2xl font-extrabold mb-2'">{{ title }}
+            <h3 v-if="title" :class="compact ? 'text-lg  font-semibold mb-1' : 'text-2xl font-extrabold mb-2'">{{ title }}
             </h3>
 
             <!-- Lead Text -->
@@ -30,7 +30,7 @@
             <!-- Autorinfos -->
             <figcaption class="mt-8 sm:mt-10 text-center sm:text-left">
                 <p class="font-extrabold text-[var(--color-accent)] text-lg leading-tight">{{ author }}</p>
-                <p v-if="role" class="text-sm text-black/80">{{ role }}</p>
+                <p v-if="role" class="text-sm  text-black/80">{{ role }}</p>
             </figcaption>
 
             <!-- Profilbild -->

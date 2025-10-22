@@ -2,7 +2,7 @@
   <section :class="panelClasses">
     <header v-if="title || description || $slots.actions" class="flex flex-col gap-3 border-b border-black/5 pb-5 md:flex-row md:items-center md:justify-between">
       <div class="space-y-1">
-        <h2 v-if="title" class="text-lg font-semibold text-gray-900">{{ title }}</h2>
+        <h2 v-if="title" class="text-lg font-semibold text-black">{{ title }}</h2>
         <p v-if="description" class="text-sm text-gray-500">
           <slot name="description">{{ description }}</slot>
         </p>

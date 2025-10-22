@@ -8,7 +8,7 @@
       >
         <header class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 class="text-base font-semibold text-gray-900">
+            <h3 class="text-base font-semibold text-black">
               {{ post.title || 'Beitrag ohne Titel' }}
             </h3>
             <p class="text-xs text-gray-500">
@@ -90,7 +90,7 @@
     <div v-if="confirmOpen" class="fixed inset-0 z-[60] flex items-center justify-center">
       <div class="absolute inset-0 bg-black/30" @click="closeConfirm"></div>
       <div class="relative z-[61] w-[90%] max-w-sm rounded-2xl border border-black/10 bg-white p-5 shadow-xl">
-        <h3 class="text-base font-semibold text-gray-900">Beitrag löschen?</h3>
+        <h3 class="text-base font-semibold text-black">Beitrag löschen?</h3>
         <p class="mt-2 text-sm text-gray-600">
           Bist du sicher, dass du diesen Beitrag endgültig löschen möchtest? Dieser Vorgang kann nicht rückgängig gemacht werden.
         </p>

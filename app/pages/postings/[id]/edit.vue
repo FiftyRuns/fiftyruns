@@ -10,7 +10,7 @@
           <Icon icon="ph:arrow-left-duotone" class="h-5 w-5" />
           Zurück
         </button>
-        <h1 class="text-3xl font-bold text-gray-900">Beitrag bearbeiten</h1>
+        <h1 class="text-3xl  font-semibold text-black">Beitrag bearbeiten</h1>
       </header>
 
       <div v-if="pending" class="space-y-4">
@@ -30,7 +30,7 @@
             id="post-content"
             v-model="form.content"
             rows="6"
-            class="w-full resize-y rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+            class="w-full resize-y rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
             placeholder="Teile deine Laufmomente..."
             required
           ></textarea>
@@ -42,7 +42,7 @@
             <select
               id="post-visibility"
               v-model="form.visibility"
-              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
             >
               <option value="public">Öffentlich</option>
               <option value="protected">Community</option>
@@ -56,7 +56,7 @@
               id="post-image"
               v-model="form.image"
               type="url"
-              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
               placeholder="https://..."
             />
             <p class="mt-1 text-xs text-gray-500">Leerlassen, um das Bild zu entfernen.</p>
@@ -118,7 +118,7 @@
               v-model="form.distanceKm"
               type="text"
               inputmode="decimal"
-              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
               placeholder="z. B. 5.2"
             />
             <p class="mt-1 text-xs text-gray-500">Leer lassen, um die Distanz zu entfernen.</p>
@@ -133,7 +133,7 @@
               v-model="form.duration"
               type="text"
               inputmode="numeric"
-              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
               placeholder="z. B. 00:27:45"
             />
             <p class="mt-1 text-xs text-gray-500">Leer lassen, um die Dauer zu entfernen.</p>

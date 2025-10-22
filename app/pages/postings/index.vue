@@ -2,7 +2,7 @@
   <div class="px-4 py-24">
     <div class="mx-auto flex w-full max-w-5xl flex-col gap-8">
       <header class="flex flex-col gap-2 text-center sm:text-left">
-        <h1 class="text-3xl font-bold text-gray-900">Community-Beiträge</h1>
+        <h1 class="text-3xl  font-semibold text-black">Community-Beiträge</h1>
         <p class="text-gray-600">
           Alle öffentlichen und Community-Postings auf einen Blick. Reagiere mit Emojis oder lass einen Kommentar da.
         </p>
@@ -52,7 +52,7 @@
                 </span>
               </span>
               <div>
-                <span class="text-base font-semibold text-gray-900 transition group-hover:text-[var(--color-primary)]">
+                <span class="text-base font-semibold text-black transition group-hover:text-[var(--color-primary)]">
                   {{ post.author.name }}
                 </span>
                 <p class="text-xs text-gray-500">{{ formatDate(post.createdAt) }}</p>
@@ -251,7 +251,7 @@
           <span class="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
             <Icon icon="ph:trash-duotone" class="h-6 w-6" aria-hidden="true" />
           </span>
-          <h2 id="comment-delete-title" class="text-lg font-semibold text-gray-900">
+          <h2 id="comment-delete-title" class="text-lg font-semibold text-black">
             Kommentar löschen?
           </h2>
         </div>

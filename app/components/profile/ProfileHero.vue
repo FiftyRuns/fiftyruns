@@ -25,7 +25,7 @@
 
         <div class="space-y-3">
           <div class="flex flex-wrap items-center gap-3">
-            <h1 class="text-3xl font-bold tracking-tight text-gray-900 md:text-4xl">{{ user.name }}</h1>
+            <h1 class="text-3xl  font-semibold tracking-tight text-black md:text-4xl">{{ user.name }}</h1>
           </div>
 
           <div class="flex flex-wrap items-center gap-2 text-sm text-gray-600">

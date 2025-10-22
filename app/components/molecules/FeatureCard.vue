@@ -3,7 +3,7 @@
     <div class="inline-flex size-9 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
       <Icon :icon="icon" class="size-5" />
     </div>
-    <h3 class="text-base font-semibold text-gray-900">{{ title }}</h3>
+    <h3 class="text-base font-semibold text-black">{{ title }}</h3>
     <p class="text-sm text-gray-600 leading-relaxed">
       {{ description }}
     </p>

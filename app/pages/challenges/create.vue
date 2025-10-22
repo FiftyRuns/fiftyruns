@@ -3,13 +3,13 @@
     <div class="mx-auto flex w-full max-w-4xl flex-col gap-8">
       <header class="space-y-2">
         <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">Challenge erstellen</p>
-        <h1 class="text-3xl font-bold text-gray-900">Starte eine neue Challenge</h1>
+        <h1 class="text-3xl  font-semibold text-black">Starte eine neue Challenge</h1>
         <p class="text-sm text-gray-600">Definiere Ziele, Zeitrahmen und Regeln. Teilnehmende zählen automatisch ihre Läufe dazu.</p>
       </header>
 
       <form class="space-y-10" @submit.prevent="handleSubmit">
         <section class="rounded-3xl border border-black/5 bg-white/90 p-8 shadow-sm backdrop-blur">
-          <h2 class="text-lg font-semibold text-gray-900">Grunddaten</h2>
+          <h2 class="text-lg font-semibold text-black">Grunddaten</h2>
           <p class="text-sm text-gray-500">Name, Beschreibung und Zeitraum deiner Challenge.</p>
 
           <div class="mt-6 space-y-5">
@@ -55,7 +55,7 @@
         </section>
 
         <section class="rounded-3xl border border-black/5 bg-white/90 p-8 shadow-sm backdrop-blur">
-          <h2 class="text-lg font-semibold text-gray-900">Ziele definieren</h2>
+          <h2 class="text-lg font-semibold text-black">Ziele definieren</h2>
           <p class="text-sm text-gray-500">Wähle die Zielart und setze ein messbares Ziel.</p>
 
           <div class="mt-6 space-y-5">
@@ -107,7 +107,7 @@
         </section>
 
         <section class="rounded-3xl border border-black/5 bg-white/90 p-8 shadow-sm backdrop-blur">
-          <h2 class="text-lg font-semibold text-gray-900">Sponsoren & Team</h2>
+          <h2 class="text-lg font-semibold text-black">Sponsoren & Team</h2>
           <p class="text-sm text-gray-500">Optional Logos hinterlegen oder die Challenge einem Team zuordnen.</p>
 
           <div class="mt-6 space-y-5">

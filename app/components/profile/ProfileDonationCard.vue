@@ -19,7 +19,7 @@
             class="pointer-events-none absolute inset-0 rounded-2xl border-2 border-transparent transition"
             :class="modelValue.amount === option.value ? 'border-[var(--color-primary)]/60 shadow-lg shadow-[var(--color-primary)]/20' : ''"
           ></span>
-          <div class="flex items-center gap-2 text-sm font-semibold text-gray-900">
+          <div class="flex items-center gap-2 text-sm font-semibold text-black">
             <Icon :icon="option.icon" class="h-5 w-5 text-[var(--color-primary)]" />
             {{ option.label }}
           </div>

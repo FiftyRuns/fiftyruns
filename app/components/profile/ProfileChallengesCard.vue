@@ -8,7 +8,7 @@
       >
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 class="text-base font-semibold text-gray-900">{{ challenge.name }}</h3>
+            <h3 class="text-base font-semibold text-black">{{ challenge.name }}</h3>
             <p class="text-sm text-gray-500">{{ challenge.description }}</p>
           </div>
           <div class="flex items-center gap-2 text-xs text-gray-500">

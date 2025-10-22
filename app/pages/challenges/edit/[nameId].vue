@@ -12,10 +12,10 @@
 
     <div v-else class="mx-auto flex w-full max-w-4xl flex-col gap-8">
       <header class="space-y-2">
-        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-primary)]">
+        <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)]">
           Challenge bearbeiten
         </p>
-        <h1 class="text-3xl font-bold text-gray-900">Passe deine Challenge an</h1>
+        <h1 class="text-3xl font-semibold text-black">Passe deine Challenge an</h1>
         <p class="text-sm text-gray-600">
           Aktualisiere Inhalte, Ziele, Sponsorenlogos oder die Teamzuordnung. Änderungen wirken sich sofort auf
           Teilnehmer:innen aus.
@@ -24,7 +24,7 @@
 
       <form class="space-y-10" @submit.prevent="handleSubmit">
         <section class="rounded-3xl border border-black/5 bg-white/90 p-8 shadow-sm backdrop-blur">
-          <h2 class="text-lg font-semibold text-gray-900">Grunddaten</h2>
+          <h2 class="text-lg font-semibold text-black">Grunddaten</h2>
           <p class="text-sm text-gray-500">Passe Namen, Beschreibung, Zeitraum und Sichtbarkeit deiner Challenge an.</p>
 
           <div class="mt-6 space-y-5">
@@ -78,7 +78,7 @@
         </section>
 
         <section class="rounded-3xl border border-black/5 bg-white/90 p-8 shadow-sm backdrop-blur">
-          <h2 class="text-lg font-semibold text-gray-900">Ziele anpassen</h2>
+          <h2 class="text-lg font-semibold text-black">Ziele anpassen</h2>
           <p class="text-sm text-gray-500">Aktualisiere Zieltyp und Zielwerte – Teilnehmende sehen den Fortschritt
             sofort.</p>
 
@@ -138,7 +138,7 @@
         </section>
 
         <section class="rounded-3xl border border-black/5 bg-white/90 p-8 shadow-sm backdrop-blur">
-          <h2 class="text-lg font-semibold text-gray-900">Sponsoren & Team</h2>
+          <h2 class="text-lg font-semibold text-black">Sponsoren & Team</h2>
           <p class="text-sm text-gray-500">Logos aktualisieren oder Teamzuordnung anpassen.</p>
 
           <div class="mt-6 space-y-5">

@@ -1,17 +1,17 @@
 <template>
-  <div class="px-4 py-24">
+  <div class="px-4 py-12">
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-8">
       <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)]">Community Challenges
+        <div class="mb-5">
+          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-2">Community Challenges
           </p>
-          <h1 class="mt-1 text-3xl font-bold text-gray-900">Finde deine nächste Challenge</h1>
+          <h1 class="mt-1 text-3xl  font-semibold text-black mb-2">Finde deine nächste Challenge</h1>
           <p class="text-sm text-gray-600">
             Trete öffentlichen Challenges bei oder starte deine eigene, um gemeinsam Ziele zu erreichen.
           </p>
         </div>
         <NuxtLink v-if="isLoggedIn" to="/challenges/create"
-          class="inline-flex items-center gap-2 rounded-xl bg-[var(--color-accent)]/10 px-4 py-2 text-sm font-semibold text-black shadow transition hover:bg-[var(--color-accent)]/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]">
+          class="inline-flex items-center gap-2 rounded-xl bg-[var(--color-accent)]/10 px-4 py-2 text-sm font-semibold  text-black shadow transition hover:bg-[var(--color-accent)]/70 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-accent)]">
           <Icon icon="ph:plus-circle-duotone" class="h-5 w-5" aria-hidden="true" />
           Challenge erstellen
         </NuxtLink>
@@ -25,7 +25,7 @@
             class="w-full border-0 bg-transparent text-sm text-gray-700 outline-none focus:outline-none" />
         </div>
         <FormButton type="button" variant="ghost"
-          :button-class="['border border-[var(--color-accent)]/10 text-black hover:bg-gray-100']" class="hidden sm:inline-flex"
+          :button-class="['border border-[var(--color-accent)]/10  text-black hover:bg-gray-100']" class="hidden sm:inline-flex"
           @click="() => refresh()">
           <Icon icon="ph:arrow-clockwise-duotone" class="mr-2 h-4 w-4" aria-hidden="true" />
           Aktualisieren
@@ -55,7 +55,7 @@
                   format="webp" />
               </div>
               <div v-else
-                class="flex h-40 items-center justify-center rounded-t-3xl bg-[var(--color-accent)]/10 text-3xl font-bold text-black">
+                class="flex h-40 items-center justify-center rounded-t-3xl bg-[var(--color-accent)]/10 text-3xl  font-semibold  text-black">
                 {{ challengeInitials(challenge.name) }}
               </div>
               <span
@@ -68,7 +68,7 @@
             <div class="flex flex-1 flex-col gap-4 px-5 py-4">
               <div>
                 <NuxtLink :to="`/challenges/${challenge.nameId}`"
-                  class="text-lg font-semibold text-black hover:text-[var(--color-accent)]">
+                  class="text-lg font-semibold  text-black hover:text-[var(--color-accent)]">
                   {{ challenge.name }}
                 </NuxtLink>
                 <p class="mt-1 text-sm text-gray-600 line-clamp-3">{{ challenge.description }}</p>

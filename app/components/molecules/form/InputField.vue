@@ -78,7 +78,7 @@ const describedByValue = computed(() => (props.error ? errorId.value : props.des
 const wrapperClasses = computed(() => ['flex flex-col', props.wrapperClass])
 const labelClasses = computed(() => ['block text-sm font-medium text-gray-700', props.labelClass])
 const inputClasses = computed(() => [
-  'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:outline-none focus:ring-2 transition',
+  'w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-black shadow-sm focus:outline-none focus:ring-2 transition',
   props.error ? 'ring-red-400' : '',
   props.inputClass,
   incomingClass.value,

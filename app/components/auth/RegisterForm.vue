@@ -3,7 +3,7 @@
     <div class="rounded-2xl bg-white/90 shadow-xl ring-1 ring-black/5 backdrop-blur">
       <div class="p-6 sm:p-8">
         <div class="mb-6 text-center">
-          <h1 class="text-2xl font-bold tracking-tight" :style="{ color: 'var(--color-primary)' }">
+          <h1 class="text-2xl  font-semibold tracking-tight" :style="{ color: 'var(--color-primary)' }">
             Konto erstellen
           </h1>
           <p class="mt-2 text-sm text-gray-600">Registriere dich, um 50runs zu nutzen.</p>

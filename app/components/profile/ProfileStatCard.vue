@@ -6,7 +6,7 @@
       </slot>
       <p class="text-sm font-medium uppercase tracking-wide text-[var(--color-primary)]">{{ label }}</p>
     </div>
-    <p class="text-3xl font-semibold text-gray-900">
+    <p class="text-3xl font-semibold text-black">
       <slot>{{ value }}</slot>
     </p>
     <p v-if="hint" class="text-xs text-[var(--color-primary)]">{{ hint }}</p>

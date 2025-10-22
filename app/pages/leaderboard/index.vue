@@ -5,7 +5,7 @@
         <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)]">
           Community
         </p>
-        <h1 class="text-3xl font-bold text-gray-900">Leaderboard</h1>
+        <h1 class="text-3xl  font-semibold text-black">Leaderboard</h1>
         <p class="text-base text-gray-600 sm:max-w-2xl">
           Entdecke die engagiertesten Läufer:innen der Season: Wer läuft am häufigsten, legt die größte Distanz zurück
           und verbringt die meiste Zeit auf der Strecke? Hier findest du die Top-Performer:innen.
@@ -16,7 +16,7 @@
         class="rounded-3xl border border-black/5 bg-white/90 p-8 shadow-sm backdrop-blur">
         <div class="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div class="space-y-1 text-center sm:text-left">
-            <h2 id="total-donations-title" class="text-xl font-semibold text-gray-900">
+            <h2 id="total-donations-title" class="text-xl font-semibold text-black">
               Gesamte Spenden
             </h2>
             <p class="text-sm text-gray-600">
@@ -24,7 +24,7 @@
             </p>
           </div>
           <div class="flex flex-col items-center gap-2 sm:items-end">
-            <span class="text-4xl font-bold tracking-tight text-[var(--color-accent)]">
+            <span class="text-4xl  font-semibold tracking-tight text-[var(--color-accent)]">
               {{ formattedDonations }}
             </span>
             <span class="text-xs uppercase tracking-[0.2em] text-gray-500">
@@ -61,7 +61,7 @@
               <Icon :icon="section.icon" class="h-6 w-6" aria-hidden="true" />
             </span>
             <div>
-              <h2 :id="section.headingId" class="text-lg font-semibold text-gray-900">{{ section.title }}</h2>
+              <h2 :id="section.headingId" class="text-lg font-semibold text-black">{{ section.title }}</h2>
               <p class="text-sm text-gray-600">{{ section.description }}</p>
             </div>
           </div>
@@ -83,9 +83,9 @@
                 </span>
               </span>
               <div class="flex flex-1 flex-col">
-                <p class="text-sm font-semibold text-gray-900">
+                <p class="text-sm font-semibold text-black">
                   <NuxtLink :to="profilePath(entry.nameId)"
-                    class="inline-flex items-center text-sm font-semibold text-gray-900 transition hover:text-[var(--color-primary)] focus-visible:underline"
+                    class="inline-flex items-center text-sm font-semibold text-black transition hover:text-[var(--color-primary)] focus-visible:underline"
                     :aria-label="`Profil von ${entry.name} öffnen`">
                     {{ entry.name }}
                   </NuxtLink>
@@ -107,7 +107,7 @@
         class="rounded-3xl border border-black/5 bg-white/90 p-6 shadow-sm backdrop-blur">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 id="team-leaderboard-title" class="text-lg font-semibold text-gray-900">
+            <h2 id="team-leaderboard-title" class="text-lg font-semibold text-black">
               Team-Leaderboard
             </h2>
             <p class="text-sm text-gray-600">
@@ -134,9 +134,9 @@
               </span>
             </span>
             <div class="flex flex-1 flex-col">
-              <p class="text-sm font-semibold text-gray-900">
+              <p class="text-sm font-semibold text-black">
                 <NuxtLink :to="profilePath(entry.nameId)"
-                  class="inline-flex items-center text-sm font-semibold text-gray-900 transition hover:text-[var(--color-primary)] focus-visible:underline"
+                  class="inline-flex items-center text-sm font-semibold text-black transition hover:text-[var(--color-primary)] focus-visible:underline"
                   :aria-label="`Profil von ${entry.name} öffnen`">
                   {{ entry.name }}
                 </NuxtLink>

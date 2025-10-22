@@ -3,7 +3,7 @@
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-8">
       <!-- Header -->
       <header class="flex items-center justify-between">
-        <h1 class="text-2xl font-bold text-gray-900">Profil-Einstellungen</h1>
+        <h1 class="text-2xl  font-semibold text-black">Profil-Einstellungen</h1>
         <NuxtLink
           to="/profile"
           class="text-sm text-[var(--color-primary)] underline-offset-2 hover:underline"

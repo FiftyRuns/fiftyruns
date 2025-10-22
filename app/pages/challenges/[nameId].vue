@@ -1,5 +1,5 @@
 <template>
-  <div class="px-4 py-24">
+  <div class="px-4 py-12">
     <div v-if="pending" class="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <div class="h-64 animate-pulse rounded-3xl border border-black/5 bg-white/70"></div>
       <div class="h-32 animate-pulse rounded-3xl border border-black/5 bg-white/60"></div>
@@ -27,7 +27,7 @@
               </span>
             </div>
 
-            <h1 class="text-3xl font-bold text-gray-900">
+            <h1 class="text-3xl  font-semibold text-black">
               {{ challenge.name }}
             </h1>
             <p class="text-sm text-gray-600">{{ challenge.description || 'Keine Beschreibung verfügbar.' }}</p>
@@ -115,7 +115,7 @@
 
       <section class="space-y-6">
         <header class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-gray-900">Leaderboard</h2>
+          <h2 class="text-lg font-semibold text-black">Leaderboard</h2>
           <span class="text-xs text-gray-500">Top 25 Teilnehmende</span>
         </header>
         <div v-if="!leaderboard.length" class="rounded-3xl border border-dashed border-black/10 bg-white/80 p-8 text-center text-sm text-gray-500">
@@ -128,7 +128,7 @@
             class="flex flex-col gap-3 rounded-3xl border border-black/5 bg-white/90 p-5 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:justify-between"
           >
             <div class="flex items-center gap-4">
-              <span class="grid h-12 w-12 place-items-center rounded-full bg-[var(--color-accent)]/10 text-sm font-semibold text-black">
+              <span class="grid h-12 w-12 place-items-center rounded-full bg-[var(--color-accent)]/10 text-sm font-semibold  text-black">
                 {{ index + 1 }}
               </span>
               <NuxtLink :to="`/profile/${entry.user.nameId}`" class="flex items-center gap-3">
@@ -146,11 +146,11 @@
                     {{ initials(entry.user.name) }}
                   </span>
                 </span>
-                <span class="text-sm font-semibold text-gray-900">{{ entry.user.name }}</span>
+                <span class="text-sm font-semibold text-black">{{ entry.user.name }}</span>
               </NuxtLink>
             </div>
 
-            <div class="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div class="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div class="flex flex-wrap items-center gap-4 text-xs text-gray-600">
                 <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1">
                   <Icon icon="ph:list-checks-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
@@ -179,7 +179,7 @@
 
       <section class="space-y-4">
         <header class="flex items-center justify-between">
-          <h2 class="text-lg font-semibold text-gray-900">Teilnehmende</h2>
+          <h2 class="text-lg font-semibold text-black">Teilnehmende</h2>
           <span class="text-xs text-gray-500">Top 50 angezeigt</span>
         </header>
         <div v-if="!participants.length" class="rounded-3xl border border-dashed border-black/10 bg-white/80 p-8 text-center text-sm text-gray-500">
@@ -207,7 +207,7 @@
                 </span>
               </span>
               <div>
-                <p class="text-sm font-semibold text-gray-900">{{ participant.user.name }}</p>
+                <p class="text-sm font-semibold text-black">{{ participant.user.name }}</p>
                 <p class="text-xs text-gray-500">Seit {{ formatShortDate(participant.joinedAt) }}</p>
               </div>
             </NuxtLink>

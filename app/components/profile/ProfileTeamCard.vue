@@ -4,7 +4,7 @@
       <div class="flex flex-col gap-3 rounded-2xl border border-black/5 bg-white/70 p-5 shadow">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h3 class="text-lg font-semibold text-gray-900">{{ team.name }}</h3>
+            <h3 class="text-lg font-semibold text-black">{{ team.name }}</h3>
             <p class="text-sm text-gray-500">{{ team.description || 'Gemeinsam stärker – teile deine Läufe und motiviere andere.' }}</p>
           </div>
           <span class="inline-flex items-center gap-2 rounded-full border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/10 px-3 py-1 text-xs font-semibold text-[var(--color-primary)]">

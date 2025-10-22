@@ -44,7 +44,7 @@
           min="0"
           step="0.1"
           :value="form.distanceKm"
-          class="w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+          class="w-full rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
           placeholder="z. B. 8.5"
           @input="updateField('distanceKm', ($event.target as HTMLInputElement).value)"
         />
@@ -65,7 +65,7 @@
             min="0"
             max="23"
             :value="hours"
-            class="w-20 rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            class="w-20 rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
             placeholder="hh"
             @input="updateHours(($event.target as HTMLInputElement).value)"
           />
@@ -76,7 +76,7 @@
             min="0"
             max="59"
             :value="minutes"
-            class="w-20 rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            class="w-20 rounded-xl border border-gray-200 bg-white px-3 py-3 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
             placeholder="mm"
             @input="updateMinutes(($event.target as HTMLInputElement).value)"
           />
@@ -95,7 +95,7 @@
           id="post-content"
           rows="3"
           :value="form.content"
-          class="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+          class="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
           placeholder="Ein Satz zum Lauf …"
           maxlength="240"
           @input="updateField('content', ($event.target as HTMLTextAreaElement).value)"
@@ -124,7 +124,7 @@
       <!-- Aktionen -->
       <div class="flex flex-wrap items-center justify-between gap-3">
         <select
-          class="h-[40px] rounded-xl border border-gray-200 bg-white px-3 text-sm text-gray-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+          class="h-[40px] rounded-xl border border-gray-200 bg-white px-3 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
           :value="form.visibility"
           @change="updateField('visibility', ($event.target as HTMLSelectElement).value as Visibility)"
         >

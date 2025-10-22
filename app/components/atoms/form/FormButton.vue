@@ -53,7 +53,7 @@ const buttonType = computed(() => (componentTag.value === 'button' ? props.type 
 const componentDisabled = computed(() => (componentTag.value === 'button' ? isDisabled.value : undefined))
 
 const variantClasses: Record<ButtonVariant, string> = {
-  primary: 'bg-[var(--color-accent)] text-black hover:opacity-95 focus:ring-[var(--color-accent)]/40',
+  primary: 'bg-[var(--color-accent)]  text-black hover:opacity-95 focus:ring-[var(--color-accent)]/40',
   secondary:
     'bg-white text-[var(--color-primary)] border border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 focus:ring-[var(--color-primary)]/40',
   ghost: 'bg-transparent text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 focus:ring-[var(--color-primary)]/40',
