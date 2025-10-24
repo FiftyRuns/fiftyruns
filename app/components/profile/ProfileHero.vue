@@ -34,13 +34,24 @@
           </div>
 
           <div v-if="team"
-            class="inline-flex items-center gap-2 rounded-full border border-black/5 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm">
+            class="inline-flex flex-wrap items-center gap-2 rounded-full border border-black/5 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm">
             <Icon icon="ph:users-three-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
             <span>{{ team.name }}</span>
-            <span v-if="team.role" class="text-gray-400">· {{ team.role }}</span>
-            <button type="button" class="text-[var(--color-accent)] underline-offset-2 hover:underline"
-              @click="$emit('manage-team')">
-              Team verwalten
+            <span v-if="team.roleLabel" class="text-gray-400">· {{ team.roleLabel }}</span>
+            <button
+              type="button"
+              class="text-[var(--color-accent)] underline-offset-2 hover:underline"
+              @click="$emit('view-team')"
+            >
+              Team ansehen
+            </button>
+            <button
+              v-if="team.roleLabel === 'Admin'"
+              type="button"
+              class="text-[var(--color-primary)] underline-offset-2 hover:underline"
+              @click="$emit('manage-team')"
+            >
+              Team managen
             </button>
           </div>
           <button v-else type="button"
@@ -84,8 +95,10 @@ type UserSummary = {
 }
 
 type TeamSummary = {
+  id: string
   name: string
-  role?: string | null
+  nameId: string
+  roleLabel?: string | null
 } | null
 
 const props = defineProps<{
@@ -98,6 +111,7 @@ const { user, team } = toRefs(props)
 defineEmits<{
   (e: 'edit-profile'): void
   (e: 'change-picture'): void
+  (e: 'view-team'): void
   (e: 'manage-team'): void
   (e: 'open-post-composer'): void
 }>()
