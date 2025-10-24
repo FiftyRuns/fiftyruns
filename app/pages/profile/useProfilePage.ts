@@ -221,28 +221,21 @@ export function useProfilePage() {
     router.push('/team/manage')
   }
 
+  function openTeamOverview() {
+    const nameId = teamInfo.value?.nameId
+    if (nameId) {
+      router.push(`/team/${nameId}`)
+    } else {
+      router.push('/team/discover')
+    }
+  }
+
   function openTeamMessages() {
     router.push('/team/messages')
   }
 
   async function createTeam() {
-    try {
-      const csrf = useCookie('csrf_token').value
-      await $fetch('/api/team/create', {
-        method: 'POST',
-        headers: { 'x-csrf-token': csrf ?? '' },
-        body: {
-          name: 'Mein Team',
-          nameId: 'mein-team',
-          description: 'Wir laufen zusammen.',
-          location: 'München',
-        },
-        credentials: 'include',
-      })
-      await loadOverview()
-    } catch (e) {
-      console.error('Team erstellen fehlgeschlagen', e)
-    }
+    router.push('/team/create')
   }
 
   function discoverTeams() {
@@ -252,7 +245,7 @@ export function useProfilePage() {
   async function joinTeam(nameId: string) {
     try {
       const csrf = useCookie('csrf_token').value
-      await $fetch('/api/team/join', {
+      await $fetch('/api/team/requests', {
         method: 'POST',
         headers: { 'x-csrf-token': csrf ?? '' },
         body: { nameId },
@@ -553,6 +546,7 @@ export function useProfilePage() {
     triggerAvatarUpload,
 
     // Navigation / Team
+    openTeamOverview,
     openTeamManagement,
     openTeamMessages,
     createTeam,

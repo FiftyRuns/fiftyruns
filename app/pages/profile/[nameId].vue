@@ -286,7 +286,7 @@ function initials(name: string) {
 }
 
 function translateRole(role: GroupRole) {
-  if (role === 'ADMIN') return 'Team Admin'
+  if (role === 'ADMIN') return 'Admin'
   if (role === 'MEMBER') return 'Mitglied'
   return 'Team'
 }

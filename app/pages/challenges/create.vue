@@ -144,7 +144,7 @@
             </div>
 
             <!-- Fixed: Proper null check and removed .value access -->
-            <div v-if="teamInfo && teamInfo.roleLabel === 'Team Admin'" class="rounded-2xl border border-black/10 bg-white/70 p-4 text-sm text-gray-600">
+            <div v-if="teamInfo && teamInfo.roleLabel === 'Admin'" class="rounded-2xl border border-black/10 bg-white/70 p-4 text-sm text-gray-600">
               <label class="flex items-center gap-2">
                 <input v-model="form.assignToTeam" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]/30" />
                 <span>Challenge dem Team <strong>{{ teamInfo.name }}</strong> zuordnen</span>
@@ -307,7 +307,7 @@ function buildPayload() {
   }
 
   // Fixed: Proper null check and removed .value access
-  if (teamInfo && teamInfo.value?.roleLabel === 'Team Admin' && form.assignToTeam) {
+  if (teamInfo && teamInfo.value?.roleLabel === 'Admin' && form.assignToTeam) {
     payload.teamId = teamInfo.value?.id
   }
 

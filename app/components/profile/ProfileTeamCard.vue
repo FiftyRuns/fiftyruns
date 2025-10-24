@@ -25,7 +25,7 @@
       </div>
 
       <div class="flex flex-wrap items-center gap-3">
-        <FormButton variant="primary" label="Teamseite öffnen" @click="$emit('open-team')" />
+        <FormButton variant="primary" label="Teamseite öffnen" @click="$emit('manage')" />
         <FormButton variant="secondary" label="Nachrichten" @click="$emit('open-messages')" />
         <button type="button" class="text-xs text-red-500 underline-offset-2 hover:underline" @click="$emit('leave-team')">
           Team verlassen
@@ -36,7 +36,7 @@
       <Icon icon="ph:users-three-duotone" class="mx-auto h-10 w-10 text-[var(--color-primary)]" />
       <p>Du bist derzeit in keinem Team. Tritt einem bestehenden Team bei oder gründe dein eigenes, um gemeinsam zu trainieren.</p>
       <div class="flex flex-wrap justify-center gap-3">
-        <FormButton variant="primary" label="Teams entdecken" @click="$emit('discover-team')" />
+        <FormButton variant="primary" label="Teams entdecken" @click="$emit('discover')" />
         <FormButton variant="secondary" label="Eigenes Team gründen" @click="$emit('create-team')" />
       </div>
     </div>
@@ -51,6 +51,7 @@ import FormButton from '../atoms/form/FormButton.vue'
 export type TeamInfo = {
   id: string
   name: string
+  nameId: string
   description?: string | null
   roleLabel?: string | null
   members: number
@@ -62,10 +63,10 @@ defineProps<{
 }>()
 
 defineEmits<{
-  (e: 'open-team'): void
+  (e: 'manage'): void
   (e: 'open-messages'): void
   (e: 'leave-team'): void
   (e: 'create-team'): void
-  (e: 'discover-team'): void
+  (e: 'discover'): void
 }>()
 </script>

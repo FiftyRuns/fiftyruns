@@ -9,8 +9,12 @@
           image: avatarPreview || authUser.image,
           bio: settingsForm.bio
         }"
-        :team="teamInfo" @edit-profile="goToSettings" @change-picture="triggerAvatarUpload"
-        @manage-team="openTeamManagement" @open-post-composer="scrollToComposer" />
+        :team="teamInfo"
+        @edit-profile="goToSettings"
+        @change-picture="triggerAvatarUpload"
+        @view-team="openTeamOverview"
+        @manage-team="openTeamManagement"
+        @open-post-composer="scrollToComposer" />
 
       <ProfileStatsGrid :stats="stats" />
 
@@ -50,6 +54,7 @@ const {
   goToSettings,
   scrollToComposer,
   triggerAvatarUpload,
+  openTeamOverview,
   openTeamManagement,
   openMediaLibrary,
   onPostComposerUpdate,

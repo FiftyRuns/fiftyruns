@@ -6,6 +6,7 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_MIGRATIONS")
 }
 
 /* ===================== Enums ===================== */
@@ -34,6 +35,12 @@ enum GroupRole {
   ADMIN
 }
 
+enum GroupJoinRequestStatus {
+  PENDING
+  APPROVED
+  DECLINED
+}
+
 /* ===================== Core Models ===================== */
 
 model Group {
@@ -43,13 +50,57 @@ model Group {
 
   description String?
   location    String?
+  coverImage  String?
+  visibility  Visibility @default(public)
+  requireApproval Boolean @default(true)
+  maxMembers  Int?
 
-  users     User[]   @relation("UsersInGroup")
-
-  challenges Challenge[]
+  users        User[]             @relation("UsersInGroup")
+  challenges   Challenge[]
+  joinRequests GroupJoinRequest[]
+  invites      GroupInvite[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model GroupJoinRequest {
+  id        String                 @id @default(uuid())
+  groupId   String
+  userId    String
+  status    GroupJoinRequestStatus @default(PENDING)
+  message   String?
+  createdAt DateTime               @default(now())
+  decidedAt DateTime?
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([status])
+}
+
+model GroupInvite {
+  id            String      @id @default(uuid())
+  groupId       String
+  invitedById   String
+  targetUserId  String?
+  email         String?
+  token         String      @unique
+  note          String?
+  expiresAt     DateTime
+  acceptedAt    DateTime?
+  acceptedById  String?
+  createdAt     DateTime    @default(now())
+
+  group      Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  invitedBy  User  @relation("GroupInviteSentBy", fields: [invitedById], references: [id], onDelete: Cascade)
+  acceptedBy User? @relation("GroupInviteAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+  targetUser User? @relation("GroupInviteTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([groupId])
+  @@index([token])
+  @@index([targetUserId])
 }
 
 model User {
@@ -85,9 +136,13 @@ model User {
   GarminAuth        GarminAuth?
   postings          Posting[]
   reactions         Reaction[]
-  readNotifications ReadNotification[]
-  runningStatistic  RunningStatistic?
-  sessions          Session[]
+  readNotifications    ReadNotification[]
+  groupJoinRequests    GroupJoinRequest[]
+  groupInvitesSent     GroupInvite[]        @relation("GroupInviteSentBy")
+  groupInvitesAccepted GroupInvite[]        @relation("GroupInviteAcceptedBy")
+  groupInvitesTargeted GroupInvite[]        @relation("GroupInviteTarget")
+  runningStatistic     RunningStatistic?
+  sessions             Session[]
 
   // NEU: Challenge-Beziehungen (wie gehabt)
   challengesAdmin  Challenge[]          @relation("ChallengeAdmin")

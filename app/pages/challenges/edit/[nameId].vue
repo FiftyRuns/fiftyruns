@@ -162,7 +162,7 @@
               </button>
             </div>
 
-            <div v-if="teamInfo && teamInfo.roleLabel === 'Team Admin'"
+            <div v-if="teamInfo && teamInfo.roleLabel === 'Admin'"
               class="rounded-2xl border border-black/10 bg-white/70 p-4 text-sm text-gray-600">
               <label class="flex items-center gap-3">
                 <input v-model="form.assignToTeam" type="checkbox"
@@ -400,7 +400,7 @@ function buildPayload() {
     sponsorLogos,
   }
 
-  if (teamInfo.value && teamInfo.value.roleLabel === 'Team Admin') {
+  if (teamInfo.value && teamInfo.value.roleLabel === 'Admin') {
     if (form.assignToTeam) {
       payload.teamId = teamInfo.value.id
     } else if (initialTeamId.value) {
