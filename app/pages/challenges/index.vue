@@ -21,7 +21,7 @@
         <div
           class="flex w-full max-w-xl items-center gap-3 rounded-2xl border border-black/5 bg-white/80 px-4 py-2 shadow-sm">
           <Icon icon="ph:magnifying-glass-duotone" class="h-5 w-5 text-[var(--color-primary)]" aria-hidden="true" />
-          <input v-model="searchTerm" type="search" placeholder="Challenge suchen"
+          <input v-model="searchInput" type="search" placeholder="Challenge suchen"
             class="w-full border-0 bg-transparent text-sm text-gray-700 outline-none focus:outline-none" />
         </div>
         <FormButton type="button" variant="ghost"
@@ -130,11 +130,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useCookie } from 'nuxt/app'
 import { useAuthUser } from '@/composables/useAuthUser'
 import { useAsyncData } from 'nuxt/app'
+import { useDebounceFn } from '@vueuse/core'
 import FormButton from '@/components/atoms/form/FormButton.vue'
 
 interface ChallengeListItem {
@@ -157,13 +158,22 @@ interface ChallengeListItem {
 const authUser = useAuthUser()
 const isLoggedIn = computed(() => Boolean(authUser.value))
 
+const searchInput = ref('')
 const searchTerm = ref('')
+
+// Debounce search input
+const debouncedSearch = useDebounceFn((value: string) => {
+  searchTerm.value = value
+}, 300)
+
+watch(searchInput, debouncedSearch)
+
 const actionPending = reactive<Record<string, boolean>>({})
 const actionErrors = reactive<Record<string, string>>({})
 const csrf = useCookie('csrf_token')
 
 const { data, pending, error, refresh } = await useAsyncData(
-  () => `challenges-${searchTerm.value}`,
+  'challenges-list',
   () =>
     $fetch<ChallengeListItem[]>('/api/challenges', {
       credentials: 'include',

@@ -1,83 +1,13 @@
 <template>
   <ProfilePanel title="Meine Beiträge" description="Deine letzten Aktivitäten in der Community.">
-    <div v-if="postsAugmented.length" class="space-y-4">
-      <article
+    <div v-if="postsAugmented.length" class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <PostingCardProfile
         v-for="post in postsAugmented"
         :key="post.id"
-        class="group rounded-2xl border border-[var(--color-accent)]/15 bg-white/80 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-      >
-        <header class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 class="text-base font-semibold text-black">
-              {{ post.title || 'Beitrag ohne Titel' }}
-            </h3>
-            <p class="text-xs text-gray-500">
-              {{ formatDate(post.createdAt) }} · {{ post.visibilityLabel }}
-            </p>
-          </div>
-
-          <div class="flex items-center gap-3 text-xs text-gray-600">
-            <!-- Laufdaten (Anzeige) -->
-            <template v-if="hasRunData(post)">
-              <span class="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white/80 px-2 py-1">
-                <Icon icon="ph:road-horizon-duotone" class="h-4 w-4" />
-                {{ formatDistance(post.distanceInMeters) }}
-              </span>
-              <span class="inline-flex items-center gap-1 rounded-full border border-black/10 bg-white/80 px-2 py-1">
-                <Icon icon="ph:timer-duotone" class="h-4 w-4" />
-                {{ formatDuration(post.durationInSeconds) }}
-              </span>
-            </template>
-
-            <!-- Reaktionen / Kommentare -->
-            <span class="inline-flex items-center gap-1 text-gray-500">
-              <Icon icon="ph:heart-duotone" class="h-4 w-4 text-[var(--color-accent)]" />
-              {{ post.reactions }}
-            </span>
-            <span class="inline-flex items-center gap-1 text-gray-500">
-              <Icon icon="ph:chat-centered-duotone" class="h-4 w-4 text-[var(--color-accent)]/80" />
-              {{ post.comments }}
-            </span>
-          </div>
-        </header>
-
-        <div v-if="post.image" class="mt-3">
-          <figure class="overflow-hidden rounded-xl bg-gray-100">
-            <NuxtImg
-              :src="post.image"
-              :alt="post.title ? `Bild zu ${post.title}` : 'Bild zum Beitrag'"
-              width="800"
-              height="450"
-              sizes="(min-width: 1024px) 33vw, 100vw"
-              class="h-56 w-full object-cover sm:h-64 md:h-72"
-              format="webp"
-              loading="lazy"
-            />
-          </figure>
-        </div>
-
-        <footer class="mt-4 flex items-center gap-3 text-xs text-gray-500">
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 hover:text-[var(--color-primary)]"
-            @click="$emit('edit', post.id)"
-            title="Beitrag bearbeiten"
-          >
-            <Icon icon="ph:pencil-simple-line-duotone" class="h-4 w-4" />
-            Bearbeiten
-          </button>
-
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 hover:text-red-500"
-            @click="askDelete(post.id)"
-            title="Beitrag löschen"
-          >
-            <Icon icon="ph:trash-duotone" class="h-4 w-4" />
-            Löschen
-          </button>
-        </footer>
-      </article>
+        :post="post"
+        @edit="handleEdit"
+        @delete="askDelete"
+      />
     </div>
 
     <div v-else class="rounded-2xl border border-dashed border-black/10 bg-white/70 p-6 text-center text-sm text-gray-500">
@@ -114,6 +44,7 @@ import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
 import ProfilePanel from './ProfilePanel.vue'
 import FormButton from '../atoms/form/FormButton.vue'
+import PostingCardProfile from '../cards/PostingCardProfile.vue'
 
 export type PostSummary = {
   id: string
@@ -138,44 +69,32 @@ const emit = defineEmits<{
 
 const mapVisibility = { public: 'Öffentlich', protected: 'Community', private: 'Privat' } as const
 
-const formatDate = (input: string | Date) =>
-  new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(input))
-
 const postsAugmented = computed(() =>
   props.posts.map((post) => ({ ...post, visibilityLabel: mapVisibility[post.visibility] })),
 )
-
-const hasRunData = (post: PostSummary) =>
-  (post.distanceInMeters ?? null) !== null || (post.durationInSeconds ?? null) !== null
-
-const formatDistance = (meters?: number | null) => {
-  if (meters == null) return '– km'
-  const km = meters / 1000
-  return `${km.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`
-}
-const formatDuration = (seconds?: number | null) => {
-  if (seconds == null) return '–:–'
-  const s = Math.max(0, Math.floor(seconds))
-  const h = Math.floor(s / 3600)
-  const m = Math.floor((s % 3600) / 60)
-  const sec = s % 60
-  return [h, m, sec].map((v) => String(v).padStart(2, '0')).join(':')
-}
 
 /* Modal-Logik */
 const confirmOpen = ref(false)
 const pendingDeleteId = ref<string | null>(null)
 
+function handleEdit(id: string) {
+  emit('edit', id)
+}
+
 function askDelete(id: string) {
   pendingDeleteId.value = id
   confirmOpen.value = true
 }
+
 function closeConfirm() {
   confirmOpen.value = false
   pendingDeleteId.value = null
 }
+
 function confirmDelete() {
-  if (pendingDeleteId.value) emit('confirm-delete', pendingDeleteId.value)
-  closeConfirm()
+  if (pendingDeleteId.value) {
+    emit('confirm-delete', pendingDeleteId.value)
+    closeConfirm()
+  }
 }
 </script>

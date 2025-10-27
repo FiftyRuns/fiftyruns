@@ -5,16 +5,39 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   css: ["~/assets/css/main.css"],
 
+  experimental: {
+    payloadExtraction: true,
+    viewTransition: true
+  },
+
   vite: {
     plugins: [
       tailwindcss(),
     ],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            'vue-vendor': ['vue', 'vue-router'],
+            'iconify': ['@iconify/vue'],
+            'utils': ['@vueuse/core']
+          }
+        }
+      }
+    }
   },
 
   modules: [
     "@nuxt/image",
     "@nuxt/content"
   ],
+
+  routeRules: {
+    '/': { prerender: true },
+    '/postings': { swr: 60 },
+    '/challenges': { swr: 60 },
+    '/api/**': { cors: true }
+  },
 
   runtimeConfig: {
     sessionSecret: process.env.SESSION_SECRET,

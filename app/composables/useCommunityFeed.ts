@@ -1,4 +1,4 @@
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 import { useCookie } from 'nuxt/app'
 import { REACTION_EMOJIS, type ReactionEmoji } from '@/constants/reactions'
 
@@ -37,21 +37,28 @@ export type CommunityPost = {
   comments: Comment[]
 }
 
-const postsState = ref<CommunityPost[]>([])
+const postsState = shallowRef<CommunityPost[]>([])
 const loadingState = ref(false)
 const errorState = ref('')
+
+// Request caching
+let feedPromise: Promise<any> | null = null
 
 export function useCommunityFeed() {
   const csrfCookie = useCookie<string | null>('csrf_token', { default: () => null })
 
   async function loadFeed() {
+    // Return cached promise if already loading
+    if (feedPromise) return feedPromise
+    
     loadingState.value = true
     errorState.value = ''
-    try {
-      const data = await $fetch<{
-        items: CommunityPost[]
-        nextCursor: string | null
-      }>('/api/postings', { credentials: 'include' })
+    
+    feedPromise = $fetch<{
+      items: CommunityPost[]
+      nextCursor: string | null
+    }>('/api/postings', { credentials: 'include' })
+    .then(data => {
 
       postsState.value = data.items.map((item) => ({
         ...item,
@@ -61,12 +68,18 @@ export function useCommunityFeed() {
         }),
         viewerReaction: item.viewerReaction,
       }))
-    } catch (error) {
+    })
+    .catch(error => {
       console.error('Feed laden fehlgeschlagen', error)
       errorState.value = 'Beiträge konnten nicht geladen werden.'
-    } finally {
+      throw error
+    })
+    .finally(() => {
       loadingState.value = false
-    }
+      feedPromise = null
+    })
+    
+    return feedPromise
   }
 
   async function toggleReaction(postId: string, emoji: ReactionEmoji) {

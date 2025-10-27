@@ -41,16 +41,16 @@
               <textarea v-model="form.description" rows="4" class="rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" placeholder="Was ist das Ziel? Wie funktioniert die Challenge?" />
             </label>
 
-            <div class="grid gap-5 sm:grid-cols-2">
-              <label class="flex flex-col gap-2 text-sm font-medium text-gray-700">
-                Preis / Gewinn (optional)
-                <input v-model="form.prize" type="text" class="rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" placeholder="z. B. Laufshirt" />
-              </label>
-              <label class="flex flex-col gap-2 text-sm font-medium text-gray-700">
-                Bild-URL (optional)
-                <input v-model="form.image" type="url" class="rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" placeholder="https://…" />
-              </label>
-            </div>
+            <label class="flex flex-col gap-2 text-sm font-medium text-gray-700">
+              Preis / Gewinn (optional)
+              <input v-model="form.prize" type="text" class="rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" placeholder="z. B. Laufshirt" />
+            </label>
+
+            <ChallengeImagePicker
+              v-model:image-url="form.image"
+              :csrf-token="csrf"
+              label="Challenge-Titelbild (optional)"
+            />
           </div>
         </section>
 
@@ -113,26 +113,13 @@
           <div class="mt-6 space-y-5">
             <div class="space-y-3">
               <p class="text-xs font-medium uppercase tracking-wide text-gray-500">Sponsor Logos (optional)</p>
-              <div class="space-y-3">
-                <div
+              <div class="flex flex-wrap gap-3">
+                <SponsorLogoPicker
                   v-for="(logo, index) in form.sponsorLogos"
                   :key="index"
-                  class="flex items-center gap-3"
-                >
-                  <input
-                    v-model="form.sponsorLogos[index]"
-                    type="url"
-                    placeholder="https://example.com/logo.png"
-                    class="w-full rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                  />
-                  <button
-                    type="button"
-                    class="rounded-full p-2 text-gray-400 transition hover:text-red-500"
-                    @click="removeLogo(index)"
-                  >
-                    <Icon icon="ph:trash-duotone" class="h-4 w-4" />
-                  </button>
-                </div>
+                  v-model="form.sponsorLogos[index]"
+                  :csrf-token="csrf"
+                />
               </div>
               <button
                 type="button"
@@ -182,6 +169,8 @@ import { useCookie } from 'nuxt/app'
 import { useRouter } from 'vue-router'
 import { useAuthUser } from '@/composables/useAuthUser'
 import { useAsyncData } from 'nuxt/app'
+import ChallengeImagePicker from '@/components/molecules/form/ChallengeImagePicker.vue'
+import SponsorLogoPicker from '@/components/molecules/form/SponsorLogoPicker.vue'
 
 const router = useRouter()
 const csrf = useCookie('csrf_token')

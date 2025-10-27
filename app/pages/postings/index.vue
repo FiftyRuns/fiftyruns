@@ -1,294 +1,50 @@
 <template>
-  <div class="px-4 py-24">
-    <div class="mx-auto flex w-full max-w-5xl flex-col gap-8">
-      <header class="flex flex-col gap-2 text-center sm:text-left">
-        <h1 class="text-3xl  font-semibold text-black">Community-Beiträge</h1>
-        <p class="text-gray-600">
-          Alle öffentlichen und Community-Postings auf einen Blick. Reagiere mit Emojis oder lass einen Kommentar da.
-        </p>
+  <div class="px-4 py-12">
+    <div class="mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <header class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)] mb-2">
+            Community Feed
+          </p>
+          <h1 class="mt-1 text-3xl font-semibold text-black mb-2">Alle Beiträge</h1>
+          <p class="text-sm text-gray-600">
+            Alle öffentlichen und Community-Postings auf einen Blick.
+          </p>
+        </div>
       </header>
 
       <div v-if="error" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
         {{ error }}
       </div>
 
-      <div v-if="loading" class="grid gap-4">
-        <div v-for="n in 3" :key="n" class="h-48 animate-pulse rounded-3xl border border-black/5 bg-white/70"></div>
+      <div v-if="loading" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div v-for="n in 6" :key="n" class="h-60 animate-pulse rounded-3xl border border-black/5 bg-white/60"></div>
       </div>
 
-      <div v-else-if="!posts.length" class="rounded-3xl border border-dashed border-black/10 bg-white/80 p-10 text-center shadow-sm">
-        <p class="text-lg font-medium text-gray-800">Noch keine Beiträge sichtbar.</p>
+      <div v-else-if="!posts.length" class="rounded-3xl border border-dashed border-black/10 bg-white/80 p-12 text-center shadow-sm">
+        <p class="text-lg font-semibold text-gray-800">Noch keine Beiträge gefunden.</p>
         <p class="mt-2 text-sm text-gray-600">
           Sobald jemand einen Beitrag mit Community- oder Public-Sichtbarkeit erstellt, erscheint er hier.
         </p>
       </div>
 
-      <section v-else class="space-y-6">
-        <article
+      <section v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <PostingCardFeed
           v-for="post in posts"
           :key="post.id"
-          class="rounded-3xl border border-black/5 bg-white/90 p-6 shadow-sm backdrop-blur transition hover:-translate-y-1 hover:shadow-lg"
-        >
-          <header class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <NuxtLink
-              :to="profilePath(post.author.nameId)"
-              class="group flex items-center gap-4 rounded-xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)]"
-              :aria-label="`Profil von ${post.author.name} öffnen`"
-            >
-              <span class="relative h-12 w-12 overflow-hidden rounded-full border border-black/10 bg-gray-100 transition group-hover:scale-105">
-                <NuxtImg
-                  v-if="post.author.image"
-                  :src="post.author.image"
-                  :alt="`Profilbild von ${post.author.name}`"
-                  class="h-full w-full object-cover"
-                  width="48"
-                  height="48"
-                />
-                <span
-                  v-else
-                  class="grid h-full w-full place-items-center text-base font-semibold uppercase text-[var(--color-primary)]"
-                >
-                  {{ initials(post.author.name) }}
-                </span>
-              </span>
-              <div>
-                <span class="text-base font-semibold text-black transition group-hover:text-[var(--color-primary)]">
-                  {{ post.author.name }}
-                </span>
-                <p class="text-xs text-gray-500">{{ formatDate(post.createdAt) }}</p>
-              </div>
-            </NuxtLink>
-
-            <span
-              class="inline-flex h-8 items-center justify-center rounded-full border border-black/10 bg-gray-50 px-3 text-xs font-medium uppercase tracking-wide text-gray-600"
-            >
-              {{ visibilityLabel(post.visibility) }}
-            </span>
-          </header>
-
-          <div v-if="hasRunData(post)" class="mt-4 flex flex-wrap items-center gap-3 text-sm text-gray-700">
-            <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1">
-              <Icon icon="ph:road-horizon-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
-              {{ formatDistance(post.runningExercise.distanceInMeters) }}
-            </span>
-            <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1">
-              <Icon icon="ph:timer-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
-              {{ formatDuration(post.runningExercise.durationInSeconds) }}
-            </span>
-          </div>
-
-          <p v-if="post.text" class="mt-4 whitespace-pre-line text-base leading-relaxed text-gray-800">
-            {{ post.text }}
-          </p>
-
-          <div v-if="post.image" class="mt-4 overflow-hidden rounded-2xl">
-            <NuxtImg
-              :src="post.image"
-              :alt="`Bild von ${post.author.name}`"
-              width="960"
-              height="540"
-              class="h-64 w-full object-cover"
-              sizes="(min-width: 1024px) 40vw, 100vw"
-              format="webp"
-            />
-          </div>
-
-          <div class="mt-6 flex flex-wrap items-center gap-2">
-            <button
-              v-for="reaction in post.reactions"
-              :key="reaction.emoji"
-              type="button"
-              class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm transition"
-              :class="post.viewerReaction === reaction.emoji ? 'bg-[var(--color-accent)]/20 text-[var(--color-primary)]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-              @click="handleReaction(post.id, reaction.emoji)"
-            >
-              <span class="text-lg leading-none">{{ reaction.emoji }}</span>
-              <span class="tabular-nums">{{ reaction.count }}</span>
-            </button>
-            <button
-              v-if="post.viewerReaction"
-              type="button"
-              class="ml-auto inline-flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
-              @click="handleReaction(post.id, post.viewerReaction)"
-            >
-              <Icon icon="ph:x-circle-duotone" class="h-4 w-4" />
-              Reaktion entfernen
-            </button>
-          </div>
-
-          <section class="mt-6 space-y-4">
-            <h3 class="text-sm font-semibold text-gray-800">
-              Kommentare <span class="ml-1 text-xs font-normal text-gray-500">({{ post.comments.length }})</span>
-            </h3>
-
-            <ul class="space-y-3">
-              <li
-                v-for="comment in post.comments"
-                :key="comment.id"
-                class="rounded-2xl border border-gray-100 bg-gray-50/80 px-4 py-3"
-              >
-                <div class="flex items-start gap-3">
-                  <NuxtLink
-                    :to="profilePath(comment.author.nameId)"
-                    class="mt-1 h-8 w-8 shrink-0 overflow-hidden rounded-full border border-black/5 bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-[var(--color-primary)]"
-                    :aria-label="`Profil von ${comment.author.name} öffnen`"
-                  >
-                    <NuxtImg
-                      v-if="comment.author.image"
-                      :src="comment.author.image"
-                      :alt="`Profilbild von ${comment.author.name}`"
-                      class="h-full w-full object-cover"
-                      width="32"
-                      height="32"
-                    />
-                    <span
-                      v-else
-                      class="grid h-full w-full place-items-center text-xs font-semibold uppercase text-[var(--color-primary)]"
-                    >
-                      {{ initials(comment.author.name) }}
-                    </span>
-                  </NuxtLink>
-                  <div class="flex-1">
-                    <div class="flex items-center justify-between text-xs text-gray-500">
-                      <NuxtLink
-                        :to="profilePath(comment.author.nameId)"
-                    class="font-medium text-gray-700 transition hover:text-[var(--color-primary)] focus-visible:text-[var(--color-primary)] focus-visible:outline-none"
-                    :aria-label="`Profil von ${comment.author.name} öffnen`"
-                  >
-                    {{ comment.author.name }}
-                  </NuxtLink>
-                    <div class="flex items-center gap-2">
-                      <span>{{ formatDate(comment.createdAt) }}</span>
-                      <template v-if="ownsComment(comment)">
-                        <button
-                          type="button"
-                          class="rounded-full p-1 text-gray-400 transition hover:text-[var(--color-primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--color-primary)] disabled:opacity-50"
-                          :disabled="commentEditPending[comment.id] || commentDeletePending[comment.id]"
-                          :aria-label="commentEditMode[comment.id] ? 'Bearbeitung abbrechen' : 'Kommentar bearbeiten'"
-                          @click="commentEditMode[comment.id] ? cancelEditComment(comment) : startEditComment(comment)"
-                        >
-                          <Icon :icon="commentEditMode[comment.id] ? 'ph:x-circle-duotone' : 'ph:pencil-simple-line-duotone'" class="h-4 w-4" />
-                        </button>
-                        <button
-                          type="button"
-                          class="rounded-full p-1 text-gray-400 transition hover:text-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-500 disabled:opacity-50"
-                          :disabled="commentEditPending[comment.id] || commentDeletePending[comment.id]"
-                          aria-label="Kommentar löschen"
-                          @click="requestDeleteComment(post.id, comment.id)"
-                        >
-                          <Icon icon="ph:trash-duotone" class="h-4 w-4" />
-                        </button>
-                      </template>
-                    </div>
-                  </div>
-                    <div v-if="commentEditMode[comment.id]" class="mt-2 space-y-2">
-                      <textarea
-                        v-model="commentEditTexts[comment.id]"
-                        rows="2"
-                        class="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/25"
-                      ></textarea>
-                      <div class="flex items-center gap-2">
-                        <button
-                          type="button"
-                          class="rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition hover:bg-[var(--color-primary)]/90 disabled:cursor-not-allowed disabled:opacity-60"
-                          :disabled="commentEditPending[comment.id]"
-                          @click="submitCommentEdit(post.id, comment)"
-                        >
-                          Speichern
-                        </button>
-                        <button
-                          type="button"
-                          class="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
-                          :disabled="commentEditPending[comment.id]"
-                          @click="cancelEditComment(comment)"
-                        >
-                          Abbrechen
-                        </button>
-                      </div>
-                      <p v-if="commentEditErrors[comment.id]" class="text-xs text-red-600">{{ commentEditErrors[comment.id] }}</p>
-                    </div>
-                    <p v-else class="mt-1 whitespace-pre-line text-sm text-gray-700">
-                      {{ comment.text }}
-                    </p>
-                  </div>
-                </div>
-              </li>
-            </ul>
-
-            <form class="space-y-3" @submit.prevent="submitComment(post.id)">
-              <textarea
-                v-model="commentTexts[post.id]"
-                rows="2"
-                class="w-full rounded-2xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-                placeholder="Was möchtest du sagen?"
-              ></textarea>
-              <div class="flex items-center gap-3">
-                <button
-                  type="submit"
-                  class="rounded-xl bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow hover:bg-[var(--color-primary)]/90 disabled:cursor-not-allowed disabled:opacity-60"
-                  :disabled="commentPending[post.id]"
-                >
-                  Kommentar senden
-                </button>
-                <p v-if="commentErrors[post.id]" class="text-xs text-red-600">{{ commentErrors[post.id] }}</p>
-              </div>
-            </form>
-          </section>
-        </article>
+          :post="post"
+          @reaction="handleReaction"
+          @comment="handleComment"
+        />
       </section>
     </div>
   </div>
-    <div
-      v-if="deleteModal.open"
-      class="fixed inset-0 z-50 flex items-center justify-center px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="comment-delete-title"
-    >
-      <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="!deleteModal.loading && closeDeleteModal()"></div>
-      <div class="relative z-10 w-full max-w-sm rounded-2xl border border-black/10 bg-white p-6 shadow-xl">
-        <div class="flex items-center gap-3">
-          <span class="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
-            <Icon icon="ph:trash-duotone" class="h-6 w-6" aria-hidden="true" />
-          </span>
-          <h2 id="comment-delete-title" class="text-lg font-semibold text-black">
-            Kommentar löschen?
-          </h2>
-        </div>
-        <p class="mt-3 text-sm text-gray-600">
-          Dieser Schritt kann nicht rückgängig gemacht werden. Der Kommentar wird dauerhaft entfernt.
-        </p>
-        <p v-if="deleteModal.error" class="mt-3 text-xs font-medium text-red-600">
-          {{ deleteModal.error }}
-        </p>
-        <div class="mt-6 flex items-center justify-end gap-3">
-          <button
-            type="button"
-            class="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-gray-600 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="deleteModal.loading"
-            @click="closeDeleteModal"
-          >
-            Abbrechen
-          </button>
-          <button
-            type="button"
-            class="rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="deleteModal.loading"
-            @click="confirmDeleteComment"
-          >
-            {{ deleteModal.loading ? 'Wird gelöscht...' : 'Ja, löschen' }}
-          </button>
-        </div>
-      </div>
-    </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, watch } from 'vue'
-import { Icon } from '@iconify/vue'
+import { computed, onMounted } from 'vue'
 import { useCommunityFeed } from '@/composables/useCommunityFeed'
-import { useAuthUser } from '@/composables/useAuthUser'
-import type { CommunityPost, Comment } from '@/composables/useCommunityFeed'
+import PostingCardFeed from '@/components/cards/PostingCardFeed.vue'
 import type { ReactionEmoji } from '@/constants/reactions'
 
 const {
@@ -299,184 +55,19 @@ const {
   toggleReaction,
   removeReaction,
   addComment,
-  updateComment: updateCommentRemote,
-  deleteComment: deleteCommentRemote,
 } = useCommunityFeed()
 
-const authUser = useAuthUser()
-
-const commentTexts = reactive<Record<string, string>>({})
-const commentPending = reactive<Record<string, boolean>>({})
-const commentErrors = reactive<Record<string, string>>({})
-const commentEditMode = reactive<Record<string, boolean>>({})
-const commentEditTexts = reactive<Record<string, string>>({})
-const commentEditErrors = reactive<Record<string, string>>({})
-const commentEditPending = reactive<Record<string, boolean>>({})
-const commentDeletePending = reactive<Record<string, boolean>>({})
-
-const deleteModal = reactive<{
-  open: boolean
-  postId: string
-  commentId: string
-  loading: boolean
-  error: string
-}>({
-  open: false,
-  postId: '',
-  commentId: '',
-  loading: false,
-  error: '',
-})
+// Optimized lookup with Map for O(1) access
+const postsMap = computed(() => 
+  new Map(posts.value?.map(p => [p.id, p]) || [])
+)
 
 onMounted(() => {
   loadFeed()
 })
 
-watch(
-  posts,
-  (list) => {
-    for (const post of list) {
-      if (!(post.id in commentTexts)) commentTexts[post.id] = ''
-      if (!(post.id in commentPending)) commentPending[post.id] = false
-      if (!(post.id in commentErrors)) commentErrors[post.id] = ''
-      for (const comment of post.comments) {
-        if (!(comment.id in commentEditMode)) commentEditMode[comment.id] = false
-        if (!(comment.id in commentEditTexts)) commentEditTexts[comment.id] = comment.text
-        if (!(comment.id in commentEditErrors)) commentEditErrors[comment.id] = ''
-        if (!(comment.id in commentEditPending)) commentEditPending[comment.id] = false
-        if (!(comment.id in commentDeletePending)) commentDeletePending[comment.id] = false
-      }
-    }
-  },
-  { immediate: true },
-)
-
-function ownsComment(comment: Comment) {
-  return authUser.value?.id === comment.author.id
-}
-
-function startEditComment(comment: Comment) {
-  commentEditMode[comment.id] = true
-  commentEditTexts[comment.id] = comment.text
-  commentEditErrors[comment.id] = ''
-}
-
-function cancelEditComment(comment: Comment) {
-  commentEditMode[comment.id] = false
-  commentEditErrors[comment.id] = ''
-  commentEditTexts[comment.id] = comment.text
-}
-
-async function submitCommentEdit(postId: string, comment: Comment) {
-  const commentId = comment.id
-  const text = commentEditTexts[commentId] ?? ''
-  if (!text.trim()) {
-    commentEditErrors[commentId] = 'Kommentar darf nicht leer sein.'
-    return
-  }
-
-  commentEditErrors[commentId] = ''
-  commentEditPending[commentId] = true
-
-  try {
-    await updateCommentRemote(postId, commentId, text)
-    commentEditMode[commentId] = false
-    commentEditTexts[commentId] = comment.text
-  } catch (error) {
-    console.error(error)
-    commentEditErrors[commentId] = 'Kommentar konnte nicht aktualisiert werden.'
-  } finally {
-    commentEditPending[commentId] = false
-  }
-}
-
-function requestDeleteComment(postId: string, commentId: string) {
-  if (commentDeletePending[commentId]) return
-  deleteModal.open = true
-  deleteModal.postId = postId
-  deleteModal.commentId = commentId
-  deleteModal.error = ''
-}
-
-function closeDeleteModal() {
-  deleteModal.open = false
-  deleteModal.postId = ''
-  deleteModal.commentId = ''
-  deleteModal.loading = false
-  deleteModal.error = ''
-}
-
-async function confirmDeleteComment() {
-  if (!deleteModal.postId || !deleteModal.commentId) {
-    closeDeleteModal()
-    return
-  }
-
-  const commentId = deleteModal.commentId
-  commentDeletePending[commentId] = true
-  deleteModal.loading = true
-  deleteModal.error = ''
-
-  try {
-    await deleteCommentRemote(deleteModal.postId, commentId)
-    delete commentEditMode[commentId]
-    delete commentEditTexts[commentId]
-    delete commentEditErrors[commentId]
-    delete commentEditPending[commentId]
-    delete commentDeletePending[commentId]
-    closeDeleteModal()
-  } catch (error) {
-    console.error(error)
-    deleteModal.error = 'Kommentar konnte nicht gelöscht werden.'
-    deleteModal.loading = false
-    commentDeletePending[commentId] = false
-  }
-}
-
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(iso))
-}
-
-function profilePath(nameId: string) {
-  return `/profile/${encodeURIComponent(nameId)}`
-}
-
-function formatDistance(meters: number | null) {
-  if (meters == null) return '–'
-  const km = meters / 1000
-  return `${km.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })} km`
-}
-
-function formatDuration(seconds: number | null) {
-  if (seconds == null) return '–:–'
-  const value = Math.max(0, Math.floor(seconds))
-  const h = Math.floor(value / 3600)
-  const m = Math.floor((value % 3600) / 60)
-  const s = value % 60
-  return [h, m, s].map((unit) => String(unit).padStart(2, '0')).join(':')
-}
-
-function initials(name: string) {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join('') || '•'
-}
-
-function visibilityLabel(visibility: 'public' | 'protected') {
-  return visibility === 'public' ? 'Öffentlich' : 'Community'
-}
-
-function hasRunData(post: CommunityPost) {
-  const distance = post.runningExercise.distanceInMeters
-  const duration = post.runningExercise.durationInSeconds
-  return distance != null || duration != null
-}
-
 async function handleReaction(postId: string, emoji: ReactionEmoji) {
-  const post = posts.value.find((entry) => entry.id === postId)
+  const post = postsMap.value.get(postId)
   if (!post) return
 
   if (post.viewerReaction === emoji) {
@@ -486,25 +77,11 @@ async function handleReaction(postId: string, emoji: ReactionEmoji) {
   }
 }
 
-async function submitComment(postId: string) {
-  const text = commentTexts[postId] ?? ''
-
-  if (!text.trim()) {
-    commentErrors[postId] = 'Kommentar darf nicht leer sein.'
-    return
-  }
-
-  commentErrors[postId] = ''
-  commentPending[postId] = true
-
+async function handleComment(postId: string, text: string) {
   try {
     await addComment(postId, text)
-    commentTexts[postId] = ''
   } catch (error) {
-    console.error(error)
-    commentErrors[postId] = 'Kommentar konnte nicht gespeichert werden.'
-  } finally {
-    commentPending[postId] = false
+    console.error('Kommentar konnte nicht gespeichert werden', error)
   }
 }
 </script>
