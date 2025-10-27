@@ -1,8 +1,10 @@
 // server/api/team/requests.post.ts
+import { NotificationActionType, NotificationCategory } from '@prisma/client'
 import { eventHandler, createError, readBody } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
 import { assertCsrf } from '../../utils/csrf'
+import { createNotification } from '../../utils/notifications'
 
 type Body = {
   nameId: string
@@ -37,6 +39,7 @@ export default eventHandler(async (event) => {
     select: {
       id: true,
       name: true,
+      nameId: true,
       visibility: true,
       requireApproval: true,
       maxMembers: true,
@@ -141,7 +144,63 @@ export default eventHandler(async (event) => {
     })
   }
 
-  // TODO: Notification / Email dispatch to team admin (not yet implemented)
+  const admins = await prisma.user.findMany({
+    where: {
+      groupId: group.id,
+      groupRole: 'ADMIN',
+      notificationsEnabled: true,
+    },
+    select: {
+      id: true,
+      name: true,
+      nameId: true,
+      image: true,
+    },
+  })
+
+  const payload = {
+    requestId: request.id,
+    status: 'PENDING' as const,
+    createdAt: request.createdAt.toISOString(),
+    group: {
+      id: group.id,
+      name: group.name,
+      nameId: group.nameId,
+    },
+    requester: {
+      id: session.user.id,
+      name: session.user.name,
+      nameId: session.user.nameId,
+      image: session.user.image ?? null,
+    },
+    message: request.message ?? null,
+  }
+
+  await Promise.all(
+    admins
+      .filter((admin) => admin.id !== session.user.id)
+      .map((admin) =>
+        createNotification(prisma, {
+          userId: admin.id,
+          category: NotificationCategory.TEAM,
+          type: 'team.join_request.created',
+          title: 'Neue Team-Anfrage',
+          message: `${session.user.name} möchte dem Team ${group.name} beitreten.`,
+          link: '/team/manage',
+          data: {
+            requesterName: session.user.name,
+            requesterNameId: session.user.nameId,
+            requesterImage: session.user.image ?? null,
+            message: request.message ?? null,
+            groupName: group.name,
+            groupNameId: group.nameId,
+          },
+          actionType: NotificationActionType.TEAM_JOIN_REQUEST,
+          actionPayload: payload,
+          joinRequestId: request.id,
+        }),
+      ),
+  )
 
   return {
     ok: true,

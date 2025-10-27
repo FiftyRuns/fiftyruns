@@ -1,5 +1,13 @@
 export type TeamRole = 'ADMIN' | 'MEMBER' | null
 
+export interface AuthTeam {
+  id: string
+  name: string
+  nameId: string
+  role: TeamRole
+  roleLabel: string | null
+}
+
 export interface TeamMember {
   id: string
   name: string

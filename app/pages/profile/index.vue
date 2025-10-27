@@ -13,6 +13,7 @@
         @edit-profile="goToSettings"
         @change-picture="triggerAvatarUpload"
         @view-team="openTeamOverview"
+        @discover-team="discoverTeams"
         @manage-team="openTeamManagement"
         @open-post-composer="scrollToComposer" />
 
@@ -30,6 +31,15 @@
           <ProfilePostsCard :posts="posts" @open="openPost" @edit="editPost" @confirm-delete="deletePost"
             @compose="scrollToComposer" />
         </div>
+        <aside class="space-y-6">
+          <ProfileTeamCard
+            :team="teamInfo"
+            @manage="openTeamManagement"
+            @discover="discoverTeams"
+            @create-team="createTeam"
+            @leave-team="leaveTeam"
+          />
+        </aside>
       </div>
     </div>
   </div>
@@ -40,6 +50,7 @@ import ProfileHero from '../../components/profile/ProfileHero.vue'
 import ProfileStatsGrid from '../../components/profile/ProfileStatsGrid.vue'
 import ProfilePostComposer from '../../components/profile/ProfilePostComposer.vue'
 import ProfilePostsCard from '../../components/profile/ProfilePostsCard.vue'
+import ProfileTeamCard from '../../components/profile/ProfileTeamCard.vue'
 import { useProfilePage } from './useProfilePage'
 
 const {
@@ -56,6 +67,9 @@ const {
   triggerAvatarUpload,
   openTeamOverview,
   openTeamManagement,
+  createTeam,
+  discoverTeams,
+  leaveTeam,
   openMediaLibrary,
   onPostComposerUpdate,
   handlePostSubmit,

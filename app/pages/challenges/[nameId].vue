@@ -57,6 +57,19 @@
               </span>
             </div>
 
+            <div
+              v-if="showTeamJoinHint"
+              class="flex items-start gap-3 rounded-2xl border border-dashed border-[var(--color-primary)]/30 bg-white/80 px-4 py-3 text-sm text-gray-600"
+            >
+              <Icon icon="ph:lock-key-duotone" class="h-5 w-5 text-[var(--color-primary)]" />
+              <span>
+                Diese Challenge ist nur für Mitglieder des Teams
+                <strong>{{ challenge.team?.name }}</strong> verfügbar. Tritt dem Team bei oder öffne die
+                <NuxtLink :to="teamLink" class="font-semibold text-[var(--color-primary)] hover:underline">Teamübersicht</NuxtLink>
+                , um teilzunehmen.
+              </span>
+            </div>
+
             <div v-if="challenge.sponsorLogos?.length" class="flex flex-wrap items-center gap-3">
               <span class="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500">Sponsoren</span>
               <div class="flex flex-wrap items-center gap-4">
@@ -88,7 +101,7 @@
             </div>
 
             <button
-              v-if="isLoggedIn && !viewer.isAdmin"
+              v-if="isLoggedIn && !viewer.isAdmin && (viewer.isMember || viewerCanJoin)"
               type="button"
               class="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
               :class="viewer.isMember ? 'bg-red-500 hover:bg-red-600 focus-visible:outline-red-500' : 'bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 focus-visible:outline-[var(--color-primary)]'"
@@ -99,14 +112,25 @@
               <span>{{ actionPending ? 'Wird verarbeitet…' : viewer.isMember ? 'Challenge verlassen' : 'Challenge beitreten' }}</span>
             </button>
 
-            <NuxtLink
-              v-if="viewer.isAdmin"
-              :to="editPath"
-              class="inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
+            <div v-if="viewer.isAdmin" class="flex flex-col gap-2">
+              <NuxtLink
+                :to="editPath"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-black/10 px-4 py-2 text-sm font-semibold text-gray-700 transition hover:bg-gray-100"
               >
-              <Icon icon="ph:pencil-simple-line-duotone" class="h-5 w-5" aria-hidden="true" />
+                <Icon icon="ph:pencil-simple-line-duotone" class="h-5 w-5" aria-hidden="true" />
                 Challenge bearbeiten
-            </NuxtLink>
+              </NuxtLink>
+              <button
+                type="button"
+                class="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+                :disabled="deletePending"
+                @click="deleteChallenge"
+              >
+                <Icon icon="ph:trash-duotone" class="h-5 w-5" aria-hidden="true" />
+                <span>{{ deletePending ? 'Wird gelöscht…' : 'Challenge löschen' }}</span>
+              </button>
+              <p v-if="deleteError" class="text-xs font-medium text-red-600">{{ deleteError }}</p>
+            </div>
 
             <p v-if="actionError" class="text-xs font-medium text-red-600">{{ actionError }}</p>
           </div>
@@ -221,11 +245,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useCookie } from 'nuxt/app'
 import { useAuthUser } from '@/composables/useAuthUser'
 import { useAsyncData } from 'nuxt/app'
-import { useRouter } from 'vue-router'
 import type { ComputedRefSymbol } from '@vue/reactivity'
 
 interface ChallengeDetailResponse {
@@ -250,10 +273,14 @@ interface ChallengeDetailResponse {
     sponsorLogos: string[]
     admin: { id: string; name: string; nameId: string; image: string | null }
     team: { id: string; name: string; nameId: string } | null
+    teamOnly: boolean
   }
   viewer: {
     isAdmin: boolean
     isMember: boolean
+    belongsToTeam: boolean
+    canJoin: boolean
+    needsTeamMembership: boolean
   }
   leaderboard: Array<{
     user: { id: string; name: string; nameId: string; image: string | null }
@@ -269,11 +296,14 @@ interface ChallengeDetailResponse {
 }
 
 const route = useRoute()
+const router = useRouter()
 const csrf = useCookie('csrf_token')
 const authUser = useAuthUser()
 
 const actionPending = ref(false)
 const actionError = ref('')
+const deletePending = ref(false)
+const deleteError = ref('')
 
 const slug = computed(() => String(route.params.nameId))
 const editPath = computed(() => `/challenges/edit/${slug.value}`)
@@ -288,11 +318,34 @@ const { data, pending, error, refresh } = await useAsyncData(
 )
 
 const challenge = computed(() => data.value?.challenge ?? null)
-const viewer = computed(() => data.value?.viewer ?? { isAdmin: false, isMember: false })
+const viewer = computed(
+  () =>
+    data.value?.viewer ?? {
+      isAdmin: false,
+      isMember: false,
+      belongsToTeam: false,
+      canJoin: true,
+      needsTeamMembership: false,
+    },
+)
 const leaderboard = computed(() => data.value?.leaderboard ?? [])
 const participants = computed(() => data.value?.participants ?? [])
 
-const errorMessage = computed(() => (error.value ? 'Challenge konnte nicht geladen werden.' : ''))
+const requiresTeamMembership = computed(() => Boolean(challenge.value?.teamOnly))
+const viewerCanJoin = computed(() => viewer.value.canJoin)
+const showTeamJoinHint = computed(
+  () => requiresTeamMembership.value && !viewer.value.isMember && !viewerCanJoin.value,
+)
+const teamLink = computed(() => (challenge.value?.team ? `/team/${challenge.value.team.nameId}` : '/team/discover'))
+
+const errorMessage = computed(() => {
+  if (pending.value) return ''
+  const err = error.value as unknown
+  if (!err) return ''
+
+  console.error('[challenges/detail] Failed to load challenge', err)
+  return 'Challenge konnte nicht geladen werden. Bitte versuche es später erneut.'
+})
 const isLoggedIn = computed(() => Boolean(authUser.value))
 
 const visibilityLabel = computed(() => {
@@ -318,6 +371,11 @@ const statusLabel = computed(() => {
 
 async function joinChallenge() {
   if (!challenge.value) return
+  if (!viewerCanJoin.value && !viewer.value.isMember) {
+    const teamName = challenge.value.team?.name ?? 'Team'
+    actionError.value = `Diese Challenge ist nur für Mitglieder des Teams „${teamName}“. Bitte tritt dem Team bei.`
+    return
+  }
   actionPending.value = true
   actionError.value = ''
   try {
@@ -340,17 +398,44 @@ async function leaveChallenge() {
   actionPending.value = true
   actionError.value = ''
   try {
-    await $fetch(`/api/challenges/${slug.value}/leave`, {
+    const result = await $fetch<{ ok: boolean; deleted?: boolean }>(`/api/challenges/${slug.value}/leave`, {
       method: 'POST',
       headers: { 'x-csrf-token': csrf.value ?? '' },
       credentials: 'include',
     })
+    if (result?.deleted) {
+      await router.push('/challenges')
+      return
+    }
     await refresh()
   } catch (err: any) {
     console.error(err)
     actionError.value = err?.data?.message || err?.message || 'Konnte Challenge nicht verlassen.'
   } finally {
     actionPending.value = false
+  }
+}
+
+async function deleteChallenge() {
+  if (!challenge.value || deletePending.value) return
+  const confirmed = window.confirm('Möchtest du diese Challenge wirklich dauerhaft löschen? Dieser Schritt kann nicht rückgängig gemacht werden.')
+  if (!confirmed) return
+
+  deletePending.value = true
+  deleteError.value = ''
+
+  try {
+    await $fetch(`/api/challenges/${slug.value}`, {
+      method: 'DELETE',
+      headers: { 'x-csrf-token': csrf.value ?? '' },
+      credentials: 'include',
+    })
+    await router.push('/challenges')
+  } catch (err: any) {
+    console.error(err)
+    deleteError.value = err?.data?.message || err?.message || 'Challenge konnte nicht gelöscht werden.'
+  } finally {
+    deletePending.value = false
   }
 }
 

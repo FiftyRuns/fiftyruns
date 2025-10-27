@@ -3,6 +3,7 @@ import { reactive, ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCookie } from 'nuxt/app'
 import { useAuthUser } from '../../composables/useAuthUser'
+import { setAuthTeam } from '../../composables/useAuthTeam'
 
 // Komponenten-Typen
 import type { ProfileStat } from '../../components/profile/ProfileStatsGrid.vue'
@@ -154,8 +155,19 @@ export function useProfilePage() {
       })
       teamInfo.value = data.team
       stats.value = data.stats
+      setAuthTeam(
+        data.team
+          ? {
+              id: data.team.id,
+              name: data.team.name,
+              nameId: data.team.nameId,
+              roleLabel: data.team.roleLabel ?? null,
+            }
+          : null,
+      )
     } catch (e) {
       console.error('Profil-Overview fehlgeschlagen', e)
+      setAuthTeam(null)
     }
   }
 
@@ -230,10 +242,6 @@ export function useProfilePage() {
     }
   }
 
-  function openTeamMessages() {
-    router.push('/team/messages')
-  }
-
   async function createTeam() {
     router.push('/team/create')
   }
@@ -265,6 +273,7 @@ export function useProfilePage() {
         headers: { 'x-csrf-token': csrf ?? '' },
         credentials: 'include',
       })
+      setAuthTeam(null)
       await loadOverview()
     } catch (e) {
       console.error('Team verlassen fehlgeschlagen', e)
@@ -548,7 +557,6 @@ export function useProfilePage() {
     // Navigation / Team
     openTeamOverview,
     openTeamManagement,
-    openTeamMessages,
     createTeam,
     discoverTeams,
     joinTeam,

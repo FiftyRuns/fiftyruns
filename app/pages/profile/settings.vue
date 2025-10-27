@@ -66,15 +66,6 @@
             @error="setAvatarError"
             @saved="handleAvatarSaved"
           />
-
-          <!-- Team-Verwaltung -->
-          <ProfileTeamCard
-            :team="teamInfo"
-            @manage="openTeamManagement"
-            @create-team="createTeam"
-            @discover="discoverTeams"
-            @leave-team="leaveTeam"
-          />
         </aside>
       </div>
     </div>
@@ -87,8 +78,6 @@ import ProfilePasswordCard from '../../components/profile/ProfilePasswordCard.vu
 import ProfileDonationCard from '../../components/profile/ProfileDonationCard.vue'
 import ProfileChallengesCard from '../../components/profile/ProfileChallengesCard.vue'
 import ProfileAvatarCard from '../../components/profile/ProfileAvatarCard.vue'
-import ProfileTeamCard from '../../components/profile/ProfileTeamCard.vue'
-
 import { useProfilePage } from './useProfilePage'
 
 const {
@@ -101,7 +90,6 @@ const {
   donationSettings,
   donationState,
   challenges,
-  teamInfo,
   avatarPreview,
   avatarState,
 
@@ -117,10 +105,6 @@ const {
   removeAvatar,
   setAvatarError,
   handleAvatarSaved,
-  openTeamManagement,
-  createTeam,
-  discoverTeams,
-  leaveTeam,
   createChallenge,
 } = useProfilePage()
 </script>

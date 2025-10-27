@@ -23,6 +23,14 @@ export default eventHandler(async (event) => {
       visibility: true,
       endAt: true,
       adminUserId: true,
+      groupId: true,
+      group: {
+        select: {
+          id: true,
+          name: true,
+          nameId: true,
+        },
+      },
     },
   })
 
@@ -50,6 +58,24 @@ export default eventHandler(async (event) => {
 
   if (membership) {
     throw createError({ statusCode: 400, message: 'Du bist bereits in dieser Challenge.' })
+  }
+
+  if (challenge.groupId) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { groupId: true },
+    })
+
+    const belongsToTeam = user?.groupId === challenge.groupId
+    const isChallengeOwner = challenge.adminUserId === session.user.id
+
+    if (!belongsToTeam && !isChallengeOwner) {
+      const teamName = challenge.group?.name ?? 'diesem Team'
+      throw createError({
+        statusCode: 403,
+        message: `Diese Challenge ist dem Team „${teamName}“ vorbehalten. Tritt dem Team bei, um teilzunehmen.`,
+      })
+    }
   }
 
   await prisma.$transaction(async (tx) => {

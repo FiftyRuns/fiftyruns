@@ -485,6 +485,28 @@
             </aside>
           </div>
         </section>
+
+        <section class="rounded-3xl border border-red-200 bg-white/80 p-6 shadow-sm">
+          <div class="space-y-2">
+            <h2 class="text-lg font-semibold text-red-600">Team löschen</h2>
+            <p class="text-sm text-gray-600">
+              Das Team wird dauerhaft entfernt. Alle Mitglieder verlieren den Zugriff und ausstehende Einladungen
+              werden gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.
+            </p>
+          </div>
+          <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <button
+              type="button"
+              class="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-60"
+              :disabled="deleteState.loading"
+              @click="deleteTeam"
+            >
+              <Icon icon="ph:trash-duotone" class="h-5 w-5" aria-hidden="true" />
+              <span>{{ deleteState.loading ? 'Wird gelöscht…' : 'Team dauerhaft löschen' }}</span>
+            </button>
+            <p v-if="deleteState.error" class="text-xs text-red-600">{{ deleteState.error }}</p>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -495,8 +517,10 @@ import { computed, reactive, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { Icon } from '@iconify/vue'
 import { upload } from '@vercel/blob/client'
 import { useAsyncData, useCookie, useRequestHeaders } from 'nuxt/app'
+import { useRouter } from 'vue-router'
 import FormButton from '@/components/atoms/form/FormButton.vue'
 import type { TeamManageData, TeamJoinRequest } from '@/types/team'
+import { setAuthTeam } from '@/composables/useAuthTeam'
 
 type VisibilityOption = 'public' | 'protected' | 'private'
 
@@ -522,6 +546,7 @@ const PREVIEW_SIZE = 220
 const EXPORT_SIZE = 960
 
 const csrf = useCookie('csrf_token')
+const router = useRouter()
 
 const requestHeaders = useRequestHeaders(['cookie'])
 
@@ -542,7 +567,14 @@ const { data, pending, error, refresh } = await useAsyncData('team-manage', asyn
 })
 
 const team = computed(() => data.value?.team ?? null)
-const errorMessage = computed(() => (error.value ? error.value.message || 'Teamdaten konnten nicht geladen werden.' : ''))
+const errorMessage = computed(() => {
+  if (pending.value) return ''
+  const err = error.value as unknown
+  if (!err) return ''
+
+  console.error('[team/manage] Failed to load manage data', err)
+  return 'Teamdaten konnten nicht geladen werden. Bitte versuche es später erneut.'
+})
 
 const form = reactive({
   description: '',
@@ -555,7 +587,17 @@ const form = reactive({
 watch(
   team,
   (value) => {
-    if (!value) return
+    if (!value) {
+      setAuthTeam(null)
+      return
+    }
+    setAuthTeam({
+      id: value.id,
+      name: value.name,
+      nameId: value.nameId,
+      role: 'ADMIN',
+      roleLabel: 'Admin',
+    })
     form.description = value.description
     form.location = value.location
     form.visibility = value.visibility
@@ -637,6 +679,7 @@ const requestActions = reactive<Record<string, { approve?: boolean; decline?: bo
 const memberActions = reactive<Record<string, boolean>>({})
 
 const inviteState = reactive({ loading: false, error: '', success: '' })
+const deleteState = reactive({ loading: false, error: '' })
 const inviteForm = reactive({
   email: '',
   note: '',
@@ -1064,6 +1107,30 @@ async function deleteInvite(id: string) {
     console.error('Einladung löschen fehlgeschlagen', err)
   } finally {
     inviteRemovals[id] = false
+  }
+}
+
+async function deleteTeam() {
+  if (deleteState.loading) return
+  const confirmed = window.confirm('Möchtest du dieses Team wirklich dauerhaft löschen? Diese Aktion kann nicht rückgängig gemacht werden.')
+  if (!confirmed) return
+
+  deleteState.loading = true
+  deleteState.error = ''
+
+  try {
+    await $fetch('/api/team/delete', {
+      method: 'POST',
+      headers: { 'x-csrf-token': csrf.value ?? '' },
+      credentials: 'include',
+    })
+    setAuthTeam(null)
+    await router.push('/team/discover')
+  } catch (err: any) {
+    console.error('Team löschen fehlgeschlagen', err)
+    deleteState.error = err?.data?.message || err?.message || 'Team konnte nicht gelöscht werden.'
+  } finally {
+    deleteState.loading = false
   }
 }
 </script>

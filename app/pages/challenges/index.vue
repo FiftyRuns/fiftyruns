@@ -80,6 +80,10 @@
                   <Icon icon="ph:target-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
                   {{ challenge.goal }}
                 </div>
+                <div v-if="challenge.team" class="inline-flex items-center gap-2 rounded-full font-semibold text-[var(--color-primary)]">
+                  <Icon icon="ph:users-three-duotone" class="h-4 w-4" />
+                  Team-Challenge von {{ challenge.team.name }}
+                </div>
                 <div v-if="challenge.minRequirements" class="flex items-center gap-2">
                   <Icon icon="ph:check-circle-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
                   <span class="text-gray font-medium">{{ challenge.minRequirements }}</span>
@@ -95,7 +99,7 @@
                   class="inline-flex items-center gap-2 rounded-xl border border-black/10 px-3 py-1.5 text-xs font-semibold text-gray-700 transition hover:bg-gray-100">
                   Mehr erfahren
                 </NuxtLink>
-                <button v-if="isLoggedIn" type="button"
+                <button v-if="isLoggedIn && (challenge.isMember || !challenge.teamOnly || challenge.viewerIsTeamMember)" type="button"
                   class="inline-flex items-center gap-2 rounded-xl px-3 py-1.5 text-xs font-semibold text-white shadow transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2"
                   :class="challenge.isMember ? 'bg-red-500 hover:bg-red-600 focus-visible:outline-red-500' : 'bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 focus-visible:outline-[var(--color-primary)]'"
                   :disabled="actionPending[challenge.id]"
@@ -107,7 +111,16 @@
                     <template v-else>{{ challenge.isMember ? 'Verlassen' : 'Beitreten' }}</template>
                   </span>
                 </button>
+                <NuxtLink
+                  v-if="!challenge.isMember && challenge.teamOnly && !challenge.viewerIsTeamMember && challenge.team"
+                  :to="`/team/${challenge.team.nameId}`"
+                  class="inline-flex items-center gap-2 rounded-xl border border-[var(--color-primary)]/30 px-3 py-1.5 text-xs font-semibold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10"
+                >
+                  <Icon icon="ph:users-duotone" class="h-4 w-4" />
+                  Team ansehen
+                </NuxtLink>
               </div>
+              <p v-if="actionErrors[challenge.id]" class="text-xs font-medium text-red-600">{{ actionErrors[challenge.id] }}</p>
             </div>
           </article>
         </div>
@@ -136,6 +149,9 @@ interface ChallengeListItem {
   participants: number
   sponsorLogos?: string[]
   isMember: boolean
+  team: { id: string; name: string; nameId: string } | null
+  teamOnly: boolean
+  viewerIsTeamMember: boolean
 }
 
 const authUser = useAuthUser()
@@ -143,6 +159,7 @@ const isLoggedIn = computed(() => Boolean(authUser.value))
 
 const searchTerm = ref('')
 const actionPending = reactive<Record<string, boolean>>({})
+const actionErrors = reactive<Record<string, string>>({})
 const csrf = useCookie('csrf_token')
 
 const { data, pending, error, refresh } = await useAsyncData(
@@ -155,7 +172,14 @@ const { data, pending, error, refresh } = await useAsyncData(
   { watch: [searchTerm] },
 )
 
-const errorMessage = computed(() => (error.value ? 'Challenges konnten nicht geladen werden.' : ''))
+const errorMessage = computed(() => {
+  if (pending.value) return ''
+  const err = error.value as unknown
+  if (!err) return ''
+
+  console.error('[challenges/list] Failed to load challenges', err)
+  return 'Challenges konnten nicht geladen werden. Bitte versuche es später erneut.'
+})
 const challenges = computed(() => data.value ?? [])
 
 function challengeInitials(name: string) {
@@ -169,7 +193,12 @@ function challengeInitials(name: string) {
 
 async function joinChallenge(challenge: ChallengeListItem) {
   if (actionPending[challenge.id]) return
+  if (challenge.teamOnly && !challenge.viewerIsTeamMember) {
+    actionErrors[challenge.id] = `Diese Challenge ist nur für Mitglieder des Teams „${challenge.team?.name ?? 'Team'}“. Bitte tritt dem Team bei.`
+    return
+  }
   actionPending[challenge.id] = true
+  actionErrors[challenge.id] = ''
   try {
     await $fetch(`/api/challenges/${challenge.nameId}/join`, {
       method: 'POST',
@@ -179,6 +208,7 @@ async function joinChallenge(challenge: ChallengeListItem) {
     await refresh()
   } catch (err) {
     console.error('Challenge beitreten fehlgeschlagen', err)
+    actionErrors[challenge.id] = (err as any)?.data?.message || (err as Error)?.message || 'Beitritt nicht möglich.'
   } finally {
     actionPending[challenge.id] = false
   }
@@ -187,6 +217,7 @@ async function joinChallenge(challenge: ChallengeListItem) {
 async function leaveChallenge(challenge: ChallengeListItem) {
   if (actionPending[challenge.id]) return
   actionPending[challenge.id] = true
+  actionErrors[challenge.id] = ''
   try {
     await $fetch(`/api/challenges/${challenge.nameId}/leave`, {
       method: 'POST',
@@ -196,6 +227,7 @@ async function leaveChallenge(challenge: ChallengeListItem) {
     await refresh()
   } catch (err) {
     console.error('Challenge verlassen fehlgeschlagen', err)
+    actionErrors[challenge.id] = (err as any)?.data?.message || (err as Error)?.message || 'Verlassen nicht möglich.'
   } finally {
     actionPending[challenge.id] = false
   }

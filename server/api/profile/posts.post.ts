@@ -1,8 +1,10 @@
 // server/api/post.create.post.ts
+import { NotificationCategory } from '@prisma/client'
 import { createError, eventHandler, getCookie, getHeader, readBody } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
 import { updateChallengesForRun } from '../../utils/challengeProgress'
+import { createNotification } from '../../utils/notifications'
 
 const DONATION_MULTIPLIER_TO_CENTS: Record<'x1' | 'x2' | 'x5' | 'x10', number> = {
   x1: 100,
@@ -36,7 +38,7 @@ export default eventHandler(async (event) => {
 
   const donorPreferences = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { autoDonate: true, runDonationMultiplier: true },
+    select: { autoDonate: true, runDonationMultiplier: true, notificationsEnabled: true },
   })
 
   const body = (await readBody<CreatePostBody>(event)) || {}
@@ -150,6 +152,28 @@ export default eventHandler(async (event) => {
       })
     }
 
+    const distanceLabel = formatDistanceLabel(distanceInMeters)
+    const durationLabel = formatDurationLabel(durationInSeconds)
+
+    if (donorPreferences?.notificationsEnabled !== false) {
+      await createNotification(tx, {
+        userId: session.user.id,
+        category: NotificationCategory.RUN,
+        type: 'run.recorded',
+        title: 'Neuer Lauf gespeichert',
+        message: `Du hast einen Lauf über ${distanceLabel} km in ${durationLabel} erfasst.`,
+        link: `/postings/${post.id}`,
+        data: {
+          postingId: post.id,
+          distanceInMeters,
+          durationInSeconds,
+          distanceLabel,
+          durationLabel,
+          season,
+        },
+      })
+    }
+
     return post
   })
 
@@ -163,3 +187,23 @@ export default eventHandler(async (event) => {
     comments: result._count.comments,
   }
 })
+
+function formatDistanceLabel(distanceInMeters: number) {
+  const kilometers = distanceInMeters / 1000
+  return new Intl.NumberFormat('de-DE', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(kilometers)
+}
+
+function formatDurationLabel(totalSeconds: number) {
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  const pad = (value: number) => value.toString().padStart(2, '0')
+  if (hours > 0) {
+    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+  }
+  return `${pad(minutes)}:${pad(seconds)}`
+}

@@ -68,7 +68,6 @@
                 <div>
                   <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Team-Admin</p>
                   <p class="text-sm font-semibold text-black">{{ team.admin.name }}</p>
-                  <p class="text-xs text-gray-500">@{{ team.admin.nameId }}</p>
                 </div>
               </div>
 
@@ -76,7 +75,7 @@
                 <FormButton
                   v-if="team.viewer.isMember && team.viewer.role === 'ADMIN'"
                   label="Team verwalten"
-                  :button-class="['bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90']"
+                  :button-class="['bg-[var(--color-accent)] text-black hover:bg-[var(--color-accent)]/90']"
                   @click="$router.push('/team/manage')"
                 />
                 <FormButton
@@ -184,12 +183,6 @@
             <Icon icon="ph:info-duotone" class="h-5 w-5 text-[var(--color-primary)]" />
             Du bist bereits Mitglied eines anderen Teams. Verlasse dein aktuelles Team, um hier anzufragen.
           </p>
-          <NuxtLink
-            to="/team/manage"
-            class="mt-3 inline-flex items-center gap-2 text-sm text-[var(--color-primary)] underline-offset-2 hover:underline"
-          >
-            Team verwalten
-          </NuxtLink>
         </section>
 
         <section class="rounded-3xl border border-black/5 bg-white/90 p-6 shadow-sm">
@@ -217,7 +210,6 @@
               </div>
               <div>
                 <p class="text-sm font-semibold text-black">{{ member.name }}</p>
-                <p class="text-xs text-gray-500">@{{ member.nameId }}</p>
                 <p class="text-xs text-gray-500">{{ member.roleLabel }}</p>
               </div>
             </article>
@@ -235,25 +227,47 @@ import { useAsyncData, useCookie, useRequestHeaders } from 'nuxt/app'
 import { useRoute } from 'vue-router'
 import FormButton from '@/components/atoms/form/FormButton.vue'
 import type { TeamDetail } from '@/types/team'
+import { refreshAuthTeam } from '@/composables/useAuthTeam'
 
 const route = useRoute()
-const nameId = computed(() => route.params.nameId as string)
+const nameId = computed(() => {
+  const param = route.params.nameId
+  if (typeof param === 'string' && param.length > 0) {
+    return param
+  }
+  if (Array.isArray(param) && param.length > 0) {
+    return param[0]
+  }
+  return null
+})
 const csrf = useCookie('csrf_token')
 
 const requestHeaders = useRequestHeaders(['cookie'])
 
 const { data, pending, error, refresh } = await useAsyncData(
-  () => `team-detail-${nameId.value}`,
-  () =>
-    $fetch<{ team: TeamDetail }>(`/api/team/${nameId.value}`, {
+  () => (nameId.value ? `team-detail-${nameId.value}` : 'team-detail'),
+  async () => {
+    const slug = nameId.value
+    if (!slug) {
+      return { team: null as TeamDetail | null }
+    }
+    return $fetch<{ team: TeamDetail }>(`/api/team/${slug}`, {
       credentials: 'include',
       headers: requestHeaders,
-    }),
+    })
+  },
   { watch: [nameId] },
 )
 
 const team = computed(() => data.value?.team ?? null)
-const errorMessage = computed(() => (error.value ? error.value.message || 'Team konnte nicht geladen werden.' : ''))
+const errorMessage = computed(() => {
+  if (pending.value) return ''
+  const err = error.value as unknown
+  if (!err) return ''
+
+  console.error('[team/detail] Failed to load team', err)
+  return 'Team konnte nicht geladen werden. Bitte versuche es später erneut.'
+})
 
 const message = ref('')
 const submitState = ref({ loading: false, success: '', error: '' })
@@ -310,6 +324,7 @@ async function submitRequest() {
 
     if (res.joined) {
       await refresh()
+      await refreshAuthTeam()
       submitState.value = { loading: false, success: 'Willkommen im Team!', error: '' }
       return
     }
@@ -337,6 +352,7 @@ async function joinTeamDirect() {
       body: { nameId: team.value.nameId },
     })
     await refresh()
+    await refreshAuthTeam()
     submitState.value = { loading: false, success: 'Du bist dem Team beigetreten!', error: '' }
   } catch (err: any) {
     submitState.value = {

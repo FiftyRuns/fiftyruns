@@ -209,7 +209,8 @@ const formattedDonations = computed(() =>
 
 const errorMessage = computed(() => {
   if (!error.value) return ''
-  return 'Das Leaderboard konnte nicht geladen werden.'
+  console.error('[leaderboard] Failed to load leaderboard data', error.value)
+  return 'Das Leaderboard konnte nicht geladen werden. Bitte versuche es später erneut.'
 })
 
 function formatDistance(meters: number) {

@@ -1,8 +1,10 @@
 // server/api/postings/[id]/comments.post.ts
+import { NotificationCategory } from '@prisma/client'
 import { createError, eventHandler, readBody } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
 import { assertCsrf } from '../../../utils/csrf'
+import { createNotification } from '../../../utils/notifications'
 
 type CreateCommentBody = {
   text?: string
@@ -29,7 +31,20 @@ export default eventHandler(async (event) => {
 
   const post = await prisma.posting.findUnique({
     where: { id },
-    select: { id: true, visibility: true, userId: true },
+    select: {
+      id: true,
+      visibility: true,
+      text: true,
+      userId: true,
+      user: {
+        select: {
+          notificationsEnabled: true,
+          name: true,
+          nameId: true,
+          image: true,
+        },
+      },
+    },
   })
 
   if (!post) {
@@ -55,6 +70,29 @@ export default eventHandler(async (event) => {
       },
     },
   })
+
+  if (post.userId !== session.user.id && post.user?.notificationsEnabled) {
+    await createNotification(prisma, {
+      userId: post.userId,
+      category: NotificationCategory.COMMENT,
+      type: 'comment.added',
+      title: 'Neuer Kommentar auf deinen Beitrag',
+      message: `${session.user.name} hat auf deinen Beitrag geantwortet.`,
+      link: `/postings/${post.id}`,
+      data: {
+        commentId: comment.id,
+        commentPreview: comment.text.slice(0, 160),
+        postingId: post.id,
+        postingPreview: (post.text ?? '').slice(0, 140),
+        actor: {
+          id: session.user.id,
+          name: session.user.name,
+          nameId: session.user.nameId,
+          image: session.user.image ?? null,
+        },
+      },
+    })
+  }
 
   return {
     id: comment.id,

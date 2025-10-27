@@ -1,8 +1,10 @@
 // server/api/team/requests/[id].approve.post.ts
+import { NotificationActionType, NotificationCategory } from '@prisma/client'
 import { eventHandler, createError } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
 import { assertCsrf } from '../../../utils/csrf'
+import { createNotification, markNotificationsRead } from '../../../utils/notifications'
 
 export default eventHandler(async (event) => {
   assertCsrf(event)
@@ -31,7 +33,11 @@ export default eventHandler(async (event) => {
 
   const request = await prisma.groupJoinRequest.findUnique({
     where: { id },
-    include: {
+    select: {
+      id: true,
+      groupId: true,
+      status: true,
+      message: true,
       user: {
         select: {
           id: true,
@@ -40,6 +46,14 @@ export default eventHandler(async (event) => {
           email: true,
           image: true,
           groupId: true,
+          notificationsEnabled: true,
+        },
+      },
+      group: {
+        select: {
+          id: true,
+          name: true,
+          nameId: true,
         },
       },
     },
@@ -102,6 +116,73 @@ export default eventHandler(async (event) => {
 
     return { updatedRequest, updatedUser }
   })
+
+  const groupInfo = request.group ?? {
+    id: admin.groupId,
+    name: 'Dein Team',
+    nameId: 'team',
+  }
+
+  const actionPayload = {
+    requestId: request.id,
+    status: 'APPROVED' as const,
+    decidedAt: now.toISOString(),
+    decidedBy: {
+      id: session.user.id,
+      name: session.user.name,
+    },
+    group: groupInfo,
+    requester: {
+      id: request.user.id,
+      name: request.user.name,
+      nameId: request.user.nameId,
+      image: request.user.image ?? null,
+    },
+    message: request.message ?? null,
+  }
+
+  await prisma.notification.updateMany({
+    where: { joinRequestId: request.id },
+    data: {
+      title: 'Team-Anfrage erledigt',
+      message: `${request.user.name} wurde in das Team aufgenommen.`,
+      actionType: NotificationActionType.TEAM_JOIN_REQUEST,
+      actionPayload,
+    },
+  })
+
+  const adminNotifications = await prisma.notification.findMany({
+    where: { joinRequestId: request.id, userId: session.user.id },
+    select: { id: true },
+  })
+
+  if (adminNotifications.length > 0) {
+    await markNotificationsRead(
+      prisma,
+      session.user.id,
+      adminNotifications.map((entry) => entry.id),
+    )
+  }
+
+  if (request.user.notificationsEnabled) {
+    await createNotification(prisma, {
+      userId: request.user.id,
+      category: NotificationCategory.TEAM,
+      type: 'team.join_request.approved',
+      title: 'Deine Team-Anfrage wurde angenommen',
+      message: `Du bist jetzt Mitglied im Team ${groupInfo.name}.`,
+      link: `/team/${groupInfo.nameId}`,
+      data: {
+        groupId: groupInfo.id,
+        groupName: groupInfo.name,
+        groupNameId: groupInfo.nameId,
+        decidedBy: {
+          id: session.user.id,
+          name: session.user.name,
+        },
+      },
+    })
+  }
 
   return {
     ok: true,

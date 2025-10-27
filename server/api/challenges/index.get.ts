@@ -48,6 +48,14 @@ export default eventHandler(async (event) => {
       minDurationSeconds: true,
       sponsorLogos: true,
       adminUserId: true,
+      groupId: true,
+      group: {
+        select: {
+          id: true,
+          name: true,
+          nameId: true,
+        },
+      },
     },
   })
 
@@ -65,7 +73,14 @@ export default eventHandler(async (event) => {
 
   // Fix 4: Get user memberships in a separate query
   let userMemberships: string[] = []
+  let viewerGroupId: string | null = null
   if (session) {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { groupId: true },
+    })
+    viewerGroupId = user?.groupId ?? null
+
     const userMemberRecords = await prisma.challengeMember.findMany({
       where: {
         userId: session.user.id,
@@ -93,6 +108,9 @@ export default eventHandler(async (event) => {
     sponsorLogos: challenge.sponsorLogos,
     participants: countLookup.get(challenge.id) ?? 0,
     isMember: userMemberships.includes(challenge.id),
+    team: challenge.group,
+    teamOnly: Boolean(challenge.groupId),
+    viewerIsTeamMember: !challenge.groupId || viewerGroupId === challenge.groupId,
   }))
 })
 

@@ -89,6 +89,7 @@ import { Icon } from '@iconify/vue'
 import type { AuthUser } from '../../types/auth'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthUser } from '../../composables/useAuthUser'
+import { refreshAuthTeam } from '../../composables/useAuthTeam'
 
 import FormButton from '../atoms/form/FormButton.vue'
 import CheckboxField from '../molecules/form/CheckboxField.vue'
@@ -166,6 +167,7 @@ const onSubmit = async () => {
 
     if (result.ok) {
       authUser.value = result.user
+      await refreshAuthTeam()
       serverSuccess.value = 'Login erfolgreich. Du wirst weitergeleitet…'
       await router.push('/postings')
     }

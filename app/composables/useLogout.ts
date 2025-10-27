@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import { useRouter } from '#imports'
+import { useAuthUser } from './useAuthUser'
+import { setAuthTeam } from './useAuthTeam'
 
 type LogoutOptions = {
   redirectTo?: string
@@ -37,6 +39,7 @@ export const useLogout = () => {
       })
 
       authUser.value = null
+      setAuthTeam(null)
 
       if (options.redirectTo) {
         await router.push(options.redirectTo)

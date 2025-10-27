@@ -47,7 +47,7 @@
             </div>
 
             <header class="mb-4">
-              <NuxtLink :to="`/team/${team.nameId}`" class="text-xl font-semibold text-black hover:text-[var(--color-primary)]">
+              <NuxtLink :to="`/team/${team.nameId}`" class="text-xl font-semibold text-black hover:text-[var(--color-accent)]">
                 {{ team.name }}
               </NuxtLink>
               <p class="mt-2 line-clamp-3 text-sm text-gray-600">
@@ -135,11 +135,6 @@
                   :button-class="['text-xs text-gray-500']"
                   label="Nur per Einladung"
                   disabled />
-
-                <NuxtLink :to="`/team/${team.nameId}`"
-                  class="text-xs text-[var(--color-primary)] underline-offset-2 hover:underline">
-                  Details ansehen
-                </NuxtLink>
               </div>
             </div>
           </article>
@@ -155,6 +150,7 @@ import { Icon } from '@iconify/vue'
 import { useAsyncData, useCookie, useRequestHeaders } from 'nuxt/app'
 import FormButton from '@/components/atoms/form/FormButton.vue'
 import type { TeamSearchItem } from '@/types/team'
+import { refreshAuthTeam } from '@/composables/useAuthTeam'
 
 const searchTerm = ref('')
 const csrf = useCookie('csrf_token')
@@ -173,7 +169,19 @@ const { data, pending, error, refresh } = await useAsyncData(
 )
 
 const teams = computed(() => data.value?.teams ?? [])
-const errorMessage = computed(() => (error.value ? 'Teams konnten nicht geladen werden.' : ''))
+const errorMessage = computed(() => {
+  if (pending.value) return ''
+  const err = error.value as { statusCode?: number; status?: number; message?: string } | null
+  if (!err) return ''
+
+  const status = err.statusCode ?? err.status
+  if (status === 404) {
+    return ''
+  }
+
+  console.error('[team/discover] Failed to load teams', err)
+  return 'Teams konnten nicht geladen werden. Bitte versuche es später erneut.'
+})
 
 const requestMessages = reactive<Record<string, string>>({})
 const requestPending = reactive<Record<string, boolean>>({})
@@ -215,6 +223,7 @@ async function joinTeamDirect(team: TeamSearchItem) {
       body: { nameId: team.nameId },
     })
     await refresh()
+    await refreshAuthTeam()
   } catch (err: any) {
     console.error('Direkter Beitritt fehlgeschlagen', err)
   } finally {
@@ -237,6 +246,7 @@ async function sendRequest(team: TeamSearchItem) {
     requestMessages[team.id] = ''
     if (res.joined) {
       await refresh()
+      await refreshAuthTeam()
       return
     }
     await refresh()

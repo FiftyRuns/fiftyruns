@@ -28,10 +28,6 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'Challenge nicht gefunden.' })
   }
 
-  if (challenge.adminUserId === session.user.id) {
-    throw createError({ statusCode: 400, message: 'Admins können die eigene Challenge nicht verlassen.' })
-  }
-
   const membership = await prisma.challengeMember.findUnique({
     where: {
       challengeId_userId: {
@@ -46,7 +42,23 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Du bist kein Mitglied dieser Challenge.' })
   }
 
+  let deleted = false
+
   await prisma.$transaction(async (tx) => {
+    const otherMembersCount = await tx.challengeMember.count({
+      where: {
+        challengeId: challenge.id,
+        userId: { not: session.user.id },
+      },
+    })
+
+    if (challenge.adminUserId === session.user.id && otherMembersCount > 0) {
+      throw createError({
+        statusCode: 400,
+        message: 'Admins können die Challenge nur verlassen, wenn keine weiteren Mitglieder mehr vorhanden sind.',
+      })
+    }
+
     await tx.challengeMember.delete({ where: { id: membership.id } })
     await tx.challengeHighscore.deleteMany({
       where: {
@@ -54,7 +66,13 @@ export default eventHandler(async (event) => {
         userId: session.user.id,
       },
     })
+
+    const remaining = await tx.challengeMember.count({ where: { challengeId: challenge.id } })
+    if (remaining === 0) {
+      await tx.challenge.delete({ where: { id: challenge.id } })
+      deleted = true
+    }
   })
 
-  return { ok: true }
+  return { ok: true, deleted }
 })

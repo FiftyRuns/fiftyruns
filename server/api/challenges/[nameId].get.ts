@@ -32,6 +32,7 @@ export default eventHandler(async (event) => {
       visibility: true,
       sponsorLogos: true,
       adminUserId: true,
+      groupId: true,
       admin: {
         select: {
           id: true,
@@ -55,6 +56,17 @@ export default eventHandler(async (event) => {
   }
 
   const isAdmin = userId === challenge.adminUserId
+
+  let viewerGroupId: string | null = null
+  if (userId && challenge.groupId) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { groupId: true },
+    })
+    viewerGroupId = user?.groupId ?? null
+  }
+
+  const belongsToTeam = Boolean(challenge.groupId && viewerGroupId === challenge.groupId)
 
   const membership = userId
     ? await prisma.challengeMember.findUnique({
@@ -93,10 +105,14 @@ export default eventHandler(async (event) => {
       sponsorLogos: challenge.sponsorLogos,
       admin: challenge.admin,
       team: challenge.group,
+      teamOnly: Boolean(challenge.groupId),
     },
     viewer: {
       isAdmin,
       isMember: Boolean(membership),
+      belongsToTeam,
+      canJoin: !challenge.groupId || belongsToTeam || isAdmin,
+      needsTeamMembership: Boolean(challenge.groupId) && !belongsToTeam && !isAdmin,
     },
     leaderboard,
     participants,

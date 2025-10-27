@@ -256,7 +256,8 @@ const errorMessage = computed(() => {
   if ((error.value as any)?.statusCode === 404) {
     return 'Dieses Profil wurde nicht gefunden.'
   }
-  return 'Das Profil konnte nicht geladen werden.'
+  console.error('[profile/public] Failed to load profile', error.value)
+  return 'Das Profil konnte nicht geladen werden. Bitte versuche es später erneut.'
 })
 
 function formatDistance(meters: number | null | undefined) {

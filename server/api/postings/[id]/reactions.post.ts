@@ -1,8 +1,10 @@
 // server/api/postings/[id]/reactions.post.ts
+import { NotificationCategory } from '@prisma/client'
 import { createError, eventHandler, readBody } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
 import { assertCsrf } from '../../../utils/csrf'
+import { createNotification } from '../../../utils/notifications'
 import { REACTION_EMOJIS } from '@/constants/reactions'
 
 type ReactionBody = {
@@ -31,7 +33,21 @@ export default eventHandler(async (event) => {
 
   const post = await prisma.posting.findUnique({
     where: { id },
-    select: { id: true, visibility: true, userId: true },
+    select: {
+      id: true,
+      visibility: true,
+      text: true,
+      userId: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          nameId: true,
+          image: true,
+          notificationsEnabled: true,
+        },
+      },
+    },
   })
 
   if (!post) {
@@ -51,6 +67,8 @@ export default eventHandler(async (event) => {
     },
   })
 
+  let createdOrChanged = false
+
   if (!emoji) {
     if (existing) {
       await prisma.reaction.delete({ where: { id: existing.id } })
@@ -63,6 +81,7 @@ export default eventHandler(async (event) => {
         type: emoji,
       },
     })
+    createdOrChanged = true
   } else if (existing.type === emoji) {
     await prisma.reaction.delete({ where: { id: existing.id } })
   } else {
@@ -70,6 +89,7 @@ export default eventHandler(async (event) => {
       where: { id: existing.id },
       data: { type: emoji },
     })
+    createdOrChanged = true
   }
 
   const reactions = await prisma.reaction.findMany({
@@ -84,6 +104,33 @@ export default eventHandler(async (event) => {
 
   const viewerReaction =
     reactions.find((reaction) => reaction.userId === session.user.id)?.type ?? null
+
+  if (
+    createdOrChanged &&
+    emoji &&
+    post.userId !== session.user.id &&
+    post.user?.notificationsEnabled
+  ) {
+    await createNotification(prisma, {
+      userId: post.userId,
+      category: NotificationCategory.REACTION,
+      type: 'reaction.added',
+      title: 'Neue Reaktion auf deinen Beitrag',
+      message: `${session.user.name} hat mit ${emoji} auf deinen Beitrag reagiert.`,
+      link: `/postings/${post.id}`,
+      data: {
+        emoji,
+        postingId: post.id,
+        postingPreview: (post.text ?? '').slice(0, 140),
+        actor: {
+          id: session.user.id,
+          name: session.user.name,
+          nameId: session.user.nameId,
+          image: session.user.image ?? null,
+        },
+      },
+    })
+  }
 
   return { reactions: counts, viewerReaction }
 })

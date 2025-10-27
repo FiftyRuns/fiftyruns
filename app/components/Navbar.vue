@@ -15,8 +15,11 @@
             />
         </NuxtLink>
 
-        <!-- Desktop-Menü -->
-        <ul class="hidden md:flex items-center gap-8 text-[color:var(--color-primary)]  font-semibold text-lg">
+        <div class="flex items-center gap-4">
+            <NotificationBell v-if="isLoggedIn" />
+
+            <!-- Desktop-Menü -->
+            <ul class="hidden md:flex items-center gap-8 text-[color:var(--color-primary)]  font-semibold text-lg">
             <li>
                 <NuxtLink to="/leaderboard" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
                     Leaderboard</NuxtLink>
@@ -28,6 +31,10 @@
             <li>
                 <NuxtLink to="/postings" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
                     Beiträge</NuxtLink>
+            </li>
+            <li v-if="isLoggedIn">
+                <NuxtLink :to="teamLinkTarget" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
+                    {{ teamLinkLabel }}</NuxtLink>
             </li>
             <li v-if="!isLoggedIn">
                 <NuxtLink to="/login" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
@@ -78,22 +85,23 @@
             <li v-if="isLoggedIn && logoutError" class="text-sm font-normal text-red-600">
                 {{ logoutError }}
             </li>
-        </ul>
+            </ul>
 
-        <!-- Burger -->
-        <button
-            class="md:hidden inline-flex items-center justify-center rounded-xl p-2 outline-none ring-0 hover:bg-black/5"
-            :aria-expanded="open ? 'true' : 'false'" aria-controls="mobile-menu" @click="toggle()">
-            <span class="sr-only">Menü öffnen</span>
-            <svg v-if="!open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-            <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-        </button>
+            <!-- Burger -->
+            <button
+                class="md:hidden inline-flex items-center justify-center rounded-xl p-2 outline-none ring-0 hover:bg-black/5"
+                :aria-expanded="open ? 'true' : 'false'" aria-controls="mobile-menu" @click="toggle()">
+                <span class="sr-only">Menü öffnen</span>
+                <svg v-if="!open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
     </nav>
 
     <!-- Mobile Panel -->
@@ -119,6 +127,11 @@
                     <NuxtLink @click="close()" to="/postings"
                         class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
                         Beiträge</NuxtLink>
+                </li>
+                <li v-if="isLoggedIn">
+                    <NuxtLink @click="close()" :to="teamLinkTarget"
+                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
+                        {{ teamLinkLabel }}</NuxtLink>
                 </li>
                 <li v-if="!isLoggedIn">
                     <NuxtLink @click="close()" to="/login"
@@ -175,11 +188,14 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, computed } from 'vue'
 import { useAuthUser } from '../composables/useAuthUser'
+import { useAuthTeam, refreshAuthTeam, setAuthTeam } from '../composables/useAuthTeam'
 import { useLogout } from '../composables/useLogout'
+import NotificationBell from './notifications/NotificationBell.vue'
 
 const open = ref(false)
 const scrolled = ref(false)
 const authUser = useAuthUser()
+const authTeam = useAuthTeam()
 const isLoggedIn = computed(() => Boolean(authUser.value))
 const displayName = computed(() => authUser.value?.name ?? 'Profil')
 const avatarUrl = computed(() => authUser.value?.image ?? null)
@@ -195,7 +211,27 @@ const avatarInitials = computed(() => {
 const avatarAlt = computed(() =>
     authUser.value?.name ? `Profilbild von ${authUser.value.name}` : 'Profilbild'
 )
+const teamLinkTarget = computed(() =>
+    authTeam.value?.nameId ? `/team/${authTeam.value.nameId}` : '/team/discover'
+)
+const teamLinkLabel = computed(() =>
+    authTeam.value?.name ? authTeam.value.name : 'Teams'
+)
 const { logout, pending: logoutPending, error: logoutError } = useLogout()
+
+watch(
+    authUser,
+    (user, previous) => {
+        if (user) {
+            if (!previous || user.id !== previous.id || !authTeam.value) {
+                refreshAuthTeam()
+            }
+        } else {
+            setAuthTeam(null)
+        }
+    },
+    { immediate: true },
+)
 
 const onScroll = () => { scrolled.value = window.scrollY > 8 }
 const onResize = () => { if (window.innerWidth >= 768) open.value = false }

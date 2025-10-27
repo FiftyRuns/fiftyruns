@@ -56,9 +56,9 @@
           </div>
           <button v-else type="button"
             class="inline-flex items-center gap-2 rounded-full border border-dashed border-[var(--color-primary)]/40 px-4 py-2 text-sm font-semibold text-[var(--color-primarys)] hover:bg-white hover:shadow"
-            @click="$emit('manage-team')">
+            @click="$emit('discover-team')">
             <Icon icon="ph:user-plus-duotone" class="h-4 w-4" />
-            Team beitreten
+            Teams entdecken
           </button>
         </div>
       </div>
@@ -112,6 +112,7 @@ defineEmits<{
   (e: 'edit-profile'): void
   (e: 'change-picture'): void
   (e: 'view-team'): void
+  (e: 'discover-team'): void
   (e: 'manage-team'): void
   (e: 'open-post-composer'): void
 }>()

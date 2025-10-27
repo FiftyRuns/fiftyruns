@@ -483,6 +483,7 @@ import { Icon } from '@iconify/vue'
 import { upload } from '@vercel/blob/client'
 import { useRouter, useCookie } from 'nuxt/app'
 import FormButton from '@/components/atoms/form/FormButton.vue'
+import { refreshAuthTeam } from '@/composables/useAuthTeam'
 
 type VisibilityOption = 'public' | 'protected' | 'private'
 
@@ -882,6 +883,7 @@ async function submit() {
     })
 
     if (response.ok && response.team) {
+      await refreshAuthTeam()
       await router.push('/team/manage')
     }
   } catch (error: any) {

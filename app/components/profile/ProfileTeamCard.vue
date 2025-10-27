@@ -26,10 +26,7 @@
 
       <div class="flex flex-wrap items-center gap-3">
         <FormButton variant="primary" label="Teamseite öffnen" @click="$emit('manage')" />
-        <FormButton variant="secondary" label="Nachrichten" @click="$emit('open-messages')" />
-        <button type="button" class="text-xs text-red-500 underline-offset-2 hover:underline" @click="$emit('leave-team')">
-          Team verlassen
-        </button>
+        <FormButton variant="secondary" label="Team verlassen" @click="$emit('leave-team')" />
       </div>
     </div>
     <div v-else class="space-y-4 rounded-2xl border border-dashed border-black/10 bg-white/70 p-6 text-center text-sm text-gray-500">
@@ -64,7 +61,6 @@ defineProps<{
 
 defineEmits<{
   (e: 'manage'): void
-  (e: 'open-messages'): void
   (e: 'leave-team'): void
   (e: 'create-team'): void
   (e: 'discover'): void

@@ -41,6 +41,19 @@ enum GroupJoinRequestStatus {
   DECLINED
 }
 
+enum NotificationCategory {
+  REACTION
+  COMMENT
+  TEAM
+  RUN
+  SYSTEM
+  INTEGRATION
+}
+
+enum NotificationActionType {
+  TEAM_JOIN_REQUEST
+}
+
 /* ===================== Core Models ===================== */
 
 model Group {
@@ -75,6 +88,7 @@ model GroupJoinRequest {
 
   group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notifications Notification[]
 
   @@unique([groupId, userId])
   @@index([status])
@@ -137,6 +151,7 @@ model User {
   postings          Posting[]
   reactions         Reaction[]
   readNotifications    ReadNotification[]
+  notifications        Notification[]
   groupJoinRequests    GroupJoinRequest[]
   groupInvitesSent     GroupInvite[]        @relation("GroupInviteSentBy")
   groupInvitesAccepted GroupInvite[]        @relation("GroupInviteAcceptedBy")
@@ -244,8 +259,30 @@ model ReadNotification {
   notificationId String
   readAt         DateTime @default(now())
   user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, notificationId])
+}
+
+model Notification {
+  id            String   @id @default(uuid())
+  userId        String
+  category      NotificationCategory
+  type          String
+  title         String
+  message       String
+  link          String?
+  data          Json?
+  actionType    NotificationActionType?
+  actionPayload Json?
+  joinRequestId String?
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readBy        ReadNotification[]
+  joinRequest   GroupJoinRequest? @relation(fields: [joinRequestId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([joinRequestId])
 }
 
 /* ===================== Challenges ===================== */
