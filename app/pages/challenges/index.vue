@@ -51,8 +51,13 @@
             <NuxtLink :to="`/challenges/${challenge.nameId}`" class="group relative block">
               <div v-if="challenge.image" class="h-40 w-full overflow-hidden rounded-t-3xl">
                 <NuxtImg :src="challenge.image" :alt="challenge.name"
-                  class="h-full w-full object-cover transition group-hover:scale-105" width="720" height="320"
-                  format="webp" />
+                  class="h-full w-full object-cover transition group-hover:scale-105" 
+                  width="720" height="320"
+                  format="webp"
+                  quality="85"
+                  loading="lazy"
+                  sizes="xs:100vw sm:50vw md:33vw"
+                />
               </div>
               <div v-else
                 class="flex h-40 items-center justify-center rounded-t-3xl bg-[var(--color-accent)]/10 text-3xl  font-semibold  text-black">

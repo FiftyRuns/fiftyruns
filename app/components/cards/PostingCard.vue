@@ -35,8 +35,9 @@
           width="480"
           height="360"
           format="webp"
+          quality="85"
           loading="lazy"
-          sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+          sizes="xs:100vw sm:50vw md:33vw lg:25vw"
         />
       </div>
     </div>

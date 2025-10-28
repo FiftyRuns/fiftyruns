@@ -31,9 +31,11 @@
                         </NuxtLink>
 
                         <!-- Trennlinie in Zweitfarbe -->
-                        <span class="hidden h-6 w-px bg-[rgb(var(--color-accent-rgb)/0.6)] sm:inline-block" aria-hidden="true"></span>
+                        <span class="hidden h-6 w-px bg-[rgb(var(--color-accent-rgb)/0.6)] sm:inline-block"
+                            aria-hidden="true"></span>
 
-                        <span class="text-center text-sm font-medium text-[var(--color-primary)] sm:text-left sm:text-base">
+                        <span
+                            class="text-center text-sm font-medium text-[var(--color-primary)] sm:text-left sm:text-base">
                             Ab {{ startDate }} geht’s wieder los!
                         </span>
                     </div>
@@ -44,9 +46,13 @@
     <TextBlock width="wide" align="center" eyebrow="DIE IDEE" title="Mit jeder Einheit etwas Gutes tun"
         lead="Deine Aktivität schafft Mehrwert – für dich und andere.">
         <p>
-            Jede registrierte Laufeinheit trägt zu einer Spende an eine wohltätige Organisation (eine Auswahl findest du
+            Jede registrierte Laufeinheit trägt zu einer Spende an eine wohltätige Organisation bei.
+            Wähle aus dem
             <a href="https://service.bmf.gv.at/service/allg/spenden/show_mast.asp#aw" target="_blank"
-                rel="noopener noreferrer" style="text-decoration: underline;">hier</a>) Wahl bei.
+                rel="noopener noreferrer" style="text-decoration: underline;">
+                offiziellen Spendenverzeichnis des österreichischen Finanzministeriums
+            </a>
+            eine förderungswürdige Organisation aus.
             So wird dein Training zu einem Beitrag für soziale Projekte.
         </p>
         <hr />

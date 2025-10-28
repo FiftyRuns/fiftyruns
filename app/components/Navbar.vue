@@ -9,6 +9,7 @@
                 src="/images/50runs_Logo.webp"
                 alt="FiftyRuns Logo"
                 format="webp"
+                quality="85"
                 class="h-8 sm:h-10 w-auto max-w-[160px]"
                 preload
                 fetchpriority="high"
