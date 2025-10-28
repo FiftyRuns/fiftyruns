@@ -108,6 +108,10 @@ export function useProfilePage() {
   const avatarState = reactive({ error: '' })
 
   onMounted(async () => {
+    if (!authUser.value) {
+      router.push('/login')
+      return
+    }
     await Promise.all([loadProfileData(), loadOverview(), loadPosts(), loadChallenges()])
   })
 
@@ -144,7 +148,9 @@ export function useProfilePage() {
         image: data.user.image ?? null,
       }
     } catch (e) {
-      console.error('Profil-Daten laden fehlgeschlagen', e)
+      if (process.dev) {
+        console.error('[profile] Profil-Daten laden fehlgeschlagen', e)
+      }
     }
   }
 
@@ -166,7 +172,9 @@ export function useProfilePage() {
           : null,
       )
     } catch (e) {
-      console.error('Profil-Overview fehlgeschlagen', e)
+      if (process.dev) {
+        console.error('[profile] Profil-Overview fehlgeschlagen', e)
+      }
       setAuthTeam(null)
     }
   }
@@ -202,7 +210,9 @@ export function useProfilePage() {
       }))
       // Optional: nextCursor handling
     } catch (e) {
-      console.error('Posts laden fehlgeschlagen', e)
+      if (process.dev) {
+        console.error('[profile] Posts laden fehlgeschlagen', e)
+      }
     }
   }
 
@@ -211,7 +221,9 @@ export function useProfilePage() {
       const data = await $fetch<ChallengeSummary[]>('/api/profile/challenges', { credentials: 'include' })
       challenges.value = data
     } catch (e) {
-      console.error('Challenges laden fehlgeschlagen', e)
+      if (process.dev) {
+        console.error('[profile] Challenges laden fehlgeschlagen', e)
+      }
     }
   }
 
@@ -261,7 +273,9 @@ export function useProfilePage() {
       })
       await loadOverview()
     } catch (e) {
-      console.error('Team beitreten fehlgeschlagen', e)
+      if (process.dev) {
+        console.error('[profile] Team beitreten fehlgeschlagen', e)
+      }
     }
   }
 
@@ -276,7 +290,9 @@ export function useProfilePage() {
       setAuthTeam(null)
       await loadOverview()
     } catch (e) {
-      console.error('Team verlassen fehlgeschlagen', e)
+      if (process.dev) {
+        console.error('[profile] Team verlassen fehlgeschlagen', e)
+      }
     }
   }
 
@@ -354,7 +370,9 @@ export function useProfilePage() {
       })
       await Promise.all([loadPosts(), loadOverview()])
     } catch (e: any) {
-      console.error('Post löschen fehlgeschlagen', e)
+      if (process.dev) {
+        console.error('[profile] Post löschen fehlgeschlagen', e)
+      }
     }
   }
 

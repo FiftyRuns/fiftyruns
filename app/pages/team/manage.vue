@@ -568,12 +568,13 @@ const { data, pending, error, refresh } = await useAsyncData('team-manage', asyn
 
 const team = computed(() => data.value?.team ?? null)
 const errorMessage = computed(() => {
-  if (pending.value) return ''
-  const err = error.value as unknown
-  if (!err) return ''
-
-  console.error('[team/manage] Failed to load manage data', err)
-  return 'Teamdaten konnten nicht geladen werden. Bitte versuche es später erneut.'
+  if (!pending.value && error.value && !data.value?.team) {
+    if (process.dev) {
+      console.error('[team/manage] Failed to load manage data', error.value)
+    }
+    return 'Teamdaten konnten nicht geladen werden. Bitte versuchen Sie es später erneut.'
+  }
+  return ''
 })
 
 const form = reactive({
@@ -993,7 +994,9 @@ async function fetchUserSearch() {
     )
     searchResults.value = res.users.filter((user) => !invitedIds.has(user.id))
   } catch (err) {
-    console.error('Suche fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[team/manage] Suche fehlgeschlagen', err)
+    }
     searchResults.value = []
   } finally {
     searchPending.value = false
@@ -1012,7 +1015,9 @@ async function inviteUser(user: { id: string; name: string; nameId: string; emai
     searchResults.value = searchResults.value.filter((entry) => entry.id !== user.id)
     await refresh()
   } catch (err: any) {
-    console.error('Direkte Einladung fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[team/manage] Direkte Einladung fehlgeschlagen', err)
+    }
   } finally {
     userInviteLoading[user.id] = false
   }
@@ -1028,7 +1033,9 @@ async function approveRequest(id: string) {
     })
     await refresh()
   } catch (err: any) {
-    console.error('Anfrage bestätigen fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[team/manage] Anfrage bestätigen fehlgeschlagen', err)
+    }
   } finally {
     requestActions[id] = { ...(requestActions[id] ?? {}), approve: false }
   }
@@ -1044,7 +1051,9 @@ async function declineRequest(id: string) {
     })
     await refresh()
   } catch (err: any) {
-    console.error('Anfrage ablehnen fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[team/manage] Anfrage ablehnen fehlgeschlagen', err)
+    }
   } finally {
     requestActions[id] = { ...(requestActions[id] ?? {}), decline: false }
   }
@@ -1060,7 +1069,9 @@ async function removeMember(id: string) {
     })
     await refresh()
   } catch (err: any) {
-    console.error('Mitglied entfernen fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[team/manage] Mitglied entfernen fehlgeschlagen', err)
+    }
   } finally {
     memberActions[id] = false
   }
@@ -1104,7 +1115,9 @@ async function deleteInvite(id: string) {
     })
     await refresh()
   } catch (err: any) {
-    console.error('Einladung löschen fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[team/manage] Einladung löschen fehlgeschlagen', err)
+    }
   } finally {
     inviteRemovals[id] = false
   }
@@ -1127,7 +1140,9 @@ async function deleteTeam() {
     setAuthTeam(null)
     await router.push('/team/discover')
   } catch (err: any) {
-    console.error('Team löschen fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[team/manage] Team löschen fehlgeschlagen', err)
+    }
     deleteState.error = err?.data?.message || err?.message || 'Team konnte nicht gelöscht werden.'
   } finally {
     deleteState.loading = false

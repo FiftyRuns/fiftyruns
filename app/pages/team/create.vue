@@ -564,7 +564,7 @@ const inviteUsers = ref<Array<{ id: string; name: string; nameId: string; email:
 const inviteEmails = ref<Array<{ email: string; note: string }>>([])
 const emailInvite = reactive({ email: '', note: '' })
 
-const currentStepId = computed(() => steps[currentStep.value].id)
+const currentStepId = computed(() => steps[currentStep.value]?.id ?? 'details')
 
 const baseScale = computed(() => {
   if (!cover.naturalWidth || !cover.naturalHeight) {
@@ -753,7 +753,9 @@ async function fetchUserSearch() {
     const existingIds = new Set(inviteUsers.value.map((u) => u.id))
     searchResults.value = res.users.filter((user) => !existingIds.has(user.id))
   } catch (error) {
-    console.error('User search failed', error)
+    if (process.dev) {
+      console.error('[team/create] User search failed', error)
+    }
     searchResults.value = []
   } finally {
     searchPending.value = false
@@ -887,7 +889,9 @@ async function submit() {
       await router.push('/team/manage')
     }
   } catch (error: any) {
-    console.error('Team Erstellung fehlgeschlagen', error)
+    if (process.dev) {
+      console.error('[team/create] Team Erstellung fehlgeschlagen', error)
+    }
     submitError.value = error?.data?.message || error?.message || 'Team konnte nicht erstellt werden.'
   } finally {
     isSubmitting.value = false

@@ -318,6 +318,15 @@ const { data, pending, error, refresh } = await useAsyncData(
 )
 
 const challenge = computed(() => data.value?.challenge ?? null)
+const errorMessage = computed(() => {
+  if (!pending.value && error.value && !data.value?.challenge) {
+    if (process.dev) {
+      console.error('[challenge-detail] Failed to load challenge', error.value)
+    }
+    return 'Challenge konnte nicht geladen werden. Bitte versuchen Sie es später erneut.'
+  }
+  return ''
+})
 const viewer = computed(
   () =>
     data.value?.viewer ?? {
@@ -338,14 +347,6 @@ const showTeamJoinHint = computed(
 )
 const teamLink = computed(() => (challenge.value?.team ? `/team/${challenge.value.team.nameId}` : '/team/discover'))
 
-const errorMessage = computed(() => {
-  if (pending.value) return ''
-  const err = error.value as unknown
-  if (!err) return ''
-
-  console.error('[challenges/detail] Failed to load challenge', err)
-  return 'Challenge konnte nicht geladen werden. Bitte versuche es später erneut.'
-})
 const isLoggedIn = computed(() => Boolean(authUser.value))
 
 const visibilityLabel = computed(() => {
@@ -386,7 +387,9 @@ async function joinChallenge() {
     })
     await refresh()
   } catch (err: any) {
-    console.error(err)
+    if (process.dev) {
+      console.error('[challenge-detail] Join failed', err)
+    }
     actionError.value = err?.data?.message || err?.message || 'Konnte Challenge nicht beitreten.'
   } finally {
     actionPending.value = false
@@ -409,7 +412,9 @@ async function leaveChallenge() {
     }
     await refresh()
   } catch (err: any) {
-    console.error(err)
+    if (process.dev) {
+      console.error('[challenge-detail] Join failed', err)
+    }
     actionError.value = err?.data?.message || err?.message || 'Konnte Challenge nicht verlassen.'
   } finally {
     actionPending.value = false
@@ -432,7 +437,9 @@ async function deleteChallenge() {
     })
     await router.push('/challenges')
   } catch (err: any) {
-    console.error(err)
+    if (process.dev) {
+      console.error('[challenge-detail] Join failed', err)
+    }
     deleteError.value = err?.data?.message || err?.message || 'Challenge konnte nicht gelöscht werden.'
   } finally {
     deletePending.value = false
@@ -466,16 +473,18 @@ function initials(name: string) {
 }
 
 const navigateToEdit = () => {
-  console.log('=== NAVIGATION DEBUG ===')
-  console.log('slug:', slug.value)
-  console.log('editPath:', editPath.value)
-  console.log('viewer.isAdmin:', viewer.value.isAdmin)
-  console.log('route.params:', route.params)
-  
-  // Teste ob die Route existiert
-  const router = useRouter()
-  const routeExists = router.resolve(editPath.value)
-  console.log('Route exists:', routeExists)
+  if (process.dev) {
+    console.log('=== NAVIGATION DEBUG ===')
+    console.log('slug:', slug.value)
+    console.log('editPath:', editPath.value)
+    console.log('viewer.isAdmin:', viewer.value.isAdmin)
+    console.log('route.params:', route.params)
+    
+    // Teste ob die Route existiert
+    const router = useRouter()
+    const routeExists = router.resolve(editPath.value)
+    console.log('Route exists:', routeExists)
+  }
   
   // Navigiere manuell
   router.push(editPath.value)

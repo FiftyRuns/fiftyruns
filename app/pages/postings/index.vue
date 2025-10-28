@@ -81,7 +81,9 @@ async function handleComment(postId: string, text: string) {
   try {
     await addComment(postId, text)
   } catch (error) {
-    console.error('Kommentar konnte nicht gespeichert werden', error)
+    if (process.dev) {
+      console.error('[postings] Kommentar konnte nicht gespeichert werden', error)
+    }
   }
 }
 </script>

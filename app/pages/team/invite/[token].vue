@@ -88,12 +88,13 @@ const { data, pending, error, refresh } = await useAsyncData(
 
 const invite = computed(() => data.value?.invite ?? null)
 const errorMessage = computed(() => {
-  if (pending.value) return ''
-  const err = error.value as unknown
-  if (!err) return ''
-
-  console.error('[team/invite] Failed to load invite', err)
-  return 'Einladung konnte nicht geladen werden. Bitte versuche es später erneut.'
+  if (!pending.value && error.value && !data.value) {
+    if (process.dev) {
+      console.error('[team/invite] Failed to load invite', error.value)
+    }
+    return 'Einladung konnte nicht geladen werden. Bitte versuchen Sie es später erneut.'
+  }
+  return ''
 })
 
 const isAuthenticated = computed(() => Boolean(useCookie('session_token').value))

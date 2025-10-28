@@ -68,7 +68,8 @@
             </label>
 
             <ChallengeImagePicker
-              v-model:image-url="form.image"
+              v-model="form.imageFile"
+              :image-url="form.image"
               :csrf-token="csrf"
               label="Challenge-Titelbild (optional)"
             />
@@ -148,6 +149,7 @@
                   :key="index"
                   v-model="form.sponsorLogos[index]"
                   :csrf-token="csrf"
+                  @update:model-value="form.sponsorLogos[index] = $event ?? ''"
                 />
               </div>
               <button type="button"
@@ -246,6 +248,7 @@ const form = reactive({
   description: '',
   prize: '',
   image: '',
+  imageFile: null as File | null,
   startAt: '',
   endAt: '',
   visibility: 'public' as 'public' | 'protected' | 'private',
@@ -278,10 +281,12 @@ const { data: teamInfo } = await useAsyncData('challenge-edit-team', async () =>
     )
     return res.team
   } catch (err) {
-    console.error('Teaminfo laden fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[challenge-edit] Team load failed', err)
+    }
     return null
   }
-})
+}, { immediate: !!authUser.value })
 
 watch(
   data,
@@ -360,7 +365,9 @@ async function handleSubmit() {
     await refresh()
     await router.push(`/challenges/${slug.value}`)
   } catch (err: any) {
-    console.error('Challenge aktualisieren fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[challenge-edit] Challenge aktualisieren fehlgeschlagen', err)
+    }
     errorMessage.value = err?.data?.message || err?.message || 'Challenge konnte nicht aktualisiert werden.'
   } finally {
     submitting.value = false

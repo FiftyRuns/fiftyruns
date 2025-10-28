@@ -183,12 +183,13 @@ const { data, pending, error, refresh } = await useAsyncData(
 )
 
 const errorMessage = computed(() => {
-  if (pending.value) return ''
-  const err = error.value as unknown
-  if (!err) return ''
-
-  console.error('[challenges/list] Failed to load challenges', err)
-  return 'Challenges konnten nicht geladen werden. Bitte versuche es später erneut.'
+  if (!pending.value && error.value && !data.value) {
+    if (process.dev) {
+      console.error('[challenges/list] Failed to load challenges', error.value)
+    }
+    return 'Challenges konnten nicht geladen werden. Bitte versuchen Sie es später erneut.'
+  }
+  return ''
 })
 const challenges = computed(() => data.value ?? [])
 
@@ -217,7 +218,9 @@ async function joinChallenge(challenge: ChallengeListItem) {
     })
     await refresh()
   } catch (err) {
-    console.error('Challenge beitreten fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[challenges/list] Challenge beitreten fehlgeschlagen', err)
+    }
     actionErrors[challenge.id] = (err as any)?.data?.message || (err as Error)?.message || 'Beitritt nicht möglich.'
   } finally {
     actionPending[challenge.id] = false
@@ -236,7 +239,9 @@ async function leaveChallenge(challenge: ChallengeListItem) {
     })
     await refresh()
   } catch (err) {
-    console.error('Challenge verlassen fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[challenges/list] Challenge verlassen fehlgeschlagen', err)
+    }
     actionErrors[challenge.id] = (err as any)?.data?.message || (err as Error)?.message || 'Verlassen nicht möglich.'
   } finally {
     actionPending[challenge.id] = false

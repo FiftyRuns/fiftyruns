@@ -170,17 +170,19 @@ const { data, pending, error, refresh } = await useAsyncData(
 
 const teams = computed(() => data.value?.teams ?? [])
 const errorMessage = computed(() => {
-  if (pending.value) return ''
-  const err = error.value as { statusCode?: number; status?: number; message?: string } | null
-  if (!err) return ''
-
-  const status = err.statusCode ?? err.status
-  if (status === 404) {
-    return ''
+  if (!pending.value && error.value && !data.value) {
+    const err = error.value as { statusCode?: number; status?: number; message?: string } | null
+    const status = err?.statusCode ?? err?.status
+    
+    // 404 ist ok (keine Teams gefunden)
+    if (status === 404) return ''
+    
+    if (process.dev) {
+      console.error('[team/discover] Failed to load teams', error.value)
+    }
+    return 'Teams konnten nicht geladen werden. Bitte versuchen Sie es später erneut.'
   }
-
-  console.error('[team/discover] Failed to load teams', err)
-  return 'Teams konnten nicht geladen werden. Bitte versuche es später erneut.'
+  return ''
 })
 
 const requestMessages = reactive<Record<string, string>>({})
@@ -225,7 +227,9 @@ async function joinTeamDirect(team: TeamSearchItem) {
     await refresh()
     await refreshAuthTeam()
   } catch (err: any) {
-    console.error('Direkter Beitritt fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[team/discover] Direkter Beitritt fehlgeschlagen', err)
+    }
   } finally {
     requestPending[team.id] = false
   }
@@ -251,7 +255,9 @@ async function sendRequest(team: TeamSearchItem) {
     }
     await refresh()
   } catch (err: any) {
-    console.error('Team-Anfrage fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[team/discover] Team-Anfrage fehlgeschlagen', err)
+    }
   } finally {
     requestPending[team.id] = false
   }

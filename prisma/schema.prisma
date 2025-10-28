@@ -136,18 +136,26 @@ model User {
   autoDonate                    Boolean             @default(false)
   donationUpdatedAt             DateTime?
 
-  // Gruppe ist optional; genau eine erlaubt
   groupId   String?
   group     Group?              @relation("UsersInGroup", fields: [groupId], references: [id], onDelete: SetNull)
   groupRole GroupRole?          @default(MEMBER)
 
   createdAt DateTime?           @default(now())
 
+  // 🔴 OAuth 1.0 (WIRD ENTFERNT NACH MIGRATION)
   garminAccessToken        String?
   garminAccessTokenSecret  String?
 
+  // 🟢 OAuth 2.0 (NEU)
+  garminOAuth2AccessToken      String?
+  garminOAuth2RefreshToken     String?
+  garminOAuth2TokenExpiry      DateTime?
+  garminUserId                 String?  // User ID von Garmin API
+
   comments          Comment[]
   GarminAuth        GarminAuth?
+  GarminOAuth2      GarminOAuth2?  
+  GarminTokenExchange GarminTokenExchange? 
   postings          Posting[]
   reactions         Reaction[]
   readNotifications    ReadNotification[]
@@ -168,13 +176,45 @@ model User {
   @@index([emailVerificationToken])
   @@index([runDonationMultiplierAskAgain, runDonationMultiplier])
   @@index([groupId])
+  @@index([garminUserId]) // Index für Garmin User ID
 }
 
+// 🔴 OAuth 1.0 (WIRD ENTFERNT NACH MIGRATION)
 model GarminAuth {
   oauthToken       String @id
   oauthTokenSecret String
   userId           String @unique
   user             User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// 🟢 OAuth 2.0 PKCE Flow (NEU)
+model GarminOAuth2 {
+  id           String   @id @default(uuid())
+  codeVerifier String   
+  state        String?  
+  userId       String   @unique
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime @default(dbgenerated("NOW() + INTERVAL '10 minutes'"))   
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([expiresAt]) // Für Cleanup Jobs
+}
+
+// 🟢 Token Exchange Tracking (für Migration)
+model GarminTokenExchange {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  oauth1Token       String   // Original OAuth 1.0 Token
+  exchangeAttempted Boolean  @default(false)
+  exchangeSuccess   Boolean?
+  exchangeError     String?
+  exchangedAt       DateTime?
+  createdAt         DateTime @default(now())
+  
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([exchangeSuccess])
+  @@index([createdAt])
 }
 
 model Session {

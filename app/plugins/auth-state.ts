@@ -28,7 +28,9 @@ export default defineNuxtPlugin(async () => {
     })
     userState.value = data.value?.user ?? null
   } catch (error) {
-    console.warn('Failed to load auth state', error)
+    if (process.dev) {
+      console.warn('[auth-state] Failed to load auth state', error)
+    }
     userState.value = null
   }
 })

@@ -87,7 +87,9 @@ export function useNotifications() {
       selectedCategoryState.value = category
       applyTotals(data)
     } catch (error) {
-      console.error('Benachrichtigungen konnten nicht geladen werden', error)
+      if (process.dev) {
+        console.error('[useNotifications] Benachrichtigungen konnten nicht geladen werden', error)
+      }
       errorState.value = 'Benachrichtigungen konnten nicht geladen werden.'
     } finally {
       loadingState.value = false
@@ -114,7 +116,9 @@ export function useNotifications() {
         totals.unread = Math.max(0, totals.unread - 1)
       }
     } catch (error) {
-      console.error('Benachrichtigung konnte nicht aktualisiert werden', error)
+      if (process.dev) {
+        console.error('[useNotifications] Benachrichtigung konnte nicht aktualisiert werden', error)
+      }
     }
   }
 
@@ -138,7 +142,9 @@ export function useNotifications() {
         totalsState.value[category].unread = 0
       }
     } catch (error) {
-      console.error('Alle Benachrichtigungen konnten nicht aktualisiert werden', error)
+      if (process.dev) {
+        console.error('[useNotifications] Alle Benachrichtigungen konnten nicht aktualisiert werden', error)
+      }
     }
   }
 
@@ -153,7 +159,9 @@ export function useNotifications() {
         credentials: 'include',
       })
     } catch (error) {
-      console.error('Anfrage konnte nicht bestätigt werden', error)
+      if (process.dev) {
+        console.error('[useNotifications] Anfrage konnte nicht bestätigt werden', error)
+      }
       throw error
     }
     await loadNotifications(selectedCategoryState.value)
@@ -170,7 +178,9 @@ export function useNotifications() {
         credentials: 'include',
       })
     } catch (error) {
-      console.error('Anfrage konnte nicht abgelehnt werden', error)
+      if (process.dev) {
+        console.error('[useNotifications] Anfrage konnte nicht abgelehnt werden', error)
+      }
       throw error
     }
     await loadNotifications(selectedCategoryState.value)

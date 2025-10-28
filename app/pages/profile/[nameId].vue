@@ -245,19 +245,20 @@ const profileStats = computed(() => {
 })
 
 const errorMessage = computed(() => {
-  if (!error.value) return ''
-
-  if (error.value?.message?.includes('abort') ||
-    error.value?.message?.includes('navigation') ||
-    (error.value as any)?.statusCode === 499) {
-    return ''
+  if (!pending.value && error.value && !data.value) {
+    const err = error.value as any
+    if (err?.message?.includes('abort') || err?.message?.includes('navigation') || err?.statusCode === 499) {
+      return ''
+    }
+    if (err?.statusCode === 404) {
+      return 'Dieses Profil wurde nicht gefunden.'
+    }
+    if (process.dev) {
+      console.error('[profile-public] Failed to load profile', error.value)
+    }
+    return 'Profil konnte nicht geladen werden. Bitte versuchen Sie es später erneut.'
   }
-
-  if ((error.value as any)?.statusCode === 404) {
-    return 'Dieses Profil wurde nicht gefunden.'
-  }
-  console.error('[profile/public] Failed to load profile', error.value)
-  return 'Das Profil konnte nicht geladen werden. Bitte versuche es später erneut.'
+  return ''
 })
 
 function formatDistance(meters: number | null | undefined) {

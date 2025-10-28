@@ -261,12 +261,13 @@ const { data, pending, error, refresh } = await useAsyncData(
 
 const team = computed(() => data.value?.team ?? null)
 const errorMessage = computed(() => {
-  if (pending.value) return ''
-  const err = error.value as unknown
-  if (!err) return ''
-
-  console.error('[team/detail] Failed to load team', err)
-  return 'Team konnte nicht geladen werden. Bitte versuche es später erneut.'
+  if (!pending.value && error.value && !data.value?.team) {
+    if (process.dev) {
+      console.error('[team/detail] Failed to load team', error.value)
+    }
+    return 'Team konnte nicht geladen werden. Bitte versuchen Sie es später erneut.'
+  }
+  return ''
 })
 
 const message = ref('')

@@ -89,7 +89,9 @@ export const refreshAuthTeam = async () => {
             : null,
     })
   } catch (error) {
-    console.error('Teamzugehörigkeit konnte nicht geladen werden.', error)
+    if (process.dev) {
+      console.error('[useAuthTeam] Teamzugehörigkeit konnte nicht geladen werden.', error)
+    }
     return setAuthTeam(null)
   }
 }

@@ -8,7 +8,7 @@
     "noImplicitAny": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["nuxt", "@types/node", "@nuxt/content", "@nuxt/image"],
+    "types": ["nuxt", "@types/node", "@nuxt/image"],
     "allowJs": true,
     "resolveJsonModule": true,
     "isolatedModules": true,

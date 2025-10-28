@@ -70,7 +70,9 @@ export function useCommunityFeed() {
       }))
     })
     .catch(error => {
-      console.error('Feed laden fehlgeschlagen', error)
+      if (process.dev) {
+        console.error('[useCommunityFeed] Feed laden fehlgeschlagen', error)
+      }
       errorState.value = 'Beiträge konnten nicht geladen werden.'
       throw error
     })
@@ -103,7 +105,9 @@ export function useCommunityFeed() {
       })
       post.viewerReaction = response.viewerReaction
     } catch (error) {
-      console.error('Reaktion fehlgeschlagen', error)
+      if (process.dev) {
+        console.error('[useCommunityFeed] Reaktion fehlgeschlagen', error)
+      }
     }
   }
 
@@ -128,7 +132,9 @@ export function useCommunityFeed() {
       })
       post.viewerReaction = response.viewerReaction
     } catch (error) {
-      console.error('Reaktion entfernen fehlgeschlagen', error)
+      if (process.dev) {
+        console.error('[useCommunityFeed] Reaktion entfernen fehlgeschlagen', error)
+      }
     }
   }
 
@@ -149,7 +155,9 @@ export function useCommunityFeed() {
       if (!post) return
       post.comments.push(response)
     } catch (error) {
-      console.error('Kommentar konnte nicht gespeichert werden', error)
+      if (process.dev) {
+        console.error('[useCommunityFeed] Kommentar konnte nicht gespeichert werden', error)
+      }
     }
   }
 
@@ -180,7 +188,9 @@ export function useCommunityFeed() {
       comment.text = response.text
       comment.createdAt = response.createdAt
     } catch (error) {
-      console.error('Kommentar konnte nicht aktualisiert werden', error)
+      if (process.dev) {
+        console.error('[useCommunityFeed] Kommentar konnte nicht aktualisiert werden', error)
+      }
       throw error
     }
   }
@@ -199,7 +209,9 @@ export function useCommunityFeed() {
       if (!post) return
       post.comments = post.comments.filter((item) => item.id !== commentId)
     } catch (error) {
-      console.error('Kommentar konnte nicht gelöscht werden', error)
+      if (process.dev) {
+        console.error('[useCommunityFeed] Kommentar konnte nicht gelöscht werden', error)
+      }
       throw error
     }
   }

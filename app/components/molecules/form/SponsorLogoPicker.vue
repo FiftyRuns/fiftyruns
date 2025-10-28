@@ -6,7 +6,7 @@ import { useCookie } from 'nuxt/app'
 
 const props = withDefaults(
   defineProps<{
-    modelValue: string
+    modelValue?: string
     handleUploadUrl?: string
     csrfToken?: string | null
     maxSize?: number

@@ -47,7 +47,8 @@
             </label>
 
             <ChallengeImagePicker
-              v-model:image-url="form.image"
+              v-model="form.imageFile"
+              :image-url="form.image"
               :csrf-token="csrf"
               label="Challenge-Titelbild (optional)"
             />
@@ -119,6 +120,7 @@
                   :key="index"
                   v-model="form.sponsorLogos[index]"
                   :csrf-token="csrf"
+                  @update:model-value="form.sponsorLogos[index] = $event ?? ''"
                 />
               </div>
               <button
@@ -188,6 +190,7 @@ const form = reactive({
   description: '',
   prize: '',
   image: '',
+  imageFile: null as File | null,
   startAt: defaultStart,
   endAt: defaultEnd,
   visibility: 'public',
@@ -214,10 +217,12 @@ const { data: teamInfo } = await useAsyncData('challenge-create-team', async () 
     }>('/api/profile/overview', { credentials: 'include' })
     return res.team
   } catch (err) {
-    console.error('Teaminfo laden fehlgeschlagen', err)
+    if (process.dev) {
+      console.error('[challenge-create] Team load failed', err)
+    }
     return null
   }
-})
+}, { immediate: !!authUser.value })
 
 const isLoggedIn = computed(() => Boolean(authUser.value))
 
