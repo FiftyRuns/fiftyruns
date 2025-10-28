@@ -73,6 +73,38 @@ async function toDataUrl(file: File): Promise<string> {
   })
 }
 
+async function convertToWebP(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx?.drawImage(img, 0, 0)
+      
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Konvertierung fehlgeschlagen'))
+            return
+          }
+          const webpFile = new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), {
+            type: 'image/webp'
+          })
+          resolve(webpFile)
+        },
+        'image/webp',
+        0.85 // 85% quality
+      )
+    }
+    
+    img.onerror = reject
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 async function onSelect(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0] ?? null
   if (!file) {
@@ -96,14 +128,17 @@ async function onSelect(event: Event) {
   }
 
   try {
-    preview.value = await toDataUrl(file)
+    // Konvertiere zu WebP
+    const webpFile = await convertToWebP(file)
+    
+    preview.value = await toDataUrl(file) // Preview aus original (schneller)
     setError(undefined)
-    emit('update:modelValue', file)
+    emit('update:modelValue', webpFile) // Emit WebP file
 
     if (props.autoUpload && props.handleUploadUrl) {
       uploading.value = true
       try {
-        const res = await upload(file.name, file, {
+        const res = await upload(webpFile.name, webpFile, {
           access: 'public',
           handleUploadUrl: props.handleUploadUrl,
           multipart: true,
@@ -115,8 +150,8 @@ async function onSelect(event: Event) {
         uploading.value = false
       }
     }
-  } catch {
-    setError('Bild konnte nicht geladen/hochgeladen werden.')
+  } catch (err) {
+    setError(err instanceof Error ? err.message : 'Bild konnte nicht konvertiert/hochgeladen werden.')
     emit('update:modelValue', null)
     resetInput()
   }
@@ -138,7 +173,7 @@ function removeImage() {
     
     <div v-if="preview || imageUrl" class="group relative">
       <img
-        :src="preview || imageUrl"
+        :src="preview || imageUrl || undefined"
         alt="Vorschau"
         class="h-48 w-full rounded-xl border border-black/10 object-cover bg-gray-100"
       />

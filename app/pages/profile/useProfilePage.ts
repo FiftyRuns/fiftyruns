@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useCookie } from 'nuxt/app'
 import { useAuthUser } from '../../composables/useAuthUser'
 import { setAuthTeam } from '../../composables/useAuthTeam'
+import { useToast } from '../../composables/useToast'
 
 // Komponenten-Typen
 import type { ProfileStat } from '../../components/profile/ProfileStatsGrid.vue'
@@ -48,6 +49,7 @@ type ProfileMeResponse = {
 export function useProfilePage() {
   const router = useRouter()
   const authUser = useAuthUser()
+  const { showSuccess, showError } = useToast()
 
   const sidebarRef = ref<HTMLElement | null>(null)
 
@@ -344,10 +346,13 @@ export function useProfilePage() {
         credentials: 'include',
       })
       await Promise.all([loadPosts(), loadOverview()])
-      postComposerState.success = 'Beitrag gespeichert.'
+      showSuccess('Beitrag erfolgreich veröffentlicht!')
       postComposerForm.title = postComposerForm.content = postComposerForm.distanceKm = postComposerForm.duration = ''
     } catch (err: any) {
-      postComposerState.error = err?.data?.message || err?.message || 'Fehler beim Speichern.'
+      if (process.dev) {
+        console.error('[useProfilePage] Post submit failed', err)
+      }
+      showError(err?.data?.message || err?.message || 'Fehler beim Speichern.')
     } finally {
       postComposerState.loading = false
     }

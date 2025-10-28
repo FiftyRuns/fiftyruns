@@ -1,4 +1,12 @@
 <template>
+  <ConfirmModal
+    v-model="showDeleteModal"
+    title="Kommentar löschen?"
+    message="Möchtest du diesen Kommentar wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+    confirm-text="Löschen"
+    variant="danger"
+    @confirm="handleDeleteConfirm"
+  />
   <PostingCard
     :content="post.text"
     :image="post.image"
@@ -90,22 +98,67 @@
                   </span>
                 </NuxtLink>
                 <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2 text-[10px] text-gray-500">
-                    <NuxtLink
-                      :to="`/profile/${encodeURIComponent(comment.author.nameId)}`"
-                      class="font-medium text-gray-700 hover:text-[var(--color-primary)] truncate"
-                    >
-                      {{ comment.author.name }}
-                    </NuxtLink>
-                    <span>{{ new Date(comment.createdAt).toLocaleDateString('de-DE') }}</span>
+                  <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 text-[10px] text-gray-500">
+                      <NuxtLink
+                        :to="`/profile/${encodeURIComponent(comment.author.nameId)}`"
+                        class="font-medium text-gray-700 hover:text-[var(--color-primary)] truncate"
+                      >
+                        {{ comment.author.name }}
+                      </NuxtLink>
+                      <span>{{ new Date(comment.createdAt).toLocaleDateString('de-DE') }}</span>
+                    </div>
+                    <div v-if="isOwnComment(comment)" class="flex items-center gap-1">
+                      <button
+                        type="button"
+                        @click="startEdit(comment)"
+                        class="p-1 text-gray-400 hover:text-gray-600 transition-colors"
+                        aria-label="Kommentar bearbeiten"
+                      >
+                        <Icon icon="ph:pencil-simple-duotone" class="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        @click="confirmDelete(comment.id)"
+                        class="p-1 text-gray-400 hover:text-red-600 transition-colors"
+                        aria-label="Kommentar löschen"
+                      >
+                        <Icon icon="ph:trash-duotone" class="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <p class="mt-0.5 whitespace-pre-line text-xs text-gray-700 line-clamp-2">{{ comment.text }}</p>
+                  <div v-if="editingCommentId === comment.id" class="mt-2">
+                    <textarea
+                      v-model="editCommentText"
+                      rows="2"
+                      class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-800 focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                    ></textarea>
+                    <div class="mt-1.5 flex gap-1.5">
+                      <button
+                        type="button"
+                        @click="saveEdit(comment.id)"
+                        class="rounded px-2 py-1 text-[10px] font-semibold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 transition-colors"
+                      >
+                        Speichern
+                      </button>
+                      <button
+                        type="button"
+                        @click="cancelEdit"
+                        class="rounded px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+                      >
+                        Abbrechen
+                      </button>
+                    </div>
+                  </div>
+                  <p v-else class="mt-0.5 whitespace-pre-line text-xs text-gray-700">{{ comment.text }}</p>
                 </div>
               </div>
             </div>
 
             <form v-if="isLoggedIn" class="mt-2" @submit.prevent="submitComment">
               <textarea
+                id="comment-textarea"
+                name="comment"
                 v-model="commentText"
                 rows="2"
                 class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
@@ -131,10 +184,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useAuthUser } from '@/composables/useAuthUser'
 import PostingCard from './PostingCard.vue'
+import ConfirmModal from '@/components/molecules/ConfirmModal.vue'
 import type { CommunityPost } from '@/composables/useCommunityFeed'
 import type { ReactionEmoji } from '@/constants/reactions'
-import { useAuthUser } from '@/composables/useAuthUser'
 
 // Cached formatters outside component
 const dateFormatter = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' })
@@ -155,6 +209,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   reaction: [postId: string, emoji: ReactionEmoji]
   comment: [postId: string, text: string]
+  'edit-comment': [postId: string, commentId: string, text: string]
+  'delete-comment': [postId: string, commentId: string]
 }>()
 
 const authUser = useAuthUser()
@@ -162,6 +218,14 @@ const isLoggedIn = computed(() => Boolean(authUser.value))
 const commentText = ref('')
 const commentPending = ref(false)
 const commentError = ref('')
+const editingCommentId = ref<string | null>(null)
+const editCommentText = ref('')
+const deletingCommentId = ref<string | null>(null)
+const showDeleteModal = ref(false)
+
+const isOwnComment = (comment: CommunityPost['comments'][0]) => {
+  return comment.author.id === authUser.value?.id
+}
 
 // Computed properties for performance
 const formattedDate = computed(() => dateFormatter.format(new Date(props.post.createdAt)))
@@ -175,7 +239,7 @@ function handleReaction(emoji: ReactionEmoji) {
   emit('reaction', props.post.id, emoji)
 }
 
-function submitComment() {
+async function submitComment() {
   const text = commentText.value.trim()
   if (!text) {
     commentError.value = 'Kommentar darf nicht leer sein.'
@@ -185,9 +249,44 @@ function submitComment() {
   commentError.value = ''
   commentPending.value = true
 
-  emit('comment', props.post.id, text)
-  commentText.value = ''
-  commentPending.value = false
+  try {
+    emit('comment', props.post.id, text)
+    commentText.value = ''
+  } catch (error) {
+    commentError.value = 'Kommentar konnte nicht gesendet werden.'
+  } finally {
+    commentPending.value = false
+  }
+}
+
+function startEdit(comment: CommunityPost['comments'][0]) {
+  editingCommentId.value = comment.id
+  editCommentText.value = comment.text
+}
+
+function cancelEdit() {
+  editingCommentId.value = null
+  editCommentText.value = ''
+}
+
+function saveEdit(commentId: string) {
+  const text = editCommentText.value.trim()
+  if (!text) return
+  emit('edit-comment', props.post.id, commentId, text)
+  editingCommentId.value = null
+  editCommentText.value = ''
+}
+
+function confirmDelete(commentId: string) {
+  deletingCommentId.value = commentId
+  showDeleteModal.value = true
+}
+
+function handleDeleteConfirm() {
+  if (deletingCommentId.value) {
+    emit('delete-comment', props.post.id, deletingCommentId.value)
+    deletingCommentId.value = null
+  }
 }
 </script>
 

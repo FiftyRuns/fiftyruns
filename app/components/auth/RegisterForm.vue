@@ -9,14 +9,6 @@
           <p class="mt-2 text-sm text-gray-600">Registriere dich, um 50runs zu nutzen.</p>
         </div>
 
-        <div v-if="serverError" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {{ serverError }}
-        </div>
-        <div v-if="serverSuccess"
-          class="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-          {{ serverSuccess }}
-        </div>
-
         <form @submit.prevent="onSubmit" novalidate>
           <div class="space-y-5">
             <ProfileImagePicker v-model="form.profilePicture" v-model:imageUrl="form.avatarUrl"
@@ -75,6 +67,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 import { Icon } from '@iconify/vue'
+import { useToast } from '../../composables/useToast'
 import FormButton from '../atoms/form/FormButton.vue'
 import CheckboxField from '../molecules/form/CheckboxField.vue'
 import InputField from '../molecules/form/InputField.vue'
@@ -92,6 +85,8 @@ const form = reactive({
   profilePicture: null as File | null,
   avatarUrl: null as string | null, 
 })
+
+const { showSuccess, showError } = useToast()
 
 const errors = reactive<Record<string, string | undefined>>({})
 const serverError = ref('')
@@ -198,9 +193,9 @@ const onSubmit = async () => {
         avatarUrl: form.avatarUrl,
       },
     })
-    serverSuccess.value = 'Registrierung erfolgreich. Bitte E-Mail prüfen und Konto bestätigen.'
+    showSuccess('Registrierung erfolgreich. Bitte E-Mail prüfen und Konto bestätigen.')
   } catch (error: any) {
-    serverError.value = error?.data?.message || 'Registrierung fehlgeschlagen.'
+    showError(error?.data?.message || 'Registrierung fehlgeschlagen.')
   } finally {
     pending.value = false
   }

@@ -1,9 +1,20 @@
 // server/api/profile/posts/[id].delete.ts
 import { createError, eventHandler } from 'h3'
+import { del } from '@vercel/blob'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
 import { assertCsrf } from '../../../utils/csrf'
 import { updateChallengesForRun } from '../../../utils/challengeProgress'
+
+function isVercelBlobUrl(url: string | null | undefined) {
+  if (!url) return false
+  try {
+    const parsed = new URL(url)
+    return parsed.hostname.endsWith('vercel-storage.com')
+  } catch {
+    return false
+  }
+}
 
 export default eventHandler(async (event) => {
   assertCsrf(event)
@@ -25,6 +36,7 @@ export default eventHandler(async (event) => {
       id: true,
       userId: true,
       date: true,
+      image: true,
       runningExercise: {
         select: { distanceInMeters: true, durationInSeconds: true },
       },
@@ -33,6 +45,17 @@ export default eventHandler(async (event) => {
 
   if (!post) {
     throw createError({ statusCode: 404, message: 'Beitrag nicht gefunden.' })
+  }
+
+  // Lösche Post-Image aus Blob Storage
+  if (post.image && isVercelBlobUrl(post.image)) {
+    try {
+      await del(post.image)
+    } catch (err) {
+      if (process.dev) {
+        console.warn('[posts/delete] Post-Image konnte nicht gelöscht werden:', err)
+      }
+    }
   }
 
   const hadRun = !!post.runningExercise

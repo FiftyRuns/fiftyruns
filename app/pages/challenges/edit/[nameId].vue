@@ -72,6 +72,7 @@
               :image-url="form.image"
               :csrf-token="csrf"
               label="Challenge-Titelbild (optional)"
+              @uploaded="(url) => form.image = url"
             />
           </div>
         </section>
@@ -190,8 +191,6 @@
           </NuxtLink>
         </div>
 
-        <p v-if="errorMessage" class="text-sm font-medium text-red-600">{{ errorMessage }}</p>
-        <p v-if="successMessage" class="text-sm font-medium text-green-600">{{ successMessage }}</p>
       </form>
     </div>
   </div>
@@ -204,6 +203,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCookie } from 'nuxt/app'
 import { useAuthUser } from '@/composables/useAuthUser'
 import { useAsyncData } from 'nuxt/app'
+import { useToast } from '@/composables/useToast'
 import ChallengeImagePicker from '@/components/molecules/form/ChallengeImagePicker.vue'
 import SponsorLogoPicker from '@/components/molecules/form/SponsorLogoPicker.vue'
 
@@ -236,10 +236,9 @@ const router = useRouter()
 const slug = computed(() => String(route.params.nameId))
 const csrf = useCookie('csrf_token')
 const authUser = useAuthUser()
+const { showSuccess, showError } = useToast()
 
 const submitting = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
 const loadError = ref('')
 const initialTeamId = ref<string | null>(null)
 
@@ -350,8 +349,6 @@ function removeLogo(index: number) {
 async function handleSubmit() {
   if (submitting.value) return
   submitting.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
 
   try {
     const payload = buildPayload()
@@ -361,14 +358,14 @@ async function handleSubmit() {
       credentials: 'include',
       body: payload,
     })
-    successMessage.value = 'Challenge aktualisiert.'
+    showSuccess('Challenge erfolgreich aktualisiert!')
     await refresh()
     await router.push(`/challenges/${slug.value}`)
   } catch (err: any) {
     if (process.dev) {
       console.error('[challenge-edit] Challenge aktualisieren fehlgeschlagen', err)
     }
-    errorMessage.value = err?.data?.message || err?.message || 'Challenge konnte nicht aktualisiert werden.'
+    showError(err?.data?.message || err?.message || 'Challenge konnte nicht aktualisiert werden.')
   } finally {
     submitting.value = false
   }

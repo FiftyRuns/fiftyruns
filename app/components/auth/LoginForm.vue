@@ -9,14 +9,6 @@
           <p class="mt-2 text-sm text-gray-600">Melde dich an, um deine Läufe und Community-Updates zu sehen.</p>
         </header>
 
-        <div v-if="serverError" class="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {{ serverError }}
-        </div>
-
-        <div v-if="serverSuccess" class="mb-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-700">
-          {{ serverSuccess }}
-        </div>
-
         <form @submit.prevent="onSubmit" novalidate>
           <div class="space-y-5">
             <InputField
@@ -90,6 +82,7 @@ import type { AuthUser } from '../../types/auth'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthUser } from '../../composables/useAuthUser'
 import { refreshAuthTeam } from '../../composables/useAuthTeam'
+import { useToast } from '../../composables/useToast'
 
 import FormButton from '../atoms/form/FormButton.vue'
 import CheckboxField from '../molecules/form/CheckboxField.vue'
@@ -98,6 +91,7 @@ import InputField from '../molecules/form/InputField.vue'
 const router = useRouter()
 const route = useRoute()
 const authUser = useAuthUser()
+const { showSuccess, showError, showInfo } = useToast()
 
 const form = reactive({
   email: '',
@@ -168,11 +162,11 @@ const onSubmit = async () => {
     if (result.ok) {
       authUser.value = result.user
       await refreshAuthTeam()
-      serverSuccess.value = 'Login erfolgreich. Du wirst weitergeleitet…'
+      showSuccess('Login erfolgreich. Du wirst weitergeleitet…')
       await router.push('/postings')
     }
   } catch (error: any) {
-    serverError.value = error?.data?.message || 'Login fehlgeschlagen.'
+    showError(error?.data?.message || 'Login fehlgeschlagen.')
     await fetchCsrf()
   } finally {
     pending.value = false
@@ -182,9 +176,9 @@ const onSubmit = async () => {
 onMounted(() => {
   fetchCsrf()
   if (route.query.verified === '1') {
-    serverSuccess.value = 'E-Mail bestätigt! Du kannst dich jetzt anmelden.'
+    showSuccess('E-Mail bestätigt! Du kannst dich jetzt anmelden.')
   } else if (route.query.loggedOut === '1') {
-    serverSuccess.value = 'Du wurdest abgemeldet.'
+    showInfo('Du wurdest abgemeldet.')
   }
 })
 </script>

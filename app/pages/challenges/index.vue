@@ -53,8 +53,6 @@
                 <NuxtImg :src="challenge.image" :alt="challenge.name"
                   class="h-full w-full object-cover transition group-hover:scale-105" 
                   width="720" height="320"
-                  format="webp"
-                  quality="85"
                   loading="lazy"
                   sizes="xs:100vw sm:50vw md:33vw"
                 />

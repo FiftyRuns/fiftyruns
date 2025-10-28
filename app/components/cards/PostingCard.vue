@@ -34,8 +34,6 @@
           class="w-full h-auto object-contain"
           width="480"
           height="360"
-          format="webp"
-          quality="85"
           loading="lazy"
           sizes="xs:100vw sm:50vw md:33vw lg:25vw"
         />

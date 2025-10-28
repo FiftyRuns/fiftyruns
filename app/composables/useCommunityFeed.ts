@@ -1,5 +1,6 @@
 import { ref, shallowRef } from 'vue'
 import { useCookie } from 'nuxt/app'
+import { useAuthUser } from './useAuthUser'
 import { REACTION_EMOJIS, type ReactionEmoji } from '@/constants/reactions'
 
 type Author = {
@@ -37,7 +38,7 @@ export type CommunityPost = {
   comments: Comment[]
 }
 
-const postsState = shallowRef<CommunityPost[]>([])
+const postsState = ref<CommunityPost[]>([])
 const loadingState = ref(false)
 const errorState = ref('')
 
@@ -143,7 +144,27 @@ export function useCommunityFeed() {
     const trimmed = text.trim()
     if (!trimmed) return
 
+    const post = postsState.value.find((entry) => entry.id === postId)
+    if (!post) return
+
+    const authUser = useAuthUser()
+    
+    // Optimistic update: Add comment immediately with temporary data
+    const tempComment: Comment = {
+      id: `temp-${Date.now()}`,
+      text: trimmed,
+      author: {
+        id: authUser.value?.id ?? '',
+        name: authUser.value?.name ?? 'Du',
+        nameId: authUser.value?.nameId ?? '',
+        image: authUser.value?.image ?? null,
+      },
+      createdAt: new Date().toISOString(),
+    }
+    post.comments.push(tempComment)
+
     try {
+      // Replace temp comment with real one from server
       const response = await $fetch<Comment>(`/api/postings/${postId}/comments`, {
         method: 'POST',
         body: { text: trimmed },
@@ -151,13 +172,20 @@ export function useCommunityFeed() {
         credentials: 'include',
       })
 
-      const post = postsState.value.find((entry) => entry.id === postId)
-      if (!post) return
-      post.comments.push(response)
+      const index = post.comments.findIndex((c) => c.id === tempComment.id)
+      if (index !== -1) {
+        post.comments[index] = response
+      }
     } catch (error) {
+      // Rollback: Remove temp comment on error
+      const index = post.comments.findIndex((c) => c.id === tempComment.id)
+      if (index !== -1) {
+        post.comments.splice(index, 1)
+      }
       if (process.dev) {
         console.error('[useCommunityFeed] Kommentar konnte nicht gespeichert werden', error)
       }
+      throw error
     }
   }
 
@@ -168,12 +196,21 @@ export function useCommunityFeed() {
       throw new Error('Kommentar darf nicht leer sein.')
     }
 
+    const post = postsState.value.find((entry) => entry.id === postId)
+    if (!post) return
+    const comment = post.comments.find((item) => item.id === commentId)
+    if (!comment) return
+
+    // Optimistic update
+    const oldText = comment.text
+    comment.text = trimmed
+
     try {
       const response = await $fetch<{
         id: string
         text: string
         createdAt: string
-        postingId: string
+ postingId: string
       }>(`/api/postings/comments/${commentId}`, {
         method: 'PATCH',
         body: { text: trimmed },
@@ -181,13 +218,12 @@ export function useCommunityFeed() {
         credentials: 'include',
       })
 
-      const post = postsState.value.find((entry) => entry.id === postId)
-      if (!post) return
-      const comment = post.comments.find((item) => item.id === commentId)
-      if (!comment) return
+      // Update with server response
       comment.text = response.text
       comment.createdAt = response.createdAt
     } catch (error) {
+      // Rollback on error
+      comment.text = oldText
       if (process.dev) {
         console.error('[useCommunityFeed] Kommentar konnte nicht aktualisiert werden', error)
       }
@@ -198,17 +234,26 @@ export function useCommunityFeed() {
   async function deleteComment(postId: string, commentId: string) {
     const csrf = csrfCookie.value ?? ''
 
+    const post = postsState.value.find((entry) => entry.id === postId)
+    if (!post) return
+    
+    // Optimistic update: Remove comment immediately
+    const commentIndex = post.comments.findIndex((item) => item.id === commentId)
+    if (commentIndex === -1) return
+    
+    const deletedComment = post.comments[commentIndex]
+    if (!deletedComment) return
+    post.comments.splice(commentIndex, 1)
+
     try {
       await $fetch(`/api/postings/comments/${commentId}`, {
         method: 'DELETE',
         headers: { 'x-csrf-token': csrf },
         credentials: 'include',
       })
-
-      const post = postsState.value.find((entry) => entry.id === postId)
-      if (!post) return
-      post.comments = post.comments.filter((item) => item.id !== commentId)
     } catch (error) {
+      // Rollback on error
+      post.comments.splice(commentIndex, 0, deletedComment)
       if (process.dev) {
         console.error('[useCommunityFeed] Kommentar konnte nicht gelöscht werden', error)
       }

@@ -35,6 +35,8 @@
           :post="post"
           @reaction="handleReaction"
           @comment="handleComment"
+          @edit-comment="handleEditComment"
+          @delete-comment="handleDeleteComment"
         />
       </section>
     </div>
@@ -55,6 +57,8 @@ const {
   toggleReaction,
   removeReaction,
   addComment,
+  updateComment,
+  deleteComment,
 } = useCommunityFeed()
 
 // Optimized lookup with Map for O(1) access
@@ -83,6 +87,26 @@ async function handleComment(postId: string, text: string) {
   } catch (error) {
     if (process.dev) {
       console.error('[postings] Kommentar konnte nicht gespeichert werden', error)
+    }
+  }
+}
+
+async function handleEditComment(postId: string, commentId: string, text: string) {
+  try {
+    await updateComment(postId, commentId, text)
+  } catch (error) {
+    if (process.dev) {
+      console.error('[postings] Kommentar konnte nicht aktualisiert werden', error)
+    }
+  }
+}
+
+async function handleDeleteComment(postId: string, commentId: string) {
+  try {
+    await deleteComment(postId, commentId)
+  } catch (error) {
+    if (process.dev) {
+      console.error('[postings] Kommentar konnte nicht gelöscht werden', error)
     }
   }
 }

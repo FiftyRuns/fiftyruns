@@ -45,7 +45,9 @@ export default eventHandler(async (event) => {
     try {
       await del(challenge.image)
     } catch (err) {
-      console.warn('[challenges/delete] Challenge-Image konnte nicht gelöscht werden:', err)
+      if (process.dev) {
+        console.warn('[challenges/delete] Challenge-Image konnte nicht gelöscht werden:', err)
+      }
     }
   }
 
@@ -56,7 +58,9 @@ export default eventHandler(async (event) => {
         try {
           await del(logo)
         } catch (err) {
-          console.warn('[challenges/delete] Sponsor-Logo konnte nicht gelöscht werden:', err)
+          if (process.dev) {
+            console.warn('[challenges/delete] Sponsor-Logo konnte nicht gelöscht werden:', err)
+          }
         }
       }
     }

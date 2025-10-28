@@ -516,7 +516,7 @@
 import { computed, reactive, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { Icon } from '@iconify/vue'
 import { upload } from '@vercel/blob/client'
-import { useAsyncData, useCookie, useRequestHeaders } from 'nuxt/app'
+import { useAsyncData, useCookie, useRequestHeaders, useRequestURL } from 'nuxt/app'
 import { useRouter } from 'vue-router'
 import FormButton from '@/components/atoms/form/FormButton.vue'
 import type { TeamManageData, TeamJoinRequest } from '@/types/team'
@@ -547,6 +547,7 @@ const EXPORT_SIZE = 960
 
 const csrf = useCookie('csrf_token')
 const router = useRouter()
+const requestURL = useRequestURL()
 
 const requestHeaders = useRequestHeaders(['cookie'])
 
@@ -760,8 +761,8 @@ async function copy(text: string) {
 }
 
 async function copyTeamLink() {
-  if (!process.client || !team.value) return
-  const ok = await copy(`${window.location.origin}/team/${team.value.nameId}`)
+  if (!team.value) return
+  const ok = await copy(`${requestURL.origin}/team/${team.value.nameId}`)
   copyState.value = ok ? 'copied' : 'error'
   setTimeout(() => {
     copyState.value = 'idle'
@@ -769,8 +770,7 @@ async function copyTeamLink() {
 }
 
 async function copyInviteLink(token: string) {
-  if (!process.client) return
-  const ok = await copy(`${window.location.origin}/team/invite/${token}`)
+  const ok = await copy(`${requestURL.origin}/team/invite/${token}`)
   if (ok) {
     copiedInvite.value = token
     setTimeout(() => {

@@ -1,5 +1,13 @@
 <template>
   <div class="px-4 py-12">
+    <ConfirmModal
+      v-model="showDeleteConfirm"
+      title="Challenge löschen?"
+      message="Möchtest du diese Challenge wirklich dauerhaft löschen? Dieser Schritt kann nicht rückgängig gemacht werden."
+      confirm-text="Challenge löschen"
+      variant="danger"
+      @confirm="handleDeleteConfirm"
+    />
     <div v-if="pending" class="mx-auto flex w-full max-w-5xl flex-col gap-6">
       <div class="h-64 animate-pulse rounded-3xl border border-black/5 bg-white/70"></div>
       <div class="h-32 animate-pulse rounded-3xl border border-black/5 bg-white/60"></div>
@@ -129,7 +137,6 @@
                 <Icon icon="ph:trash-duotone" class="h-5 w-5" aria-hidden="true" />
                 <span>{{ deletePending ? 'Wird gelöscht…' : 'Challenge löschen' }}</span>
               </button>
-              <p v-if="deleteError" class="text-xs font-medium text-red-600">{{ deleteError }}</p>
             </div>
 
             <p v-if="actionError" class="text-xs font-medium text-red-600">{{ actionError }}</p>
@@ -249,6 +256,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useCookie } from 'nuxt/app'
 import { useAuthUser } from '@/composables/useAuthUser'
 import { useAsyncData } from 'nuxt/app'
+import { useToast } from '@/composables/useToast'
+import ConfirmModal from '@/components/molecules/ConfirmModal.vue'
 import type { ComputedRefSymbol } from '@vue/reactivity'
 
 interface ChallengeDetailResponse {
@@ -299,11 +308,12 @@ const route = useRoute()
 const router = useRouter()
 const csrf = useCookie('csrf_token')
 const authUser = useAuthUser()
+const { showSuccess, showError, showWarning } = useToast()
 
 const actionPending = ref(false)
 const actionError = ref('')
 const deletePending = ref(false)
-const deleteError = ref('')
+const showDeleteConfirm = ref(false)
 
 const slug = computed(() => String(route.params.nameId))
 const editPath = computed(() => `/challenges/edit/${slug.value}`)
@@ -421,13 +431,14 @@ async function leaveChallenge() {
   }
 }
 
-async function deleteChallenge() {
+function deleteChallenge() {
+  showDeleteConfirm.value = true
+}
+
+async function handleDeleteConfirm() {
   if (!challenge.value || deletePending.value) return
-  const confirmed = window.confirm('Möchtest du diese Challenge wirklich dauerhaft löschen? Dieser Schritt kann nicht rückgängig gemacht werden.')
-  if (!confirmed) return
 
   deletePending.value = true
-  deleteError.value = ''
 
   try {
     await $fetch(`/api/challenges/${slug.value}`, {
@@ -435,12 +446,13 @@ async function deleteChallenge() {
       headers: { 'x-csrf-token': csrf.value ?? '' },
       credentials: 'include',
     })
+    showSuccess('Challenge erfolgreich gelöscht')
     await router.push('/challenges')
   } catch (err: any) {
     if (process.dev) {
-      console.error('[challenge-detail] Join failed', err)
+      console.error('[challenge-detail] Delete failed', err)
     }
-    deleteError.value = err?.data?.message || err?.message || 'Challenge konnte nicht gelöscht werden.'
+    showError(err?.data?.message || err?.message || 'Challenge konnte nicht gelöscht werden.')
   } finally {
     deletePending.value = false
   }

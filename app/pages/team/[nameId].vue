@@ -21,9 +21,6 @@
 
       <div v-else class="space-y-8">
         <header class="overflow-hidden rounded-3xl border border-black/5 bg-white/90 shadow-sm">
-          <div v-if="team.coverImage" class="h-40 w-full overflow-hidden">
-            <img :src="team.coverImage" :alt="team.name" class="h-full w-full object-cover" />
-          </div>
           <div class="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
             <div>
               <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)]">Team</p>

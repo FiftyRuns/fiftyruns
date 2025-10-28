@@ -197,13 +197,62 @@ const photoFile = ref<File | null>(null)
 const photoPreviewUrl = ref<string | null>(null)
 const photoName = computed(() => photoFile.value?.name ?? '')
 
-function onPhotoSelected(e: Event) {
+async function convertToWebP(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    const img = new Image()
+    
+    img.onload = () => {
+      canvas.width = img.width
+      canvas.height = img.height
+      ctx?.drawImage(img, 0, 0)
+      
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Konvertierung fehlgeschlagen'))
+            return
+          }
+          const webpFile = new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), {
+            type: 'image/webp'
+          })
+          resolve(webpFile)
+        },
+        'image/webp',
+        0.85 // 85% quality
+      )
+    }
+    
+    img.onerror = reject
+    img.src = URL.createObjectURL(file)
+  })
+}
+
+async function onPhotoSelected(e: Event) {
   const input = e.target as HTMLInputElement
   const file = input.files?.[0] ?? null
-  photoFile.value = file ?? null
+  
+  if (!file) {
+    photoFile.value = null
+    if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
+    photoPreviewUrl.value = null
+    return
+  }
 
-  if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
-  photoPreviewUrl.value = file ? URL.createObjectURL(file) : null
+  // Konvertiere zu WebP
+  try {
+    const webpFile = await convertToWebP(file)
+    photoFile.value = webpFile
+    
+    if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
+    photoPreviewUrl.value = URL.createObjectURL(webpFile)
+  } catch (err) {
+    console.error('[PostComposer] WebP-Konvertierung fehlgeschlagen:', err)
+    photoFile.value = file
+    if (photoPreviewUrl.value) URL.revokeObjectURL(photoPreviewUrl.value)
+    photoPreviewUrl.value = URL.createObjectURL(file)
+  }
 }
 
 /** Distanz **/

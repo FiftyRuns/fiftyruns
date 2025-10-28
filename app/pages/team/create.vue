@@ -443,9 +443,6 @@
           </div>
         </div>
 
-        <div v-if="submitError" class="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
-          {{ submitError }}
-        </div>
       </section>
 
       <footer class="flex flex-wrap justify-between gap-3">
@@ -482,6 +479,7 @@ import { computed, reactive, ref, watch, onMounted, onBeforeUnmount } from 'vue'
 import { Icon } from '@iconify/vue'
 import { upload } from '@vercel/blob/client'
 import { useRouter, useCookie } from 'nuxt/app'
+import { useToast } from '@/composables/useToast'
 import FormButton from '@/components/atoms/form/FormButton.vue'
 import { refreshAuthTeam } from '@/composables/useAuthTeam'
 
@@ -521,9 +519,10 @@ const EXPORT_SIZE = 960
 const router = useRouter()
 const csrf = useCookie<string | null>('csrf_token')
 
+const { showSuccess, showError } = useToast()
+
 const currentStep = ref(0)
 const stepError = ref('')
-const submitError = ref('')
 const isSubmitting = ref(false)
 
 const form = reactive({
@@ -848,7 +847,6 @@ function validateStep() {
 
 async function submit() {
   stepError.value = ''
-  submitError.value = ''
   if (!validateStep()) return
 
   isSubmitting.value = true
@@ -885,6 +883,7 @@ async function submit() {
     })
 
     if (response.ok && response.team) {
+      showSuccess('Team erfolgreich erstellt!')
       await refreshAuthTeam()
       await router.push('/team/manage')
     }
@@ -892,7 +891,7 @@ async function submit() {
     if (process.dev) {
       console.error('[team/create] Team Erstellung fehlgeschlagen', error)
     }
-    submitError.value = error?.data?.message || error?.message || 'Team konnte nicht erstellt werden.'
+    showError(error?.data?.message || error?.message || 'Team konnte nicht erstellt werden.')
   } finally {
     isSubmitting.value = false
   }

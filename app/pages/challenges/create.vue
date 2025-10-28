@@ -51,6 +51,7 @@
               :image-url="form.image"
               :csrf-token="csrf"
               label="Challenge-Titelbild (optional)"
+              @uploaded="(url) => form.image = url"
             />
           </div>
         </section>
@@ -157,8 +158,6 @@
           </NuxtLink>
         </div>
 
-        <p v-if="errorMessage" class="text-sm font-medium text-red-600">{{ errorMessage }}</p>
-        <p v-if="successMessage" class="text-sm font-medium text-green-600">{{ successMessage }}</p>
       </form>
     </div>
   </div>
@@ -171,15 +170,15 @@ import { useCookie } from 'nuxt/app'
 import { useRouter } from 'vue-router'
 import { useAuthUser } from '@/composables/useAuthUser'
 import { useAsyncData } from 'nuxt/app'
+import { useToast } from '@/composables/useToast'
 import ChallengeImagePicker from '@/components/molecules/form/ChallengeImagePicker.vue'
 import SponsorLogoPicker from '@/components/molecules/form/SponsorLogoPicker.vue'
 
 const router = useRouter()
 const csrf = useCookie('csrf_token')
 const authUser = useAuthUser()
+const { showSuccess, showError } = useToast()
 const submitting = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
 
 const today = new Date()
 const defaultStart = today.toISOString().slice(0, 10)
@@ -243,8 +242,6 @@ function removeLogo(index: number) {
 async function handleSubmit() {
   if (submitting.value) return
   submitting.value = true
-  errorMessage.value = ''
-  successMessage.value = ''
 
   try {
     const payload = buildPayload()
@@ -257,11 +254,13 @@ async function handleSubmit() {
         body: payload,
       },
     )
-    successMessage.value = 'Challenge erstellt.'
+    showSuccess('Challenge erfolgreich erstellt!')
     await router.push(`/challenges/${response.nameId}`)
   } catch (err: any) {
-    console.error('Challenge erstellen fehlgeschlagen', err)
-    errorMessage.value = err?.data?.message || err?.message || 'Challenge konnte nicht erstellt werden.'
+    if (process.dev) {
+      console.error('Challenge erstellen fehlgeschlagen', err)
+    }
+    showError(err?.data?.message || err?.message || 'Challenge konnte nicht erstellt werden.')
   } finally {
     submitting.value = false
   }
