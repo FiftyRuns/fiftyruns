@@ -1,3 +1,4 @@
+import { ActivitySource } from '@prisma/client'
 import { createError, eventHandler, readBody } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
@@ -203,6 +204,7 @@ export default eventHandler(async (event) => {
           data: {
             distanceInMeters: nextDistance!,
             durationInSeconds: nextDuration!,
+            source: ActivitySource.MANUAL,
           },
         })
       } else if (runAction === 'create') {
@@ -211,6 +213,7 @@ export default eventHandler(async (event) => {
             postingId: id,
             distanceInMeters: nextDistance!,
             durationInSeconds: nextDuration!,
+            source: ActivitySource.MANUAL,
           },
         })
       }

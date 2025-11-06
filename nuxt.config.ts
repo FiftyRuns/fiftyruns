@@ -14,6 +14,9 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
+    server: {
+      allowedHosts: ["bidding-shorter-crowd-bumper.trycloudflare.com"],
+    },
     build: {
       rollupOptions: {
         output: {
@@ -40,7 +43,13 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     sessionSecret: process.env.SESSION_SECRET,
-    databaseUrl: process.env.DATABASE_URL
+    databaseUrl: process.env.DATABASE_URL,
+    stravaClientId: process.env.STRAVA_CLIENT_ID,
+    stravaClientSecret: process.env.STRAVA_CLIENT_SECRET,
+    stravaRedirectUri: process.env.STRAVA_REDIRECT_URI,
+    stravaDefaultScope: process.env.STRAVA_DEFAULT_SCOPE,
+    stravaWebhookVerifyToken: process.env.STRAVA_WEBHOOK_VERIFY_TOKEN,
+    stravaWebhookCallbackUrl: process.env.STRAVA_WEBHOOK_CALLBACK_URL
   },
 
   nitro: { preset: "vercel" },

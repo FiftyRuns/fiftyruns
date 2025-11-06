@@ -10,12 +10,20 @@
           bio: settingsForm.bio
         }"
         :team="teamInfo"
+        :strava="stravaIntegration"
+        :strava-state="stravaState"
+        :garmin="garminIntegration"
+        :garmin-state="garminState"
         @edit-profile="goToSettings"
         @change-picture="triggerAvatarUpload"
         @view-team="openTeamOverview"
         @discover-team="discoverTeams"
         @manage-team="openTeamManagement"
-        @open-post-composer="scrollToComposer" />
+        @open-post-composer="scrollToComposer"
+        @connect-strava="connectStrava"
+        @disconnect-strava="disconnectStrava"
+        @connect-garmin="connectGarmin"
+        @disconnect-garmin="disconnectGarmin" />
 
       <ProfileStatsGrid :stats="stats" />
 
@@ -76,5 +84,13 @@ const {
   openPost,
   editPost,
   deletePost,
+  stravaIntegration,
+  stravaState,
+  connectStrava,
+  disconnectStrava,
+  garminIntegration,
+  garminState,
+  connectGarmin,
+  disconnectGarmin,
 } = useProfilePage()
 </script>

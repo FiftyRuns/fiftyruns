@@ -1,6 +1,6 @@
 // app/pages/profile/useProfilePage.ts
 import { reactive, ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useCookie } from 'nuxt/app'
 import { useAuthUser } from '../../composables/useAuthUser'
 import { setAuthTeam } from '../../composables/useAuthTeam'
@@ -38,6 +38,21 @@ type ProfileMeResponse = {
     autoDonate: boolean
     updatedAt: string | null
   }
+  integrations: {
+    strava: {
+      connected: boolean
+      athleteId: string | null
+      scopes: string[]
+      connectedAt: string | null
+      tokenExpiresAt: string | null
+      deauthorizedAt: string | null
+    }
+    garmin?: {
+      connected: boolean
+      connectedAt: string | null
+      tokenExpiresAt: string | null
+    }
+  }
   settings: {
     bio: string | null
     visibility: Visibility
@@ -48,6 +63,7 @@ type ProfileMeResponse = {
 
 export function useProfilePage() {
   const router = useRouter()
+  const route = useRoute()
   const authUser = useAuthUser()
   const { showSuccess, showError } = useToast()
 
@@ -109,12 +125,30 @@ export function useProfilePage() {
   )
   const avatarState = reactive({ error: '' })
 
+  const stravaIntegration = reactive({
+    connected: false,
+    athleteId: null as string | null,
+    scopes: [] as string[],
+    connectedAt: null as string | null,
+    tokenExpiresAt: null as string | null,
+    deauthorizedAt: null as string | null,
+  })
+  const stravaState = reactive({ loading: false, error: '' })
+
+  const garminIntegration = reactive({
+    connected: false,
+    connectedAt: null as string | null,
+    tokenExpiresAt: null as string | null,
+  })
+  const garminState = reactive({ loading: false, error: '' })
+
   onMounted(async () => {
     if (!authUser.value) {
       router.push('/login')
       return
     }
     await Promise.all([loadProfileData(), loadOverview(), loadPosts(), loadChallenges()])
+    handleStravaCallback()
   })
 
   async function loadProfileData() {
@@ -149,10 +183,133 @@ export function useProfilePage() {
         bio,
         image: data.user.image ?? null,
       }
+
+      if (data.integrations?.strava) {
+        const strava = data.integrations.strava
+        stravaIntegration.connected = Boolean(strava.connected)
+        stravaIntegration.athleteId = strava.athleteId
+        stravaIntegration.scopes = Array.isArray(strava.scopes) ? strava.scopes : []
+        stravaIntegration.connectedAt = strava.connectedAt
+        stravaIntegration.tokenExpiresAt = strava.tokenExpiresAt
+        stravaIntegration.deauthorizedAt = strava.deauthorizedAt
+      } else {
+        resetStravaIntegration()
+      }
+
+      if (data.integrations?.garmin) {
+        const garmin = data.integrations.garmin
+        garminIntegration.connected = Boolean(garmin.connected)
+        garminIntegration.connectedAt = garmin.connectedAt
+        garminIntegration.tokenExpiresAt = garmin.tokenExpiresAt
+      } else {
+        resetGarminIntegration()
+      }
     } catch (e) {
       if (process.dev) {
         console.error('[profile] Profil-Daten laden fehlgeschlagen', e)
       }
+      resetStravaIntegration()
+      resetGarminIntegration()
+    }
+  }
+
+  function resetStravaIntegration() {
+    stravaIntegration.connected = false
+    stravaIntegration.athleteId = null
+    stravaIntegration.scopes = []
+    stravaIntegration.connectedAt = null
+    stravaIntegration.tokenExpiresAt = null
+    stravaIntegration.deauthorizedAt = null
+  }
+
+  function resetGarminIntegration() {
+    garminIntegration.connected = false
+    garminIntegration.connectedAt = null
+    garminIntegration.tokenExpiresAt = null
+  }
+
+  function handleStravaCallback() {
+    const statusParam = route.query?.strava
+    const status = Array.isArray(statusParam) ? statusParam[0] : statusParam
+    if (!status) return
+
+    const messages: Record<string, () => void> = {
+      connected: () => showSuccess('Strava erfolgreich verbunden.'),
+      cancelled: () => showError('Strava-Verknüpfung wurde abgebrochen.'),
+      invalid_state: () => showError('Sicherheitsprüfung fehlgeschlagen. Bitte erneut versuchen.'),
+      token_error: () => showError('Strava-Tokens konnten nicht abgerufen werden.'),
+      persist_error: () => showError('Strava-Daten konnten nicht gespeichert werden.'),
+      unauthorized: () => showError('Bitte melde dich an, um Strava zu verbinden.'),
+    }
+
+    const handler = messages[status] ?? (() => showError('Strava-Verknüpfung fehlgeschlagen.'))
+    handler()
+
+    const nextQuery = { ...route.query }
+    delete nextQuery.strava
+    router.replace({ query: nextQuery }).catch(() => {})
+  }
+
+  async function connectStrava() {
+    stravaState.loading = true
+    stravaState.error = ''
+    try {
+      const result = await $fetch<{ url: string }>('/api/strava/connect', { credentials: 'include' })
+      if (!result?.url) {
+        throw new Error('Weiterleitungsadresse fehlt.')
+      }
+      window.location.href = result.url
+    } catch (err) {
+      stravaState.error = 'Strava-Verbindung konnte nicht gestartet werden.'
+      showError(stravaState.error)
+    } finally {
+      stravaState.loading = false
+    }
+  }
+
+  async function disconnectStrava() {
+    stravaState.loading = true
+    stravaState.error = ''
+    try {
+      await $fetch('/api/strava/disconnect', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      resetStravaIntegration()
+      showSuccess('Strava-Verbindung wurde getrennt.')
+    } catch (err) {
+      stravaState.error = 'Strava konnte nicht getrennt werden.'
+      showError(stravaState.error)
+    } finally {
+      stravaState.loading = false
+    }
+  }
+
+  async function connectGarmin() {
+    garminState.loading = true
+    garminState.error = ''
+    try {
+      await router.push('/profile/settings')
+      showSuccess('Öffne die Einstellungen, um Garmin zu verbinden.')
+    } catch (err) {
+      garminState.error = 'Garmin-Verknüpfung konnte nicht gestartet werden.'
+      showError(garminState.error)
+    } finally {
+      garminState.loading = false
+    }
+  }
+
+  async function disconnectGarmin() {
+    garminState.loading = true
+    garminState.error = ''
+    try {
+      await router.push('/profile/settings')
+      showSuccess('Garmin-Verbindung kann in den Einstellungen getrennt werden.')
+    } catch (err) {
+      garminState.error = 'Garmin-Verknüpfung konnte nicht getrennt werden.'
+      showError(garminState.error)
+    } finally {
+      garminState.loading = false
     }
   }
 
@@ -607,6 +764,14 @@ export function useProfilePage() {
     removeAvatar,
     setAvatarError,
     handleAvatarSaved,
+    stravaIntegration,
+    stravaState,
+    garminIntegration,
+    garminState,
+    connectStrava,
+    disconnectStrava,
+    connectGarmin,
+    disconnectGarmin,
     createChallenge,
   }
 }

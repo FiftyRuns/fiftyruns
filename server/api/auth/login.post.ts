@@ -1,4 +1,4 @@
-import { eventHandler, getMethod, getHeader, createError, readBody, getCookie } from 'h3'
+import { eventHandler, getMethod, getHeader, createError, readBody, getCookie, H3Event } from 'h3'
 import * as argon2 from 'argon2'
 import { prisma } from '../../utils/prisma'
 import { createSession, SESSION_MAX_AGE, destroySession } from '../../utils/session'
@@ -14,6 +14,26 @@ function assertCsrf(event: Parameters<typeof getHeader>[0]) {
   const cookie = getCookie(event, 'csrf_token') || ''
   if (!header || !cookie || header !== cookie)
     throw createError({ statusCode: 403, message: 'CSRF-Prüfung fehlgeschlagen.' })
+}
+
+function getClientIp(event: H3Event) {
+  const req = event.node.req
+  const vercelIp = req.headers['x-vercel-ip']
+  if (typeof vercelIp === 'string' && vercelIp) return vercelIp
+
+  const realIp = getHeader(event, 'x-real-ip')
+  if (realIp) return realIp
+
+  const remote = req.socket.remoteAddress
+  if (remote && remote !== '::ffff:127.0.0.1' && remote !== '::1') return remote
+
+  const forwarded = getHeader(event, 'x-forwarded-for')
+  if (forwarded) {
+    const candidate = forwarded.split(',').map((part) => part.trim()).find(Boolean)
+    if (candidate) return candidate
+  }
+
+  return remote || 'local'
 }
 
 async function checkRateLimit(key: string, limit = 10, windowSec = 60) {
@@ -47,12 +67,9 @@ export default eventHandler(async (event) => {
 
   assertCsrf(event)
 
-  const ip =
-    getHeader(event, 'x-forwarded-for')?.split(',')[0]?.trim() ||
-    getHeader(event, 'x-real-ip') ||
-    'local'
+  const ip = getClientIp(event)
 
-  if (!(await checkRateLimit(`login:${ip}`, 12, 60))) {
+  if (!(await checkRateLimit(`login:ip:${ip}`, 12, 60))) {
     throw createError({ statusCode: 429, message: 'Zu viele Versuche. Bitte später erneut.' })
   }
 
@@ -64,10 +81,14 @@ export default eventHandler(async (event) => {
 
   const email = sanitizeBasic(String(body?.email || '')).toLowerCase()
   const password = String(body?.password || '')
-  const remember = Boolean(body?.rememberMe)
+  const remember = parseBoolean(body?.rememberMe)
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) || email.length > 100) {
     throw createError({ statusCode: 400, message: 'Ungültige Zugangsdaten.' })
+  }
+
+  if (!(await checkRateLimit(`login:acct:${email}`, 6, 300))) {
+    throw createError({ statusCode: 429, message: 'Zu viele Versuche. Bitte später erneut.' })
   }
 
   if (!password) {
@@ -110,3 +131,14 @@ export default eventHandler(async (event) => {
     expiresAt: session.expiresAt,
   }
 })
+
+function parseBoolean(value: unknown) {
+  if (typeof value === 'boolean') return value
+  if (typeof value === 'number') return value !== 0
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase()
+    if (['true', '1', 'yes', 'on'].includes(normalized)) return true
+    if (['false', '0', 'no', 'off', ''].includes(normalized)) return false
+  }
+  return false
+}

@@ -4,12 +4,14 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DATABASE_URL_MIGRATIONS")
 }
 
-/* ===================== Enums ===================== */
+/**
+ * ===================== Enums =====================
+ */
 
 enum Visibility {
   public
@@ -54,19 +56,27 @@ enum NotificationActionType {
   TEAM_JOIN_REQUEST
 }
 
-/* ===================== Core Models ===================== */
+enum ActivitySource {
+  MANUAL
+  GARMIN
+  STRAVA
+}
+
+/**
+ * ===================== Core Models =====================
+ */
 
 model Group {
-  id        String   @id @default(uuid())
-  name      String   @unique
-  nameId    String   @unique
+  id     String @id @default(uuid())
+  name   String @unique
+  nameId String @unique
 
-  description String?
-  location    String?
-  coverImage  String?
-  visibility  Visibility @default(public)
-  requireApproval Boolean @default(true)
-  maxMembers  Int?
+  description     String?
+  location        String?
+  coverImage      String?
+  visibility      Visibility @default(public)
+  requireApproval Boolean    @default(true)
+  maxMembers      Int?
 
   users        User[]             @relation("UsersInGroup")
   challenges   Challenge[]
@@ -86,8 +96,8 @@ model GroupJoinRequest {
   createdAt DateTime               @default(now())
   decidedAt DateTime?
 
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  group         Group          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   notifications Notification[]
 
   @@unique([groupId, userId])
@@ -95,17 +105,17 @@ model GroupJoinRequest {
 }
 
 model GroupInvite {
-  id            String      @id @default(uuid())
-  groupId       String
-  invitedById   String
-  targetUserId  String?
-  email         String?
-  token         String      @unique
-  note          String?
-  expiresAt     DateTime
-  acceptedAt    DateTime?
-  acceptedById  String?
-  createdAt     DateTime    @default(now())
+  id           String    @id @default(uuid())
+  groupId      String
+  invitedById  String
+  targetUserId String?
+  email        String?
+  token        String    @unique
+  note         String?
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  acceptedById String?
+  createdAt    DateTime  @default(now())
 
   group      Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
   invitedBy  User  @relation("GroupInviteSentBy", fields: [invitedById], references: [id], onDelete: Cascade)
@@ -137,27 +147,27 @@ model User {
   donationUpdatedAt             DateTime?
 
   groupId   String?
-  group     Group?              @relation("UsersInGroup", fields: [groupId], references: [id], onDelete: SetNull)
-  groupRole GroupRole?          @default(MEMBER)
+  group     Group?     @relation("UsersInGroup", fields: [groupId], references: [id], onDelete: SetNull)
+  groupRole GroupRole? @default(MEMBER)
 
-  createdAt DateTime?           @default(now())
+  createdAt DateTime? @default(now())
 
   // 🔴 OAuth 1.0 (WIRD ENTFERNT NACH MIGRATION)
-  garminAccessToken        String?
-  garminAccessTokenSecret  String?
+  garminAccessToken       String?
+  garminAccessTokenSecret String?
 
   // 🟢 OAuth 2.0 (NEU)
-  garminOAuth2AccessToken      String?
-  garminOAuth2RefreshToken     String?
-  garminOAuth2TokenExpiry      DateTime?
-  garminUserId                 String?  // User ID von Garmin API
+  garminOAuth2AccessToken  String?
+  garminOAuth2RefreshToken String?
+  garminOAuth2TokenExpiry  DateTime?
+  garminUserId             String? // User ID von Garmin API
 
-  comments          Comment[]
-  GarminAuth        GarminAuth?
-  GarminOAuth2      GarminOAuth2?  
-  GarminTokenExchange GarminTokenExchange? 
-  postings          Posting[]
-  reactions         Reaction[]
+  comments             Comment[]
+  GarminAuth           GarminAuth?
+  GarminOAuth2         GarminOAuth2?
+  GarminTokenExchange  GarminTokenExchange?
+  postings             Posting[]
+  reactions            Reaction[]
   readNotifications    ReadNotification[]
   notifications        Notification[]
   groupJoinRequests    GroupJoinRequest[]
@@ -171,6 +181,16 @@ model User {
   challengesAdmin  Challenge[]          @relation("ChallengeAdmin")
   challengeMembers ChallengeMember[]
   challengeScores  ChallengeHighscore[]
+
+  // 🟠 Strava OAuth 2.0
+  stravaAthleteId      String?            @unique
+  stravaAccessToken    String?
+  stravaRefreshToken   String?
+  stravaTokenExpiresAt DateTime?
+  stravaScopes         String[]           @default([])
+  stravaConnectedAt    DateTime?
+  stravaDeauthorizedAt DateTime?
+  stravaOAuthStates    StravaOAuthState[]
 
   @@unique([nameId, email])
   @@index([emailVerificationToken])
@@ -190,31 +210,43 @@ model GarminAuth {
 // 🟢 OAuth 2.0 PKCE Flow (NEU)
 model GarminOAuth2 {
   id           String   @id @default(uuid())
-  codeVerifier String   
-  state        String?  
+  codeVerifier String
+  state        String?
   userId       String   @unique
   createdAt    DateTime @default(now())
-  expiresAt    DateTime @default(dbgenerated("NOW() + INTERVAL '10 minutes'"))   
+  expiresAt    DateTime @default(dbgenerated("NOW() + INTERVAL '10 minutes'"))
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([expiresAt]) // Für Cleanup Jobs
 }
 
 // 🟢 Token Exchange Tracking (für Migration)
 model GarminTokenExchange {
-  id                String   @id @default(uuid())
-  userId            String   @unique
-  oauth1Token       String   // Original OAuth 1.0 Token
-  exchangeAttempted Boolean  @default(false)
+  id                String    @id @default(uuid())
+  userId            String    @unique
+  oauth1Token       String // Original OAuth 1.0 Token
+  exchangeAttempted Boolean   @default(false)
   exchangeSuccess   Boolean?
   exchangeError     String?
   exchangedAt       DateTime?
-  createdAt         DateTime @default(now())
-  
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  createdAt         DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([exchangeSuccess])
   @@index([createdAt])
+}
+
+// 🟠 Strava OAuth State
+model StravaOAuthState {
+  state     String   @id
+  userId    String?
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
 }
 
 model Session {
@@ -227,20 +259,20 @@ model Session {
 }
 
 model Posting {
-  id                String           @id @default(uuid())
+  id                String     @id @default(uuid())
   date              DateTime
   text              String?
   image             String?
   userId            String
-  visibility        Visibility       @default(protected)
+  visibility        Visibility @default(protected)
   runningExerciseId String?
   season            String
 
-  comments          Comment[]
-  donation          Donation?
-  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reactions         Reaction[]
-  runningExercise   RunningExercise?
+  comments        Comment[]
+  donation        Donation?
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reactions       Reaction[]
+  runningExercise RunningExercise?
 }
 
 model Comment {
@@ -274,13 +306,17 @@ model Donation {
 }
 
 model RunningExercise {
-  id                String   @id @default(uuid())
+  id                String         @id @default(uuid())
   distanceInMeters  Int
   durationInSeconds Int
-  postingId         String   @unique
-  garminActivityId  String?  @unique
-  posting           Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
-  createdAt         DateTime @default(now())
+  postingId         String         @unique
+  garminActivityId  String?        @unique
+  stravaActivityId  String?        @unique
+  source            ActivitySource @default(MANUAL)
+  posting           Posting        @relation(fields: [postingId], references: [id], onDelete: Cascade)
+  createdAt         DateTime       @default(now())
+
+  @@index([source])
 }
 
 model RunningStatistic {
@@ -294,18 +330,18 @@ model RunningStatistic {
 }
 
 model ReadNotification {
-  id             String   @id @default(uuid())
+  id             String       @id @default(uuid())
   userId         String
   notificationId String
-  readAt         DateTime @default(now())
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  readAt         DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   notification   Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, notificationId])
 }
 
 model Notification {
-  id            String   @id @default(uuid())
+  id            String                  @id @default(uuid())
   userId        String
   category      NotificationCategory
   type          String
@@ -316,83 +352,114 @@ model Notification {
   actionType    NotificationActionType?
   actionPayload Json?
   joinRequestId String?
-  createdAt     DateTime @default(now())
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime                @default(now())
+  user          User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
   readBy        ReadNotification[]
-  joinRequest   GroupJoinRequest? @relation(fields: [joinRequestId], references: [id], onDelete: SetNull)
+  joinRequest   GroupJoinRequest?       @relation(fields: [joinRequestId], references: [id], onDelete: SetNull)
 
   @@index([userId, createdAt])
   @@index([joinRequestId])
 }
 
-/* ===================== Challenges ===================== */
+model StravaWebhookSubscription {
+  id                   String   @id @default(uuid())
+  stravaSubscriptionId Int      @unique
+  callbackUrl          String
+  verifyToken          String
+  active               Boolean  @default(true)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model StravaWebhookEvent {
+  id             String    @id @default(uuid())
+  deliveryId     String?   @unique
+  eventTime      DateTime
+  objectType     String
+  aspectType     String
+  objectId       String?
+  ownerId        String?
+  subscriptionId Int?
+  updates        Json?
+  signatureValid Boolean?
+  receivedAt     DateTime  @default(now())
+  processedAt    DateTime?
+
+  @@index([objectId])
+  @@index([ownerId])
+  @@index([processedAt])
+}
+
+/**
+ * ===================== Challenges =====================
+ */
 
 model Challenge {
-  id                  String              @id @default(uuid())
-  name                String
-  nameId              String              @unique
-  description         String?
-  prize               String?
-  image               String?
-  startAt             DateTime
-  endAt               DateTime
+  id          String   @id @default(uuid())
+  name        String
+  nameId      String   @unique
+  description String?
+  prize       String?
+  image       String?
+  startAt     DateTime
+  endAt       DateTime
 
   goalType            ChallengeGoalType
   goalDistanceMeters  Int?
   goalDurationSeconds Int?
   goalRuns            Int?
 
-  minDistanceMeters   Int?
-  minDurationSeconds  Int?
+  minDistanceMeters  Int?
+  minDurationSeconds Int?
 
-  visibility          Visibility          @default(public)
-  sponsorLogos        String[]
+  visibility   Visibility @default(public)
+  sponsorLogos String[]
 
-  adminUserId         String
-  admin               User                @relation("ChallengeAdmin", fields: [adminUserId], references: [id], onDelete: Cascade)
+  adminUserId String
+  admin       User   @relation("ChallengeAdmin", fields: [adminUserId], references: [id], onDelete: Cascade)
 
-  groupId             String?
-  group               Group?              @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  groupId String?
+  group   Group?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
 
-  members             ChallengeMember[]
-  highscores          ChallengeHighscore[]
+  members    ChallengeMember[]
+  highscores ChallengeHighscore[]
 
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([startAt, endAt])
   @@index([visibility])
 }
 
 model ChallengeMember {
-  id           String     @id @default(uuid())
-  challengeId  String
-  userId       String
-  joinedAt     DateTime   @default(now())
+  id          String   @id @default(uuid())
+  challengeId String
+  userId      String
+  joinedAt    DateTime @default(now())
 
-  challenge    Challenge  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([challengeId, userId])
   @@index([userId])
 }
 
 model ChallengeHighscore {
-  id                  String     @id @default(uuid())
-  challengeId         String
-  userId              String
+  id          String @id @default(uuid())
+  challengeId String
+  userId      String
 
-  runsCount           Int        @default(0)
-  distanceInMeters    Int        @default(0)
-  durationInSeconds   Int        @default(0)
+  runsCount         Int @default(0)
+  distanceInMeters  Int @default(0)
+  durationInSeconds Int @default(0)
 
-  progressPercent     Int        @default(0)
+  progressPercent Int @default(0)
 
-  updatedAt           DateTime   @updatedAt
-  createdAt           DateTime   @default(now())
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
 
-  challenge           Challenge  @relation(fields: [challengeId], references: [id], onDelete: Cascade)
-  user                User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([challengeId, userId])
   @@index([progressPercent])

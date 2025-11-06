@@ -63,7 +63,42 @@
         </div>
       </div>
 
-      <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
+      <div class="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center sm:justify-end">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+          <button
+            v-if="!strava?.connected"
+            type="button"
+            class="inline-flex items-center justify-center rounded-xl border border-transparent bg-transparent p-0"
+            :disabled="stravaState?.loading"
+            aria-label="Mit Strava verbinden"
+            @click="$emit('connect-strava')"
+          >
+            <picture>
+              <source
+                srcset="/brand/strava/btn_strava_connect_with_orange_x2.png 2x, /brand/strava/btn_strava_connect_with_orange.png 1x"
+              />
+              <img
+                class="h-12 w-auto"
+                src="/brand/strava/btn_strava_connect_with_orange.png"
+                alt="Connect with Strava"
+                height="48"
+                width="196"
+                loading="lazy"
+              />
+            </picture>
+          </button>
+          <button
+            v-else
+            type="button"
+            class="inline-flex items-center gap-2 rounded-xl border border-[var(--color-primary)]/40 bg-white px-4 py-2 text-sm font-semibold text-[var(--color-primary)] shadow-sm"
+            :disabled="stravaState?.loading"
+            @click="$emit('disconnect-strava')"
+          >
+            <Icon icon="ph:check-circle-duotone" class="h-5 w-5 text-green-600" />
+            Strava verbunden
+          </button>
+        </div>
+
         <button type="button"
           class="inline-flex items-center justify-center gap-2 rounded-xl bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-[var(--color-primary)]/30 transition hover:brightness-95 cursor-pointer"
           @click="$emit('edit-profile')">
@@ -101,12 +136,25 @@ type TeamSummary = {
   roleLabel?: string | null
 } | null
 
+type StravaSummary = {
+  connected: boolean
+  connectedAt?: string | null
+  tokenExpiresAt?: string | null
+} | null
+
+type StravaState = {
+  loading: boolean
+  error: string
+} | null
+
 const props = defineProps<{
   user: UserSummary
   team?: TeamSummary
+  strava?: StravaSummary
+  stravaState?: StravaState
 }>()
 
-const { user, team } = toRefs(props)
+const { user, team, strava, stravaState } = toRefs(props)
 
 defineEmits<{
   (e: 'edit-profile'): void
@@ -115,6 +163,8 @@ defineEmits<{
   (e: 'discover-team'): void
   (e: 'manage-team'): void
   (e: 'open-post-composer'): void
+  (e: 'connect-strava'): void
+  (e: 'disconnect-strava'): void
 }>()
 
 const initials = computed(

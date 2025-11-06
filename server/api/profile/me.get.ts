@@ -28,6 +28,13 @@ export default eventHandler(async (event) => {
       autoDonate: true,
       donationUpdatedAt: true,
       runDonationMultiplier: true,
+      stravaAthleteId: true,
+      stravaConnectedAt: true,
+      stravaTokenExpiresAt: true,
+      stravaScopes: true,
+      stravaDeauthorizedAt: true,
+      garminUserId: true,
+      garminOAuth2TokenExpiry: true,
       runningStatistic: {
         select: {
           distanceInMeters: true,
@@ -132,6 +139,25 @@ export default eventHandler(async (event) => {
       multiplier: donationMultiplier,
       autoDonate: userRecord.autoDonate ?? false,
       updatedAt: userRecord.donationUpdatedAt?.toISOString() ?? null,
+    },
+    integrations: {
+      strava: {
+        connected: Boolean(
+          userRecord.stravaConnectedAt &&
+            userRecord.stravaAthleteId &&
+            (userRecord.stravaScopes?.length ?? 0) > 0,
+        ),
+        athleteId: userRecord.stravaAthleteId,
+        scopes: userRecord.stravaScopes ?? [],
+        connectedAt: userRecord.stravaConnectedAt?.toISOString() ?? null,
+        tokenExpiresAt: userRecord.stravaTokenExpiresAt?.toISOString() ?? null,
+        deauthorizedAt: userRecord.stravaDeauthorizedAt?.toISOString() ?? null,
+      },
+      garmin: {
+        connected: Boolean(userRecord.garminUserId),
+        connectedAt: null,
+        tokenExpiresAt: userRecord.garminOAuth2TokenExpiry?.toISOString() ?? null,
+      },
     },
     settings: {
       bio: userRecord.bio,

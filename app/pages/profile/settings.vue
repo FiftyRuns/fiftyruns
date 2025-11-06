@@ -21,8 +21,8 @@
             :loading="settingsState.loading"
             :success-message="settingsState.success"
             :error-message="settingsState.error"
-            @update:model-value="onSettingsUpdate"          
-            @submit="f => handleSettingsSubmit(f as any)"  
+            @update:model-value="onSettingsUpdate"
+            @submit="f => handleSettingsSubmit(f as any)"
           />
 
           <!-- Passwort ändern -->
@@ -41,7 +41,7 @@
             :loading="donationState.loading"
             :success-message="donationState.success"
             :error-message="donationState.error"
-            @update:model-value="onDonationUpdate"         
+            @update:model-value="onDonationUpdate"
             @save="handleDonationSave"
             @open-history="openDonationHistory"
           />
@@ -57,7 +57,7 @@
         <aside class="space-y-6">
           <!-- Avatar -->
           <ProfileAvatarCard
-            v-if="authUser"                                
+            v-if="authUser"
             :user="authUser"
             :preview="avatarPreview"
             :error="avatarState.error"
@@ -65,6 +65,12 @@
             @remove-picture="removeAvatar"
             @error="setAvatarError"
             @saved="handleAvatarSaved"
+          />
+          <ProfileStravaCard
+            :integration="stravaIntegration"
+            :state="stravaState"
+            @connect="connectStrava"
+            @disconnect="disconnectStrava"
           />
         </aside>
       </div>
@@ -78,6 +84,7 @@ import ProfilePasswordCard from '../../components/profile/ProfilePasswordCard.vu
 import ProfileDonationCard from '../../components/profile/ProfileDonationCard.vue'
 import ProfileChallengesCard from '../../components/profile/ProfileChallengesCard.vue'
 import ProfileAvatarCard from '../../components/profile/ProfileAvatarCard.vue'
+import ProfileStravaCard from '../../components/profile/ProfileStravaCard.vue'
 import { useProfilePage } from './useProfilePage'
 
 const {
@@ -92,6 +99,8 @@ const {
   challenges,
   avatarPreview,
   avatarState,
+  stravaIntegration,
+  stravaState,
 
   // Actions
   onSettingsUpdate,
@@ -105,6 +114,8 @@ const {
   removeAvatar,
   setAvatarError,
   handleAvatarSaved,
+  connectStrava,
+  disconnectStrava,
   createChallenge,
 } = useProfilePage()
 </script>

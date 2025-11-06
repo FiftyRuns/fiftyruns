@@ -1,5 +1,5 @@
 // server/api/post.create.post.ts
-import { NotificationCategory } from '@prisma/client'
+import { ActivitySource, NotificationCategory } from '@prisma/client'
 import { createError, eventHandler, getCookie, getHeader, readBody } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
@@ -113,6 +113,7 @@ export default eventHandler(async (event) => {
         distanceInMeters,
         durationInSeconds,
         garminActivityId,
+        source: garminActivityId ? ActivitySource.GARMIN : ActivitySource.MANUAL,
       },
     })
 
