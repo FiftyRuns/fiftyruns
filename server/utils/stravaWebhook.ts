@@ -1,22 +1,10 @@
 import { ActivitySource, Prisma, Visibility } from '@prisma/client'
 import type { StravaWebhookEvent as PrismaStravaEvent } from '@prisma/client'
 import { prisma } from './prisma'
-import {
-  STRAVA_SUPPORTED_SPORT_TYPES,
-  ensureStravaAccessToken,
-  fetchStravaActivity,
-  getStravaWebhookConfig,
-  mapStravaVisibility,
-} from './strava'
+import { STRAVA_SUPPORTED_SPORT_TYPES, ensureStravaAccessToken, fetchStravaActivity, getStravaWebhookConfig } from './strava'
 import { updateChallengesForRun, type RunSnapshot } from './challengeProgress'
 
 type TransactionClient = Prisma.TransactionClient
-
-const RUN_VISIBILITY_MAP: Record<string, Visibility> = {
-  public: 'public',
-  protected: 'protected',
-  private: 'private',
-}
 
 const DEFAULT_VISIBILITY: Visibility = 'private'
 
@@ -134,7 +122,7 @@ async function handleActivityEvent(event: PrismaStravaEvent) {
   const duration = Math.round(activity.moving_time ?? activity.elapsed_time ?? 0)
   const runDate = parseActivityDate(activity)
   const season = `${runDate.getFullYear()}`
-  const visibility = RUN_VISIBILITY_MAP[mapStravaVisibility(activity)] ?? DEFAULT_VISIBILITY
+  const visibility = DEFAULT_VISIBILITY
 
   await prisma.$transaction(async (tx) => {
     const existing = await tx.runningExercise.findUnique({
