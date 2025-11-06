@@ -11,7 +11,8 @@ function actualSchemaFromDbUrl(url = process.env.DATABASE_URL || '') {
   const i = url.indexOf('schema=')
   if (i === -1) return null
   const tail = url.slice(i + 'schema='.length)
-  return tail.split('&')[0]
+  const chunk = tail.split('&')[0] || ''
+  return chunk.trim()
 }
 
 export default eventHandler(() => {
