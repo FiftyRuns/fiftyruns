@@ -14,6 +14,7 @@
     :distance-in-meters="post.runningExercise.distanceInMeters"
     :duration-in-seconds="post.runningExercise.durationInSeconds"
     :show-run-data="true"
+    :source="post.runningExercise.source"
   >
     <template #header>
       <div class="flex items-center gap-3 p-4">

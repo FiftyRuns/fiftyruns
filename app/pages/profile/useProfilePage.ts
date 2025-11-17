@@ -351,6 +351,7 @@ export function useProfilePage() {
           distanceInMeters?: number | null
           durationInSeconds?: number | null
           image?: string | null
+          source?: 'MANUAL' | 'GARMIN' | 'STRAVA' | null
         }>
         nextCursor: string | null
       }>('/api/profile/posts', { params: { take: 20, cursor }, credentials: 'include' })
@@ -366,6 +367,7 @@ export function useProfilePage() {
         distanceInMeters: p.distanceInMeters ?? null,
         durationInSeconds: p.durationInSeconds ?? null,
         image: p.image ?? null,
+        source: p.source ?? null,
       }))
       // Optional: nextCursor handling
     } catch (e) {

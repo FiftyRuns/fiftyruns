@@ -135,6 +135,13 @@
                   <Icon icon="ph:timer-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
                   {{ formatDuration(post.runningExercise.durationInSeconds) }}
                 </span>
+                <span v-if="post.runningExercise.source === 'STRAVA'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5">
+                  <img 
+                    src="/brand/strava/api_logo_pwrdBy_strava_stack_orange.png" 
+                    alt="Strava" 
+                    class="h-3 w-auto"
+                  />
+                </span>
               </div>
             </article>
           </div>
@@ -188,6 +195,7 @@ type PublicProfileResponse = {
     runningExercise: {
       distanceInMeters: number | null
       durationInSeconds: number | null
+      source: 'MANUAL' | 'GARMIN' | 'STRAVA' | null
     }
   }>
   isSelf: boolean

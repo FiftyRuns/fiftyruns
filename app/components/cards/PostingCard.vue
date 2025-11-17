@@ -77,6 +77,7 @@ const props = defineProps<{
   distanceInMeters?: number | null
   durationInSeconds?: number | null
   showRunData?: boolean
+  source?: 'MANUAL' | 'GARMIN' | 'STRAVA' | null
 }>()
 
 const hasData = computed(() => 

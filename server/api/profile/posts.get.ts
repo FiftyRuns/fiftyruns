@@ -29,6 +29,7 @@ export default eventHandler(async (event) => {
         select: {
           distanceInMeters: true,
           durationInSeconds: true,
+          source: true,
         },
       },
       _count: {
@@ -60,6 +61,7 @@ export default eventHandler(async (event) => {
       comments: p._count.comments,
       distanceInMeters: p.runningExercise?.distanceInMeters ?? null,
       durationInSeconds: p.runningExercise?.durationInSeconds ?? null,
+      source: p.runningExercise?.source ?? null,
     })),
     nextCursor,
   }

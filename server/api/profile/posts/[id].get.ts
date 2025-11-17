@@ -26,6 +26,7 @@ export default eventHandler(async (event) => {
         select: {
           distanceInMeters: true,
           durationInSeconds: true,
+          source: true,
         },
       },
     },
@@ -43,5 +44,6 @@ export default eventHandler(async (event) => {
     image: post.image ?? null,
     distanceInMeters: post.runningExercise?.distanceInMeters ?? null,
     durationInSeconds: post.runningExercise?.durationInSeconds ?? null,
+    source: post.runningExercise?.source ?? null,
   }
 })
