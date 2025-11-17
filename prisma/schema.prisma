@@ -390,6 +390,15 @@ model StravaWebhookEvent {
   @@index([processedAt])
 }
 
+model GarminWebhookEvent {
+  id         String    @id @default(uuid())
+  payload   Json
+  receivedAt DateTime  @default(now())
+  processedAt DateTime?
+
+  @@index([processedAt])
+}
+
 /**
  * ===================== Challenges =====================
  */

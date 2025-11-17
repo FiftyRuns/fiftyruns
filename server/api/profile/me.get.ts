@@ -155,7 +155,8 @@ export default eventHandler(async (event) => {
       },
       garmin: {
         connected: Boolean(userRecord.garminUserId),
-        connectedAt: null,
+        userId: userRecord.garminUserId,
+        connectedAt: null, // TODO: connectedAt Feld hinzufügen, wenn benötigt
         tokenExpiresAt: userRecord.garminOAuth2TokenExpiry?.toISOString() ?? null,
       },
     },

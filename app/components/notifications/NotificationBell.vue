@@ -29,16 +29,20 @@
     >
       <div
         v-if="open"
-        class="absolute right-0 mt-3 w-screen max-w-[380px] rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-xl backdrop-blur"
+        class="z-50 rounded-2xl border border-slate-200 bg-white/95 p-4 shadow-xl backdrop-blur
+          fixed inset-x-4 top-[5rem] max-h-[calc(100vh-6rem)] overflow-y-auto
+          sm:inset-x-6 sm:max-h-[calc(100vh-7rem)]
+          lg:absolute lg:left-auto lg:right-0 lg:top-full lg:mt-3 lg:max-h-none lg:w-[380px] lg:max-w-[380px] lg:overflow-visible
+          xl:w-[400px] xl:max-w-[400px]"
       >
-        <header class="flex items-start justify-between gap-3">
+        <header class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div>
             <p class="text-sm font-semibold text-slate-900">Benachrichtigungen</p>
             <p class="text-xs text-slate-500">Bleib über Team & Community auf dem Laufenden.</p>
           </div>
           <button
             type="button"
-            class="text-xs font-semibold text-primary-600 hover:text-primary-700 disabled:pointer-events-none disabled:text-slate-300"
+            class="self-start text-xs font-semibold text-primary-600 hover:text-primary-700 disabled:pointer-events-none disabled:text-slate-300 sm:self-auto"
             :disabled="!hasUnread"
             @click="handleMarkAll"
           >
@@ -69,7 +73,7 @@
           </button>
         </div>
 
-        <div class="mt-4 max-h-[420px] space-y-3 overflow-y-auto pr-1">
+        <div class="mt-4 space-y-3 lg:max-h-[420px] lg:overflow-y-auto lg:pr-1">
           <div v-if="loading" class="py-10 text-center text-sm text-slate-500">Lade Benachrichtigungen …</div>
           <div v-else-if="error" class="py-10 text-center text-sm text-red-500">{{ error }}</div>
           <template v-else>

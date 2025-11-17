@@ -23,6 +23,9 @@
               class="h-3 w-auto"
             />
           </span>
+          <span v-if="post.source === 'GARMIN'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+            Datenquelle: Garmin
+          </span>
         </div>
       </div>
     </template>
