@@ -124,3 +124,4 @@ export default eventHandler(async (event) => {
   return redirectToSettings(event, 'connected')
 })
 
+

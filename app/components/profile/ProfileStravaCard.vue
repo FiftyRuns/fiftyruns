@@ -1,5 +1,6 @@
 <template>
   <ProfilePanel
+    id="strava-integration"
     title="Strava verbinden"
     description="Synchronisiere deine Aktivitäten automatisch und halte dein Laufprofil aktuell."
   >
@@ -18,15 +19,6 @@
         <p v-else class="mt-2 text-xs text-gray-500">
           Verbinde dein Konto, um Aktivitäten automatisch zu importieren und aktuelle Statistiken zu erhalten.
         </p>
-        <div v-if="activeScopes.length" class="mt-3 flex flex-wrap gap-2">
-          <span
-            v-for="scope in activeScopes"
-            :key="scope"
-            class="inline-flex items-center rounded-full bg-[var(--color-primary)]/10 px-3 py-1 text-xs font-medium text-[var(--color-primary)]"
-          >
-            {{ scope }}
-          </span>
-        </div>
       </div>
 
       <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -108,7 +100,6 @@ defineEmits<{
   (e: 'disconnect'): void
 }>()
 
-const activeScopes = computed(() => props.integration.scopes ?? [])
 
 const connectedSince = computed(() => {
   if (!props.integration.connectedAt) return ''

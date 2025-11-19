@@ -190,7 +190,14 @@ async function deleteActivity(userId: string, activityId: string) {
 
     if (!existing) return
 
-    const runDate = existing.posting?.date ?? new Date()
+    // Sicherstellen, dass posting existiert (sollte immer der Fall sein wegen Foreign Key)
+    if (!existing.posting) {
+      // Falls posting fehlt, nur RunningExercise löschen
+      await tx.runningExercise.delete({ where: { id: existing.id } })
+      return
+    }
+
+    const runDate = existing.posting.date
     const season = `${runDate.getFullYear()}`
 
     const previousSnapshot: RunSnapshot = {
@@ -198,10 +205,17 @@ async function deleteActivity(userId: string, activityId: string) {
       durationInSeconds: existing.durationInSeconds,
     }
 
+    // Posting löschen - CASCADE sorgt automatisch für:
+    // - RunningExercise (wird gelöscht)
+    // - Comments (werden gelöscht)
+    // - Reactions (werden gelöscht)
+    // - Donation (wird gelöscht)
     await tx.posting.delete({ where: { id: existing.postingId } })
-    await tx.runningExercise.delete({ where: { id: existing.id } })
 
+    // Statistiken aktualisieren (Lauf entfernen)
     await markStatistics(tx, userId, season, previousSnapshot, null)
+    
+    // Challenge-Fortschritte aktualisieren (Lauf entfernen)
     await updateChallengesForRun(tx, {
       userId,
       runDate,

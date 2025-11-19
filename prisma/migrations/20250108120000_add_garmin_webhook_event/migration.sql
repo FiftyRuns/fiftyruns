@@ -12,3 +12,4 @@ CREATE TABLE "GarminWebhookEvent" (
 CREATE INDEX "GarminWebhookEvent_processedAt_idx" ON "GarminWebhookEvent"("processedAt");
 
 
+

@@ -197,7 +197,7 @@ export function useProfilePage() {
     garminIntegration.tokenExpiresAt = null
   }
 
-  function handleStravaCallback() {
+  async function handleStravaCallback() {
     const statusParam = route.query?.strava
     const status = Array.isArray(statusParam) ? statusParam[0] : statusParam
     if (!status) return
@@ -213,6 +213,10 @@ export function useProfilePage() {
 
     const handler = messages[status] ?? (() => showError('Strava-Verknüpfung fehlgeschlagen.'))
     handler()
+
+    if (status === 'connected') {
+      await loadProfileData().catch(() => {})
+    }
 
     const nextQuery = { ...route.query }
     delete nextQuery.strava
