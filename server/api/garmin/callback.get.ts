@@ -107,6 +107,7 @@ export default eventHandler(async (event) => {
           garminOAuth2AccessToken: tokenPayload.access_token,
           garminOAuth2RefreshToken: tokenPayload.refresh_token,
           garminOAuth2TokenExpiry: expiresAt,
+          garminConnectedAt: new Date(),
           garminUserId,
         },
       }),
@@ -122,5 +123,4 @@ export default eventHandler(async (event) => {
 
   return redirectToSettings(event, 'connected')
 })
-
 

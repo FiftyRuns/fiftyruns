@@ -19,47 +19,11 @@ import type {
   ProfileSettings,
   DonationSettings,
   PasswordForm,
+  ProfileMeResponse,
 } from '../../types/profile'
 
 type SubmitWithImage = PostComposerSubmitPayload & {
   imageUrl?: string | null
-}
-
-type ProfileMeResponse = {
-  user: {
-    id: string
-    name: string
-    nameId: string
-    email: string
-    image: string | null
-  }
-  donation: {
-    amount: number
-    autoDonate: boolean
-    updatedAt: string | null
-  }
-  integrations: {
-    strava: {
-      connected: boolean
-      athleteId: string | null
-      scopes: string[]
-      connectedAt: string | null
-      tokenExpiresAt: string | null
-      deauthorizedAt: string | null
-    }
-    garmin?: {
-      connected: boolean
-      userId: string | null
-      connectedAt: string | null
-      tokenExpiresAt: string | null
-    }
-  }
-  settings: {
-    bio: string | null
-    visibility: Visibility
-    notifications: boolean
-    updatedAt: string | null
-  }
 }
 
 export function useProfilePage() {

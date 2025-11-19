@@ -74,6 +74,7 @@ export default eventHandler(async (event) => {
         garminOAuth2AccessToken: null,
         garminOAuth2RefreshToken: null,
         garminOAuth2TokenExpiry: null,
+        garminConnectedAt: null,
         garminUserId: null,
       },
     }),
@@ -82,5 +83,4 @@ export default eventHandler(async (event) => {
 
   return { ok: true }
 })
-
 
