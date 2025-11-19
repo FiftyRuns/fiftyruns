@@ -8,6 +8,179 @@ type TransactionClient = Prisma.TransactionClient
 
 const DEFAULT_VISIBILITY: Visibility = 'private'
 
+// Direkte Webhook-Verarbeitung ohne Zwischentabelle
+export type StravaWebhookPayload = {
+  object_type?: string
+  object_id?: number | string | null
+  aspect_type?: string
+  owner_id?: number | string | null
+  subscription_id?: number
+  updates?: Record<string, unknown>
+  event_time?: number
+}
+
+export async function processStravaWebhookDirectly(payload: StravaWebhookPayload) {
+  const objectType = String(payload.object_type ?? '')
+  const ownerId = payload.owner_id ? String(payload.owner_id) : null
+  const objectId = payload.object_id ? String(payload.object_id) : null
+  const aspectType = String(payload.aspect_type ?? '').toLowerCase()
+
+  // Subscription-Events verarbeiten
+  if (payload.subscription_id != null) {
+    try {
+      const webhookConfig = getStravaWebhookConfig()
+      await prisma.stravaWebhookSubscription.upsert({
+        where: { stravaSubscriptionId: payload.subscription_id },
+        update: { active: true },
+        create: {
+          stravaSubscriptionId: payload.subscription_id,
+          callbackUrl: webhookConfig.callbackUrl,
+          verifyToken: webhookConfig.verifyToken,
+          active: true,
+        },
+      })
+    } catch (err) {
+      if (process.dev) {
+        console.warn('[strava-webhook] Subscription sync fehlgeschlagen', err)
+      }
+    }
+  }
+
+  // Athlete-Events verarbeiten
+  if (objectType === 'athlete' && ownerId) {
+    await handleAthleteEventDirectly(ownerId, payload.updates ?? {})
+    return
+  }
+
+  // Activity-Events verarbeiten
+  if (objectType === 'activity' && objectId && ownerId) {
+    await handleActivityEventDirectly(ownerId, objectId, aspectType)
+    return
+  }
+}
+
+async function handleAthleteEventDirectly(ownerId: string, updates: Record<string, unknown>) {
+  const authorizedFlag = updates?.authorized
+
+  if (authorizedFlag !== false && String(authorizedFlag ?? '').toLowerCase() !== 'false') {
+    return
+  }
+
+  await prisma.user.updateMany({
+    where: { stravaAthleteId: ownerId },
+    data: {
+      stravaAccessToken: null,
+      stravaRefreshToken: null,
+      stravaTokenExpiresAt: null,
+      stravaScopes: [],
+      stravaConnectedAt: null,
+      stravaDeauthorizedAt: new Date(),
+    },
+  })
+}
+
+async function handleActivityEventDirectly(ownerId: string, activityId: string, aspectType: string) {
+  const user = await prisma.user.findFirst({
+    where: { stravaAthleteId: ownerId },
+    select: {
+      id: true,
+      name: true,
+      stravaAccessToken: true,
+      stravaRefreshToken: true,
+      stravaTokenExpiresAt: true,
+    },
+  })
+
+  if (!user) return
+
+  // Löschen direkt verarbeiten
+  if (aspectType === 'delete') {
+    await deleteActivity(user.id, activityId)
+    return
+  }
+
+  // Create/Update verarbeiten
+  if (aspectType !== 'create' && aspectType !== 'update') {
+    return
+  }
+
+  const accessToken = await ensureStravaAccessToken({
+    id: user.id,
+    stravaAccessToken: user.stravaAccessToken,
+    stravaRefreshToken: user.stravaRefreshToken,
+    stravaTokenExpiresAt: user.stravaTokenExpiresAt,
+  })
+
+  const activity = await fetchStravaActivity(accessToken, activityId)
+  const sportType = activity.sport_type ?? ''
+
+  if (!STRAVA_SUPPORTED_SPORT_TYPES.has(sportType)) {
+    return
+  }
+
+  const distance = Math.round(activity.distance ?? 0)
+  const duration = Math.round(activity.moving_time ?? activity.elapsed_time ?? 0)
+  const runDate = parseActivityDate(activity)
+  const season = `${runDate.getFullYear()}`
+  const visibility = DEFAULT_VISIBILITY
+
+  await prisma.$transaction(async (tx) => {
+    const existing = await tx.runningExercise.findUnique({
+      where: { stravaActivityId: activityId },
+      include: { posting: true },
+    })
+
+    const nextSnapshot: RunSnapshot = {
+      distanceInMeters: distance,
+      durationInSeconds: duration,
+    }
+
+    if (!existing) {
+      await createNewStravaRun(tx, {
+        userId: user.id,
+        activity,
+        activityId,
+        distance,
+        duration,
+        runDate,
+        season,
+        visibility,
+      })
+      await markStatistics(tx, user.id, season, null, nextSnapshot)
+      await updateChallengesForRun(tx, {
+        userId: user.id,
+        runDate,
+        previous: null,
+        next: nextSnapshot,
+      })
+      return
+    }
+
+    const previousSnapshot: RunSnapshot = {
+      distanceInMeters: existing.distanceInMeters,
+      durationInSeconds: existing.durationInSeconds,
+    }
+
+    await updateExistingStravaRun(tx, {
+      existing,
+      activity,
+      distance,
+      duration,
+      runDate,
+      season,
+      visibility,
+    })
+
+    await markStatistics(tx, user.id, season, previousSnapshot, nextSnapshot)
+    await updateChallengesForRun(tx, {
+      userId: user.id,
+      runDate,
+      previous: previousSnapshot,
+      next: nextSnapshot,
+    })
+  })
+}
+
 export async function processStravaWebhookEvent(eventId: string) {
   const eventRecord = await prisma.stravaWebhookEvent.findUnique({ where: { id: eventId } })
   if (!eventRecord || eventRecord.processedAt) return
