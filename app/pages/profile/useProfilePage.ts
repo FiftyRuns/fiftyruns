@@ -19,46 +19,11 @@ import type {
   ProfileSettings,
   DonationSettings,
   PasswordForm,
+  ProfileMeResponse,
 } from '../../types/profile'
 
 type SubmitWithImage = PostComposerSubmitPayload & {
   imageUrl?: string | null
-}
-
-type ProfileMeResponse = {
-  user: {
-    id: string
-    name: string
-    nameId: string
-    email: string
-    image: string | null
-  }
-  donation: {
-    amount: number
-    autoDonate: boolean
-    updatedAt: string | null
-  }
-  integrations: {
-    strava: {
-      connected: boolean
-      athleteId: string | null
-      scopes: string[]
-      connectedAt: string | null
-      tokenExpiresAt: string | null
-      deauthorizedAt: string | null
-    }
-    garmin?: {
-      connected: boolean
-      connectedAt: string | null
-      tokenExpiresAt: string | null
-    }
-  }
-  settings: {
-    bio: string | null
-    visibility: Visibility
-    notifications: boolean
-    updatedAt: string | null
-  }
 }
 
 export function useProfilePage() {
@@ -137,6 +102,7 @@ export function useProfilePage() {
 
   const garminIntegration = reactive({
     connected: false,
+    userId: null as string | null,
     connectedAt: null as string | null,
     tokenExpiresAt: null as string | null,
   })
@@ -149,6 +115,7 @@ export function useProfilePage() {
     }
     await Promise.all([loadProfileData(), loadOverview(), loadPosts(), loadChallenges()])
     handleStravaCallback()
+    handleGarminCallback()
   })
 
   async function loadProfileData() {
@@ -199,6 +166,7 @@ export function useProfilePage() {
       if (data.integrations?.garmin) {
         const garmin = data.integrations.garmin
         garminIntegration.connected = Boolean(garmin.connected)
+        garminIntegration.userId = garmin.userId
         garminIntegration.connectedAt = garmin.connectedAt
         garminIntegration.tokenExpiresAt = garmin.tokenExpiresAt
       } else {
@@ -224,11 +192,12 @@ export function useProfilePage() {
 
   function resetGarminIntegration() {
     garminIntegration.connected = false
+    garminIntegration.userId = null
     garminIntegration.connectedAt = null
     garminIntegration.tokenExpiresAt = null
   }
 
-  function handleStravaCallback() {
+  async function handleStravaCallback() {
     const statusParam = route.query?.strava
     const status = Array.isArray(statusParam) ? statusParam[0] : statusParam
     if (!status) return
@@ -245,9 +214,39 @@ export function useProfilePage() {
     const handler = messages[status] ?? (() => showError('Strava-Verknüpfung fehlgeschlagen.'))
     handler()
 
+    if (status === 'connected') {
+      await loadProfileData().catch(() => {})
+    }
+
     const nextQuery = { ...route.query }
     delete nextQuery.strava
     router.replace({ query: nextQuery }).catch(() => {})
+  }
+
+  function handleGarminCallback() {
+    const statusParam = route.query?.garmin
+    const status = Array.isArray(statusParam) ? statusParam[0] : statusParam
+    if (!status) return
+
+    const messages: Record<string, () => void> = {
+      connected: () => showSuccess('Garmin erfolgreich verbunden.'),
+      cancelled: () => showError('Garmin-Verknüpfung wurde abgebrochen.'),
+      invalid_state: () => showError('Sicherheitsprüfung fehlgeschlagen. Bitte erneut versuchen.'),
+      token_error: () => showError('Garmin-Tokens konnten nicht abgerufen werden.'),
+      userid_error: () => showError('Garmin User-ID konnte nicht abgerufen werden.'),
+      persist_error: () => showError('Garmin-Daten konnten nicht gespeichert werden.'),
+      unauthorized: () => showError('Bitte melde dich an, um Garmin zu verbinden.'),
+    }
+
+    const handler = messages[status] ?? (() => showError('Garmin-Verknüpfung fehlgeschlagen.'))
+    handler()
+
+    const nextQuery = { ...route.query }
+    delete nextQuery.garmin
+    router.replace({ query: nextQuery }).catch(() => {})
+
+    // Profil-Daten neu laden, um aktualisierten Status anzuzeigen
+    loadProfileData().catch(() => {})
   }
 
   async function connectStrava() {
@@ -289,10 +288,13 @@ export function useProfilePage() {
     garminState.loading = true
     garminState.error = ''
     try {
-      await router.push('/profile/settings')
-      showSuccess('Öffne die Einstellungen, um Garmin zu verbinden.')
+      const result = await $fetch<{ url: string }>('/api/garmin/connect', { credentials: 'include' })
+      if (!result?.url) {
+        throw new Error('Weiterleitungsadresse fehlt.')
+      }
+      window.location.href = result.url
     } catch (err) {
-      garminState.error = 'Garmin-Verknüpfung konnte nicht gestartet werden.'
+      garminState.error = 'Garmin-Verbindung konnte nicht gestartet werden.'
       showError(garminState.error)
     } finally {
       garminState.loading = false
@@ -303,10 +305,14 @@ export function useProfilePage() {
     garminState.loading = true
     garminState.error = ''
     try {
-      await router.push('/profile/settings')
-      showSuccess('Garmin-Verbindung kann in den Einstellungen getrennt werden.')
+      await $fetch('/api/garmin/disconnect', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      resetGarminIntegration()
+      showSuccess('Garmin-Verbindung wurde getrennt.')
     } catch (err) {
-      garminState.error = 'Garmin-Verknüpfung konnte nicht getrennt werden.'
+      garminState.error = 'Garmin konnte nicht getrennt werden.'
       showError(garminState.error)
     } finally {
       garminState.loading = false
@@ -351,6 +357,7 @@ export function useProfilePage() {
           distanceInMeters?: number | null
           durationInSeconds?: number | null
           image?: string | null
+          source?: 'MANUAL' | 'GARMIN' | 'STRAVA' | null
         }>
         nextCursor: string | null
       }>('/api/profile/posts', { params: { take: 20, cursor }, credentials: 'include' })
@@ -366,6 +373,7 @@ export function useProfilePage() {
         distanceInMeters: p.distanceInMeters ?? null,
         durationInSeconds: p.durationInSeconds ?? null,
         image: p.image ?? null,
+        source: p.source ?? null,
       }))
       // Optional: nextCursor handling
     } catch (e) {

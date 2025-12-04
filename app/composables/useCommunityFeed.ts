@@ -32,6 +32,7 @@ export type CommunityPost = {
   runningExercise: {
     distanceInMeters: number | null
     durationInSeconds: number | null
+    source: 'MANUAL' | 'GARMIN' | 'STRAVA' | null
   }
   reactions: ReactionStat[]
   viewerReaction: ReactionEmoji | null

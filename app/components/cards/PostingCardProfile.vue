@@ -6,6 +6,7 @@
     :distance-in-meters="post.distanceInMeters"
     :duration-in-seconds="post.durationInSeconds"
     :show-run-data="true"
+    :source="post.source"
   >
     <template #header>
       <div class="flex items-center justify-between p-4">
@@ -14,6 +15,16 @@
           <span>·</span>
           <span class="inline-flex h-6 items-center rounded-full border border-black/10 bg-gray-50 px-2 text-[10px] font-medium uppercase tracking-wide text-gray-600">
             {{ post.visibilityLabel }}
+          </span>
+          <span v-if="post.source === 'STRAVA'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5">
+            <img 
+              src="/brand/strava/api_logo_pwrdBy_strava_horiz_orange.png" 
+              alt="Strava" 
+              class="h-3 w-auto"
+            />
+          </span>
+          <span v-if="post.source === 'GARMIN'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+            Datenquelle: Garmin
           </span>
         </div>
       </div>
@@ -77,6 +88,7 @@ type PostSummaryWithLabel = {
   distanceInMeters?: number | null
   durationInSeconds?: number | null
   image?: string | null
+  source?: 'MANUAL' | 'GARMIN' | 'STRAVA' | null
 }
 
 // Cached formatters outside component

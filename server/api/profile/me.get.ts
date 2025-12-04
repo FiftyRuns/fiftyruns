@@ -1,5 +1,6 @@
 import { createError, eventHandler } from 'h3'
 import { prisma } from '../../utils/prisma'
+import type { ProfileMeResponse } from '@/types/profile'
 
 const DONATION_MULTIPLIER_TO_AMOUNT: Record<string, number> = {
   x1: 1,
@@ -25,6 +26,7 @@ export default eventHandler(async (event) => {
       bio: true,
       profileVisibility: true,
       notificationsEnabled: true,
+      profileSettingsUpdatedAt: true,
       autoDonate: true,
       donationUpdatedAt: true,
       runDonationMultiplier: true,
@@ -34,6 +36,7 @@ export default eventHandler(async (event) => {
       stravaScopes: true,
       stravaDeauthorizedAt: true,
       garminUserId: true,
+      garminConnectedAt: true,
       garminOAuth2TokenExpiry: true,
       runningStatistic: {
         select: {
@@ -94,7 +97,7 @@ export default eventHandler(async (event) => {
   const donationMultiplier = userRecord.runDonationMultiplier ?? null
   const donationAmount = donationMultiplier ? DONATION_MULTIPLIER_TO_AMOUNT[donationMultiplier] ?? 0 : 0
 
-  return {
+  const response: ProfileMeResponse = {
     user: {
       id: userRecord.id,
       name: userRecord.name,
@@ -109,7 +112,7 @@ export default eventHandler(async (event) => {
     },
     posts: postsData.map((post) => ({
       id: post.id,
-      text: post.text,
+      text: post.text ?? '',
       createdAt: post.date.toISOString(),
       visibility: post.visibility,
       reactions: post._count.reactions,
@@ -155,7 +158,8 @@ export default eventHandler(async (event) => {
       },
       garmin: {
         connected: Boolean(userRecord.garminUserId),
-        connectedAt: null,
+        userId: userRecord.garminUserId,
+        connectedAt: userRecord.garminConnectedAt?.toISOString() ?? null,
         tokenExpiresAt: userRecord.garminOAuth2TokenExpiry?.toISOString() ?? null,
       },
     },
@@ -163,7 +167,8 @@ export default eventHandler(async (event) => {
       bio: userRecord.bio,
       visibility: userRecord.profileVisibility,
       notifications: userRecord.notificationsEnabled,
-      updatedAt: null as string | null,
+      updatedAt: userRecord.profileSettingsUpdatedAt?.toISOString() ?? null,
     },
   }
+  return response
 })

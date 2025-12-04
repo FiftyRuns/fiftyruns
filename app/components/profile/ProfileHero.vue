@@ -87,16 +87,14 @@
               />
             </picture>
           </button>
-          <button
+          <NuxtLink
             v-else
-            type="button"
-            class="inline-flex items-center gap-2 rounded-xl border border-[var(--color-primary)]/40 bg-white px-4 py-2 text-sm font-semibold text-[var(--color-primary)] shadow-sm"
-            :disabled="stravaState?.loading"
-            @click="$emit('disconnect-strava')"
+            to="/profile/settings#strava-integration"
+            class="inline-flex items-center gap-2 rounded-xl border border-[var(--color-primary)]/40 bg-white px-4 py-2 text-sm font-semibold text-[var(--color-primary)] shadow-sm hover:bg-white/80"
           >
             <Icon icon="ph:check-circle-duotone" class="h-5 w-5 text-green-600" />
             Strava verbunden
-          </button>
+          </NuxtLink>
         </div>
 
         <button type="button"

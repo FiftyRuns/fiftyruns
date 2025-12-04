@@ -141,6 +141,7 @@ model User {
   bio                           String?
   profileVisibility             Visibility          @default(protected)
   notificationsEnabled          Boolean             @default(true)
+  profileSettingsUpdatedAt      DateTime?
   runDonationMultiplier         DonationMultiplier?
   runDonationMultiplierAskAgain DateTime?
   autoDonate                    Boolean             @default(false)
@@ -160,6 +161,7 @@ model User {
   garminOAuth2AccessToken  String?
   garminOAuth2RefreshToken String?
   garminOAuth2TokenExpiry  DateTime?
+  garminConnectedAt        DateTime?
   garminUserId             String? // User ID von Garmin API
 
   comments             Comment[]
@@ -387,6 +389,15 @@ model StravaWebhookEvent {
 
   @@index([objectId])
   @@index([ownerId])
+  @@index([processedAt])
+}
+
+model GarminWebhookEvent {
+  id         String    @id @default(uuid())
+  payload   Json
+  receivedAt DateTime  @default(now())
+  processedAt DateTime?
+
   @@index([processedAt])
 }
 

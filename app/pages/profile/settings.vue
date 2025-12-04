@@ -72,6 +72,12 @@
             @connect="connectStrava"
             @disconnect="disconnectStrava"
           />
+          <ProfileGarminCard
+            :integration="garminIntegration"
+            :state="garminState"
+            @connect="connectGarmin"
+            @disconnect="disconnectGarmin"
+          />
         </aside>
       </div>
     </div>
@@ -85,6 +91,7 @@ import ProfileDonationCard from '../../components/profile/ProfileDonationCard.vu
 import ProfileChallengesCard from '../../components/profile/ProfileChallengesCard.vue'
 import ProfileAvatarCard from '../../components/profile/ProfileAvatarCard.vue'
 import ProfileStravaCard from '../../components/profile/ProfileStravaCard.vue'
+import ProfileGarminCard from '../../components/profile/ProfileGarminCard.vue'
 import { useProfilePage } from './useProfilePage'
 
 const {
@@ -101,6 +108,8 @@ const {
   avatarState,
   stravaIntegration,
   stravaState,
+  garminIntegration,
+  garminState,
 
   // Actions
   onSettingsUpdate,
@@ -116,6 +125,8 @@ const {
   handleAvatarSaved,
   connectStrava,
   disconnectStrava,
+  connectGarmin,
+  disconnectGarmin,
   createChallenge,
 } = useProfilePage()
 </script>

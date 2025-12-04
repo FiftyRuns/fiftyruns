@@ -1,0 +1,2 @@
+-- This migration intentionally left empty.
+-- Original changes were already applied, but the file was missing.

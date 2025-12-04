@@ -1,35 +1,39 @@
-# This is an example Starter pipeline configuration
-# Use a skeleton to build, test and deploy using manual and parallel steps
-# -----
-# You can specify a custom docker image from Docker Hub as your build environment.
-
-image: atlassian/default-image:3
+image: node:20
 
 pipelines:
   default:
-    - parallel:
-      - step:
-          name: 'Build and Test'
-          script:
-            - echo "Your build and test goes here..."
-      - step:
-          name: 'Lint'
-          script:
-            - echo "Your linting goes here..."
-      - step:
-          name: 'Security scan'
-          script:
-            - echo "Your security scan goes here..."
+    - step:
+        name: Validate and Build
+        caches:
+          - node
+        script:
+          - npm ci
+          - npx prisma generate
+          - npm run build
+          # - npm run lint # Uncomment if you want to enforce linting
 
-    # The following deployment steps will be executed for each pipeline run. To configure your steps and conditionally deploy see https://support.atlassian.com/bitbucket-cloud/docs/configure-bitbucket-pipelinesyml/
-    - step:
-        name: 'Deployment to Staging'
-        deployment: staging
-        script:
-          - echo "Your deployment to staging script goes here..."
-    - step:
-        name: 'Deployment to Production'
-        deployment: production
-        trigger: 'manual'
-        script:
-          - echo "Your deployment to production script goes here..."
+  custom:
+    # Manual trigger for testing
+    trigger-renovate:
+      - step:
+          name: Run Renovate
+          script:
+            - npm install -g renovate
+            - renovate --platform=bitbucket --token=$RENOVATE_TOKEN --autodiscover=false $BITBUCKET_REPO_FULL_NAME
+
+  branches:
+    # Run build/test AND validate config on main
+    main:
+      - step:
+          name: Validate and Build
+          caches:
+            - node
+          script:
+            - npm ci
+            - npx prisma generate
+            - npm run build
+            - npx --package renovate -c 'renovate-config-validator'
+
+  # Scheduled trigger (e.g., Daily)
+  # Note: You must configure the schedule in the Bitbucket UI
+  # Go to Pipelines -> Schedules -> New Schedule -> Select 'custom.trigger-renovate'

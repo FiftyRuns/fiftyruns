@@ -29,7 +29,7 @@ export default eventHandler(async (event) => {
       image: true,
       visibility: true,
       user: { select: { id: true, name: true, nameId: true, image: true } },
-      runningExercise: { select: { distanceInMeters: true, durationInSeconds: true } },
+      runningExercise: { select: { distanceInMeters: true, durationInSeconds: true, source: true } },
       comments: {
         orderBy: { date: 'asc' },
         take: 5,
@@ -106,9 +106,10 @@ export default eventHandler(async (event) => {
         runningExercise: post.runningExercise
           ? {
             distanceInMeters: post.runningExercise.distanceInMeters,
-            durationInSeconds: post.runningExercise.durationInSeconds
+            durationInSeconds: post.runningExercise.durationInSeconds,
+            source: post.runningExercise.source
           }
-          : { distanceInMeters: null, durationInSeconds: null },
+          : { distanceInMeters: null, durationInSeconds: null, source: null },
         reactions: counts,
         viewerReaction,
         comments: post.comments.map((c) => ({

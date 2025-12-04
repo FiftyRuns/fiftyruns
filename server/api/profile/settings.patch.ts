@@ -57,17 +57,19 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Keine Änderungen übermittelt.' })
   }
 
-try {
-  await prisma.user.update({
-    where: { id: session.user.id },
-    data,
-  })
-} catch (error: any) {
-  if (error?.code === 'P2002') {
-    throw createError({ statusCode: 409, message: 'Name oder E-Mail bereits vergeben.' })
+  data.profileSettingsUpdatedAt = new Date()
+
+  try {
+    await prisma.user.update({
+      where: { id: session.user.id },
+      data,
+    })
+  } catch (error: any) {
+    if (error?.code === 'P2002') {
+      throw createError({ statusCode: 409, message: 'Name oder E-Mail bereits vergeben.' })
+    }
+    throw createError({ statusCode: 500, message: 'Profil konnte nicht aktualisiert werden.' })
   }
-  throw createError({ statusCode: 500, message: 'Profil konnte nicht aktualisiert werden.' })
-}
 
   return { ok: true }
 })

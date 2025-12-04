@@ -19,32 +19,17 @@
             <NotificationBell v-if="isLoggedIn" />
 
             <!-- Desktop-Menü -->
-            <ul class="hidden md:flex items-center gap-8 text-[color:var(--color-primary)]  font-semibold text-lg">
-            <li>
-                <NuxtLink to="/leaderboard" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                    Leaderboard</NuxtLink>
-            </li>
-            <li>
-                <NuxtLink to="/challenges" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                    Challenges</NuxtLink>
-            </li>
-            <li>
-                <NuxtLink to="/postings" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                    Beiträge</NuxtLink>
+            <ul class="hidden xl:flex items-center gap-8 text-[color:var(--color-primary)]  font-semibold text-lg">
+            <li v-for="link in navLinks" :key="`desktop-${link.key}`">
+                <NuxtLink
+                    :to="link.to"
+                    class="hover:text-[color:var(--color-accent)] transition cursor-pointer"
+                    @click="handleNavLinkClick"
+                >
+                    {{ link.label }}
+                </NuxtLink>
             </li>
             <li v-if="isLoggedIn">
-                <NuxtLink :to="teamLinkTarget" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                    {{ teamLinkLabel }}</NuxtLink>
-            </li>
-            <li v-if="!isLoggedIn">
-                <NuxtLink to="/login" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                    Anmelden</NuxtLink>
-            </li>
-            <li v-if="!isLoggedIn">
-                <NuxtLink to="/register" class="hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                    Registrieren</NuxtLink>
-            </li>
-            <li v-else>
                 <NuxtLink
                     to="/profile"
                     class="flex items-center gap-3 hover:text-[color:var(--color-accent)] transition cursor-pointer"
@@ -89,7 +74,7 @@
 
             <!-- Burger -->
             <button
-                class="md:hidden inline-flex items-center justify-center rounded-xl p-2 outline-none ring-0 hover:bg-black/5"
+                class="xl:hidden inline-flex items-center justify-center rounded-xl p-2 outline-none ring-0 hover:bg-black/5"
                 :aria-expanded="open ? 'true' : 'false'" aria-controls="mobile-menu" @click="toggle()">
                 <span class="sr-only">Menü öffnen</span>
                 <svg v-if="!open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
@@ -109,41 +94,20 @@
         enter-to-class="opacity-100 translate-y-0" leave-active-class="transition duration-150 ease-in"
         leave-from-class="opacity-100 translate-y-0" leave-to-class="opacity-0 -translate-y-2">
         <div v-show="open" id="mobile-menu"
-            class="md:hidden fixed top-[64px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow border-t border-black/5"
+            class="xl:hidden fixed top-[64px] left-0 right-0 z-40 bg-white/95 backdrop-blur-md shadow border-t border-black/5"
             @click.self="close()">
             <ul
                 class="flex flex-col items-center justify-center text-center gap-4 py-6 text-[color:var(--color-primary)] font-medium">
-                <li>
-                    <NuxtLink @click="close()" to="/leaderboard"
-                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                        Leaderboard</NuxtLink>
-                </li>
-                <li>
-                    <NuxtLink @click="close()" to="/challenges"
-                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                        Challenges</NuxtLink>
-                </li>
-                <li>
-                    <NuxtLink @click="close()" to="/postings"
-                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                        Beiträge</NuxtLink>
+                <li v-for="link in navLinks" :key="`mobile-${link.key}`">
+                    <NuxtLink
+                        :to="link.to"
+                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer"
+                        @click="handleNavLinkClick"
+                    >
+                        {{ link.label }}
+                    </NuxtLink>
                 </li>
                 <li v-if="isLoggedIn">
-                    <NuxtLink @click="close()" :to="teamLinkTarget"
-                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                        {{ teamLinkLabel }}</NuxtLink>
-                </li>
-                <li v-if="!isLoggedIn">
-                    <NuxtLink @click="close()" to="/login"
-                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                        Anmelden</NuxtLink>
-                </li>
-                <li v-if="!isLoggedIn">
-                    <NuxtLink @click="close()" to="/register"
-                        class="block px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
-                        Registrieren</NuxtLink>
-                </li>
-                <li v-else>
                     <NuxtLink @click="close()" to="/profile"
                         class="flex items-center justify-center gap-3 px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
                         <span
@@ -192,6 +156,12 @@ import { useAuthTeam, refreshAuthTeam, setAuthTeam } from '../composables/useAut
 import { useLogout } from '../composables/useLogout'
 import NotificationBell from './notifications/NotificationBell.vue'
 
+type NavLink = {
+  key: string
+  label: string
+  to: string
+}
+
 const open = ref(false)
 const scrolled = ref(false)
 const authUser = useAuthUser()
@@ -217,6 +187,27 @@ const teamLinkTarget = computed(() =>
 const teamLinkLabel = computed(() =>
     authTeam.value?.name ? authTeam.value.name : 'Teams'
 )
+const staticNavLinks: NavLink[] = [
+    { key: 'leaderboard', label: 'Leaderboard', to: '/leaderboard' },
+    { key: 'challenges', label: 'Challenges', to: '/challenges' },
+    { key: 'postings', label: 'Beiträge', to: '/postings' },
+]
+const navLinks = computed<NavLink[]>(() => {
+    const items: NavLink[] = [...staticNavLinks]
+    if (isLoggedIn.value) {
+        items.push({
+            key: 'team',
+            label: teamLinkLabel.value,
+            to: teamLinkTarget.value,
+        })
+    } else {
+        items.push(
+            { key: 'login', label: 'Anmelden', to: '/login' },
+            { key: 'register', label: 'Registrieren', to: '/register' },
+        )
+    }
+    return items
+})
 const { logout, pending: logoutPending, error: logoutError } = useLogout()
 
 watch(
@@ -234,9 +225,17 @@ watch(
 )
 
 const onScroll = () => { scrolled.value = window.scrollY > 8 }
-const onResize = () => { if (window.innerWidth >= 768) open.value = false }
+const onResize = () => { if (window.innerWidth >= 1280) open.value = false }
 const toggle = () => { open.value = !open.value }
 const close = () => { open.value = false }
+const handleNavLinkClick = () => {
+    if (open.value) {
+        close()
+    }
+}
+const resetBodyScroll = () => {
+    document.body.style.overflow = ''
+}
 
 const handleLogout = async () => {
     const success = await logout({ redirectTo: '/login?loggedOut=1' })
@@ -254,6 +253,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
     window.removeEventListener('scroll', onScroll)
     window.removeEventListener('resize', onResize)
+    resetBodyScroll()
 })
 
 watch(open, (val) => {

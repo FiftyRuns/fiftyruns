@@ -1,8 +1,7 @@
 <template>
   <ProfilePanel
-    id="strava-integration"
-    title="Strava verbinden"
-    description="Synchronisiere deine Aktivitäten automatisch und halte dein Laufprofil aktuell."
+    title="Garmin verbinden"
+    description="Synchronisiere deine Aktivitäten automatisch von deiner Garmin-Uhr und halte dein Laufprofil aktuell."
   >
     <div class="space-y-4">
       <div
@@ -10,14 +9,14 @@
       >
         <div class="flex items-center gap-2 text-base font-semibold text-black">
           <Icon icon="ph:waveform-duotone" class="h-5 w-5 text-[var(--color-primary)]" />
-          <span>{{ integration.connected ? 'Strava ist verbunden' : 'Noch nicht verbunden' }}</span>
+          <span>{{ integration.connected ? 'Garmin ist verbunden' : 'Noch nicht verbunden' }}</span>
         </div>
         <p v-if="integration.connected" class="mt-2 text-xs text-gray-500">
           Verbunden seit {{ connectedSince }}
-          <template v-if="integration.athleteId"> · Athlete ID: {{ integration.athleteId }}</template>
+          <template v-if="integration.userId"> · User ID: {{ integration.userId }}</template>
         </p>
         <p v-else class="mt-2 text-xs text-gray-500">
-          Verbinde dein Konto, um Aktivitäten automatisch zu importieren und aktuelle Statistiken zu erhalten.
+          Verbinde dein Garmin-Konto, um Aktivitäten automatisch zu importieren und aktuelle Statistiken zu erhalten.
         </p>
       </div>
 
@@ -29,28 +28,13 @@
           <p v-if="state.error" class="font-medium text-red-600">{{ state.error }}</p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-          <button
+          <FormButton
             v-if="!integration.connected"
-            type="button"
-            class="inline-flex items-center justify-center rounded-xl border border-transparent bg-transparent p-0"
-            :disabled="state.loading"
-            aria-label="Mit Strava verbinden"
+            variant="primary"
+            :loading="state.loading"
+            label="Mit Garmin verbinden"
             @click="$emit('connect')"
-          >
-            <picture>
-              <source
-                srcset="/brand/strava/btn_strava_connect_with_orange_x2.png 2x, /brand/strava/btn_strava_connect_with_orange.png 1x"
-              />
-              <img
-                class="h-12 w-auto"
-                src="/brand/strava/btn_strava_connect_with_orange.png"
-                alt="Connect with Strava"
-                height="48"
-                width="196"
-                loading="lazy"
-              />
-            </picture>
-          </button>
+          />
 
           <FormButton
             v-else
@@ -68,6 +52,16 @@
           />
         </div>
       </div>
+
+      <div
+        v-if="integration.connected"
+        class="rounded-lg border border-black/5 bg-black/2.5 p-3 text-xs text-gray-600"
+      >
+        <p class="font-medium text-black">Datenquelle</p>
+        <p class="mt-1">
+          Aktivitäten werden automatisch von Garmin importiert und mit "Datenquelle: Garmin" gekennzeichnet.
+        </p>
+      </div>
     </div>
   </ProfilePanel>
 </template>
@@ -78,17 +72,15 @@ import { Icon } from '@iconify/vue'
 import ProfilePanel from './ProfilePanel.vue'
 import FormButton from '../atoms/form/FormButton.vue'
 
-type StravaIntegration = {
+type GarminIntegration = {
   connected: boolean
-  athleteId: string | null
-  scopes: string[]
+  userId: string | null
   connectedAt: string | null
   tokenExpiresAt: string | null
-  deauthorizedAt: string | null
 }
 
 const props = defineProps<{
-  integration: StravaIntegration
+  integration: GarminIntegration
   state: {
     loading: boolean
     error: string
@@ -99,7 +91,6 @@ defineEmits<{
   (e: 'connect'): void
   (e: 'disconnect'): void
 }>()
-
 
 const connectedSince = computed(() => {
   if (!props.integration.connectedAt) return ''
@@ -123,3 +114,8 @@ const tokenExpiresAt = computed(() => {
   }
 })
 </script>
+
+
+
+
+

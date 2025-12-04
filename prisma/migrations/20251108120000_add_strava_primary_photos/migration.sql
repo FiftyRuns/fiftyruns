@@ -1,0 +1,1 @@
+-- Migration was already applied
