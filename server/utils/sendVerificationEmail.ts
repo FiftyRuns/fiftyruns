@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+
 
 const PRIMARY_COLOR = '#FF5F5F'
 const ACCENT_COLOR = '#4352FF'
@@ -8,6 +8,12 @@ const BODY_BG = '#F7F8FC'
 const TEXT_COLOR = '#1F2937'
 
 export async function sendVerificationEmail({ to, token }: { to: string; token: string }) {
+  if (!process.env.RESEND_API_KEY) {
+    console.error('[verification-email] RESEND_API_KEY missing, skipping email dispatch')
+    return
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
   const publicOrigin = process.env.PUBLIC_ORIGIN || 'https://50runs.app'
   const link = `${publicOrigin.replace(/\/$/, '')}/api/auth/verify?token=${token}`
 

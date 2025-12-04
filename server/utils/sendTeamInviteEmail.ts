@@ -1,6 +1,6 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+
 
 const FROM_ADDRESS = '50Runs Team <team-invite@resend.dev>'
 const PRIMARY_COLOR = '#FF5F5F'
@@ -21,6 +21,8 @@ export async function sendTeamInviteEmail(payload: TeamInviteMailPayload) {
     console.error('[team-invite-email] RESEND_API_KEY missing, skipping email dispatch')
     return
   }
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
 
   const publicOrigin = process.env.PUBLIC_ORIGIN || 'https://50runs.app'
   const inviteUrl = `${publicOrigin.replace(/\/$/, '')}/team/invite/${payload.token}`
