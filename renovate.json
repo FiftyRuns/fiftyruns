@@ -1,0 +1,26 @@
+{
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+        "config:base"
+    ],
+    "baseBranches": [
+        "stage"
+    ],
+    "packageRules": [
+        {
+            "matchUpdateTypes": [
+                "minor",
+                "patch",
+                "pin",
+                "digest"
+            ],
+            "automerge": true
+        }
+    ],
+    "vulnerabilityAlerts": {
+        "enabled": true,
+        "automerge": true
+    },
+    "prHourlyLimit": 0,
+    "concurrentPRsLimit": 0
+}

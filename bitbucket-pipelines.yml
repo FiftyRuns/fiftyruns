@@ -1,0 +1,39 @@
+image: node:20
+
+pipelines:
+  default:
+    - step:
+        name: Validate and Build
+        caches:
+          - node
+        script:
+          - npm ci
+          - npx prisma generate
+          - npm run build
+          # - npm run lint # Uncomment if you want to enforce linting
+
+  custom:
+    # Manual trigger for testing
+    trigger-renovate:
+      - step:
+          name: Run Renovate
+          script:
+            - npm install -g renovate
+            - renovate --platform=bitbucket --token=$RENOVATE_TOKEN --autodiscover=false $BITBUCKET_REPO_FULL_NAME
+
+  branches:
+    # Run build/test AND validate config on main
+    main:
+      - step:
+          name: Validate and Build
+          caches:
+            - node
+          script:
+            - npm ci
+            - npx prisma generate
+            - npm run build
+            - npx --package renovate -c 'renovate-config-validator'
+
+  # Scheduled trigger (e.g., Daily)
+  # Note: You must configure the schedule in the Bitbucket UI
+  # Go to Pipelines -> Schedules -> New Schedule -> Select 'custom.trigger-renovate'
