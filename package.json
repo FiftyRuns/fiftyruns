@@ -22,7 +22,7 @@
     "@supabase/supabase-js": "^2.75.0",
     "@unhead/vue": "^2.0.19",
     "@vercel/blob": "^2.0.0",
-    "@vueuse/integrations": "^13.9.0",
+    "@vueuse/integrations": "^14.0.0",
     "argon2": "^0.44.0",
     "better-sqlite3": "^12.4.1",
     "eslint": "^9.37.0",
