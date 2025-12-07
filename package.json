@@ -18,7 +18,7 @@
     "@nuxt/image": "^1.11.0",
     "@nuxt/scripts": "^0.12.1",
     "@nuxt/ui": "^4.0.1",
-    "@prisma/client": "^6.18.0",
+    "@prisma/client": "^7.0.0",
     "@supabase/supabase-js": "^2.75.0",
     "@unhead/vue": "^2.0.19",
     "@vercel/blob": "^2.0.0",
@@ -35,6 +35,6 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.14",
-    "prisma": "^6.18.0"
+    "prisma": "^7.0.0"
   }
 }
