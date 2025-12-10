@@ -1,7 +1,13 @@
 import { PrismaClient } from '@prisma/client'
 import { randomUUID } from 'crypto'
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient({
+  datasources: {
+    db: {
+      url: process.env.DATABASE_URL,
+    },
+  },
+})
 
 async function main() {
   console.log('🌱 Seeding database...')
