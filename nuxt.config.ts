@@ -38,7 +38,13 @@ export default defineNuxtConfig({
     '/': { prerender: true },
     '/postings': { swr: 60 },
     '/challenges': { swr: 60 },
-    '/api/**': { cors: true }
+    '/api/**': {
+      cors: true,
+      headers: {
+        'Access-Control-Allow-Origin': process.env.PUBLIC_ORIGIN || 'https://50runs.app',
+        'Access-Control-Allow-Credentials': 'true',
+      }
+    }
   },
 
   runtimeConfig: {
