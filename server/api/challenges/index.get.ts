@@ -1,7 +1,6 @@
 import { eventHandler, getQuery } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
-import type { Prisma } from '@prisma/client'
 
 const dateFormatter = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' })
 
@@ -13,17 +12,22 @@ export default eventHandler(async (event) => {
   const takeRaw = Number(q.take ?? 12)
   const take = Number.isFinite(takeRaw) ? Math.min(Math.max(Math.floor(takeRaw), 1), 50) : 12
 
-  // Fix 1: Use Prisma's generated types for the where clause
-  const where: Prisma.ChallengeWhereInput = {
-    OR: session 
-      ? [{ visibility: 'public' }, { visibility: 'protected' }]
-      : [{ visibility: 'public' }],
-    ...(search && {
-      OR: [
-        { name: { contains: search, mode: 'insensitive' } },
-        { description: { contains: search, mode: 'insensitive' } },
-      ] as Prisma.ChallengeWhereInput[],
-    }),
+  const where = {
+    AND: [
+      {
+        OR: session
+          ? [{ visibility: 'public' as const }, { visibility: 'protected' as const }]
+          : [{ visibility: 'public' as const }],
+      },
+      ...(search
+        ? [{
+            OR: [
+              { name: { contains: search, mode: 'insensitive' as const } },
+              { description: { contains: search, mode: 'insensitive' as const } },
+            ],
+          }]
+        : []),
+    ],
   }
 
   // Fix 2: Get challenges and counts separately to avoid complex typing
@@ -49,18 +53,21 @@ export default eventHandler(async (event) => {
       sponsorLogos: true,
       adminUserId: true,
       groupId: true,
-      group: {
-        select: {
-          id: true,
-          name: true,
-          nameId: true,
-        },
-      },
     },
   })
 
-  // Fix 3: Get member counts in a separate query
   const challengeIds = challenges.map(c => c.id)
+  const groupIds = challenges.map(c => c.groupId).filter((id): id is string => id !== null)
+
+  const [groups] = await Promise.all([
+    groupIds.length > 0
+      ? prisma.group.findMany({
+          where: { id: { in: groupIds } },
+          select: { id: true, name: true, nameId: true },
+        })
+      : Promise.resolve([]),
+  ])
+  const groupLookup = new Map(groups.map(g => [g.id, g]))
   const memberCounts = await prisma.challengeMember.groupBy({
     by: ['challengeId'],
     _count: {
@@ -108,7 +115,7 @@ export default eventHandler(async (event) => {
     sponsorLogos: challenge.sponsorLogos,
     participants: countLookup.get(challenge.id) ?? 0,
     isMember: userMemberships.includes(challenge.id),
-    team: challenge.group,
+    team: challenge.groupId ? groupLookup.get(challenge.groupId) ?? null : null,
     teamOnly: Boolean(challenge.groupId),
     viewerIsTeamMember: !challenge.groupId || viewerGroupId === challenge.groupId,
   }))

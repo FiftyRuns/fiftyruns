@@ -2,8 +2,7 @@ import { eventHandler, getMethod, getHeader, createError, readBody, getCookie, H
 import * as argon2 from 'argon2'
 import { prisma } from '../../utils/prisma'
 import { createSession, SESSION_MAX_AGE, destroySession } from '../../utils/session'
-
-const rateLimitMap = new Map<string, { count: number; expires: number }>()
+import { checkRateLimit } from '../../utils/rateLimit'
 
 function sanitizeBasic(input: string) {
   return input.replace(/<[^>]*>/g, '').replace(/[\u0000-\u001f\u007f]/g, '').trim()
@@ -36,20 +35,6 @@ function getClientIp(event: H3Event) {
   return remote || 'local'
 }
 
-async function checkRateLimit(key: string, limit = 10, windowSec = 60) {
-  const now = Date.now()
-  const entry = rateLimitMap.get(key)
-
-  if (entry && entry.expires > now) {
-    if (entry.count >= limit) return false
-    entry.count++
-  } else {
-    rateLimitMap.set(key, { count: 1, expires: now + windowSec * 1000 })
-  }
-
-  return true
-}
-
 export default eventHandler(async (event) => {
   if (getMethod(event) !== 'POST') {
     throw createError({ statusCode: 405, message: 'Method Not Allowed' })
@@ -69,7 +54,7 @@ export default eventHandler(async (event) => {
 
   const ip = getClientIp(event)
 
-  if (!(await checkRateLimit(`login:ip:${ip}`, 12, 60))) {
+  if (!(checkRateLimit(`login:ip:${ip}`, 12, 60))) {
     throw createError({ statusCode: 429, message: 'Zu viele Versuche. Bitte später erneut.' })
   }
 
@@ -87,7 +72,7 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Ungültige Zugangsdaten.' })
   }
 
-  if (!(await checkRateLimit(`login:acct:${email}`, 6, 300))) {
+  if (!(checkRateLimit(`login:acct:${email}`, 6, 300))) {
     throw createError({ statusCode: 429, message: 'Zu viele Versuche. Bitte später erneut.' })
   }
 
@@ -98,6 +83,8 @@ export default eventHandler(async (event) => {
   const user = await prisma.user.findUnique({ where: { email } })
 
   if (!user) {
+    // Perform dummy hash to prevent timing-based user enumeration
+    await argon2.verify('$argon2id$v=19$m=65536,t=3,p=4$dW5rbm93bg$dW5rbm93bg', password).catch(() => {})
     throw createError({ statusCode: 401, message: 'Benutzer oder Passwort falsch.' })
   }
 

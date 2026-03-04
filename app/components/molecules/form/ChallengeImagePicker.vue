@@ -73,38 +73,6 @@ async function toDataUrl(file: File): Promise<string> {
   })
 }
 
-async function convertToWebP(file: File): Promise<File> {
-  return new Promise((resolve, reject) => {
-    const canvas = document.createElement('canvas')
-    const ctx = canvas.getContext('2d')
-    const img = new Image()
-    
-    img.onload = () => {
-      canvas.width = img.width
-      canvas.height = img.height
-      ctx?.drawImage(img, 0, 0)
-      
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            reject(new Error('Konvertierung fehlgeschlagen'))
-            return
-          }
-          const webpFile = new File([blob], file.name.replace(/\.[^.]+$/, '.webp'), {
-            type: 'image/webp'
-          })
-          resolve(webpFile)
-        },
-        'image/webp',
-        0.85 // 85% quality
-      )
-    }
-    
-    img.onerror = reject
-    img.src = URL.createObjectURL(file)
-  })
-}
-
 async function onSelect(event: Event) {
   const file = (event.target as HTMLInputElement).files?.[0] ?? null
   if (!file) {

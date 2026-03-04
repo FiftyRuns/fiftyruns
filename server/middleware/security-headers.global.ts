@@ -1,5 +1,17 @@
 import { defineEventHandler, setHeaders } from 'h3'
 
+const csp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://*.blob.vercel-storage.com https://50runs.app",
+  "font-src 'self'",
+  "connect-src 'self'",
+  "frame-ancestors 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ')
+
 export default defineEventHandler((event) => {
   setHeaders(event, {
     'X-Frame-Options': 'DENY',
@@ -7,6 +19,7 @@ export default defineEventHandler((event) => {
     'Referrer-Policy': 'strict-origin-when-cross-origin',
     'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
     'X-DNS-Prefetch-Control': 'off',
+    'Content-Security-Policy': csp,
   })
 
   if (process.env.NODE_ENV === 'production') {

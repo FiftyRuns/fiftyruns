@@ -28,6 +28,9 @@ export default eventHandler(async (event) => {
   if (!text) {
     throw createError({ statusCode: 400, message: 'Kommentar darf nicht leer sein.' })
   }
+  if (text.length > 2000) {
+    throw createError({ statusCode: 400, message: 'Kommentar darf maximal 2000 Zeichen lang sein.' })
+  }
 
   const post = await prisma.posting.findUnique({
     where: { id },

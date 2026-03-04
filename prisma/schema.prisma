@@ -275,6 +275,9 @@ model Posting {
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   reactions       Reaction[]
   runningExercise RunningExercise?
+
+  @@index([userId])
+  @@index([date, id])
 }
 
 model Comment {
@@ -285,6 +288,9 @@ model Comment {
   postingId String
   posting   Posting  @relation(fields: [postingId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postingId])
+  @@index([userId])
 }
 
 model Reaction {

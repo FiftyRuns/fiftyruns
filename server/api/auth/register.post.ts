@@ -4,8 +4,7 @@ import { randomBytes } from 'node:crypto'
 import * as argon2 from 'argon2'
 import { prisma } from '../../utils/prisma'
 import { sendVerificationEmail } from '../../utils/sendVerificationEmail'
-
-const rateLimitMap = new Map<string, { count: number; expires: number }>()
+import { checkRateLimit } from '../../utils/rateLimit'
 
 function sanitizeBasic(input: string) {
   return input.replace(/<[^>]*>/g, '').replace(/[\u0000-\u001F\u007F]/g, '').trim()
@@ -16,13 +15,6 @@ function slugify(v: string) {
     .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')
     .replace(/[^a-z0-9\-\s_]/g, '').replace(/[\s_]+/g, '-').replace(/\-+/g, '-')
     .replace(/^-|-$/g, '')
-}
-async function checkRateLimit(_event: H3Event, key: string, limit = 8, windowSec = 60) {
-  const now = Date.now(), k = `register:${key}`
-  const e = rateLimitMap.get(k)
-  if (e && e.expires > now) { if (e.count >= limit) return false; e.count++ } 
-  else { rateLimitMap.set(k, { count: 1, expires: now + windowSec * 1000 }) }
-  return true
 }
 function assertCsrf(event: H3Event) {
   const header = getHeader(event, 'x-csrf-token') || ''
@@ -79,7 +71,7 @@ export default eventHandler(async (event) => {
   assertCsrf(event)
 
   const ip = getHeader(event, 'x-forwarded-for')?.split(',')[0] || getHeader(event, 'x-real-ip') || 'local'
-  if (!(await checkRateLimit(event, ip, 8, 60)))
+  if (!checkRateLimit(`register:${ip}`, 8, 60))
     throw createError({ statusCode: 429, message: 'Zu viele Versuche. Bitte später erneut.' })
 
   const body = await readBody(event)

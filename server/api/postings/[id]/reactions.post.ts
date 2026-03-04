@@ -92,18 +92,25 @@ export default eventHandler(async (event) => {
     createdOrChanged = true
   }
 
-  const reactions = await prisma.reaction.findMany({
-    where: { postingId: post.id },
-    select: { type: true, userId: true },
-  })
+  const [reactionCounts, viewerReactionResult] = await Promise.all([
+    prisma.reaction.groupBy({
+      by: ['type'],
+      where: { postingId: post.id },
+      _count: { _all: true },
+    }),
+    prisma.reaction.findUnique({
+      where: { userId_postingId: { userId: session.user.id, postingId: post.id } },
+      select: { type: true },
+    }),
+  ])
 
+  const countMap = new Map(reactionCounts.map(r => [r.type, r._count._all]))
   const counts = REACTION_EMOJIS.map((value) => ({
     emoji: value,
-    count: reactions.filter((reaction) => reaction.type === value).length,
+    count: countMap.get(value) ?? 0,
   }))
 
-  const viewerReaction =
-    reactions.find((reaction) => reaction.userId === session.user.id)?.type ?? null
+  const viewerReaction = viewerReactionResult?.type ?? null
 
   if (
     createdOrChanged &&

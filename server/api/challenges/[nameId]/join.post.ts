@@ -46,20 +46,6 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Diese Challenge ist bereits beendet.' })
   }
 
-  const membership = await prisma.challengeMember.findUnique({
-    where: {
-      challengeId_userId: {
-        challengeId: challenge.id,
-        userId: session.user.id,
-      },
-    },
-    select: { id: true },
-  })
-
-  if (membership) {
-    throw createError({ statusCode: 400, message: 'Du bist bereits in dieser Challenge.' })
-  }
-
   if (challenge.groupId) {
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
@@ -73,12 +59,26 @@ export default eventHandler(async (event) => {
       const teamName = challenge.group?.name ?? 'diesem Team'
       throw createError({
         statusCode: 403,
-        message: `Diese Challenge ist dem Team „${teamName}“ vorbehalten. Tritt dem Team bei, um teilzunehmen.`,
+        message: `Diese Challenge ist dem Team „${teamName}” vorbehalten. Tritt dem Team bei, um teilzunehmen.`,
       })
     }
   }
 
   await prisma.$transaction(async (tx) => {
+    const existing = await tx.challengeMember.findUnique({
+      where: {
+        challengeId_userId: {
+          challengeId: challenge.id,
+          userId: session.user.id,
+        },
+      },
+      select: { id: true },
+    })
+
+    if (existing) {
+      throw createError({ statusCode: 400, message: 'Du bist bereits in dieser Challenge.' })
+    }
+
     await tx.challengeMember.create({
       data: {
         challengeId: challenge.id,
