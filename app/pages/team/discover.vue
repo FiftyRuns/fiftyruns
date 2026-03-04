@@ -9,9 +9,16 @@
             Stöbere in der Community und schicke eine Anfrage an Teams, die dich interessieren.
           </p>
         </div>
-        <NuxtLink to="/profile" class="text-sm text-[var(--color-primary)] underline-offset-2 hover:underline">
-          ← Zurück zum Profil
-        </NuxtLink>
+        <div class="flex items-center gap-4">
+          <NuxtLink to="/team/create"
+            class="inline-flex items-center gap-2 rounded-2xl bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--color-primary)]/90">
+            <Icon icon="ph:plus-bold" class="h-4 w-4" />
+            Team erstellen
+          </NuxtLink>
+          <NuxtLink to="/profile" class="text-sm text-[var(--color-primary)] underline-offset-2 hover:underline">
+            ← Zurück zum Profil
+          </NuxtLink>
+        </div>
       </header>
 
       <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
