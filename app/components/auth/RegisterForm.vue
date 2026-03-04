@@ -39,9 +39,17 @@
                 </template>
               </InputField>
 
-              <InputField id="passwordConfirm" v-model="form.passwordConfirm" :type="showPassword ? 'text' : 'password'"
+              <InputField id="passwordConfirm" v-model="form.passwordConfirm" :type="showPasswordConfirm ? 'text' : 'password'"
                 label="Passwort wiederholen" autocomplete="new-password" minlength="8" maxlength="72"
-                :error="errors.passwordConfirm" />
+                :error="errors.passwordConfirm">
+                <template #trailing>
+                  <button type="button" @click="showPasswordConfirm = !showPasswordConfirm"
+                    class="absolute inset-y-0 right-3 flex items-center text-gray-600 hover:text-gray-900 focus:outline-none"
+                    :aria-label="showPasswordConfirm ? 'Passwort verbergen' : 'Passwort anzeigen'">
+                    <Icon :icon="showPasswordConfirm ? 'ph:eye-slash' : 'ph:eye'" class="h-5 w-5" />
+                  </button>
+                </template>
+              </InputField>
 
               <CheckboxField id="tos" v-model="form.accept" :error="errors.accept"
                 error-class="-mt-2 text-xs text-red-600">
@@ -93,6 +101,7 @@ const serverError = ref('')
 const serverSuccess = ref('')
 const pending = ref(false)
 const showPassword = ref(false)
+const showPasswordConfirm = ref(false)
 const csrfToken = ref('')
 
 const togglePasswordVisibility = () => {
