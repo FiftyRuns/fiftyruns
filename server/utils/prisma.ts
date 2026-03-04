@@ -5,8 +5,11 @@ import pg from 'pg'
 const { Pool } = pg
 const connectionString = `${process.env.DATABASE_URL}`
 
-const pool = new Pool({ connectionString })
-const adapter = new PrismaPg(pool)
+const schemaMatch = connectionString.match(/[?&]schema=([^&]+)/)
+const schema = schemaMatch ? schemaMatch[1] : 'public'
+
+const pool = new Pool({ connectionString, ssl: { rejectUnauthorized: false } })
+const adapter = new PrismaPg(pool, { schema })
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient }
 
