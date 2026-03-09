@@ -1,4 +1,4 @@
-import { NotificationCategory, NotificationActionType } from '@prisma/client'
+import { NotificationCategory, NotificationActionType } from '@@/prisma/generated/client'
 import { createError, eventHandler, getQuery } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'

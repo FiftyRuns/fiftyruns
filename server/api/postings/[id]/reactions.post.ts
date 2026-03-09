@@ -1,5 +1,5 @@
 // server/api/postings/[id]/reactions.post.ts
-import { NotificationCategory } from '@prisma/client'
+import { NotificationCategory } from '@@/prisma/generated/client'
 import { createError, eventHandler, readBody } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'

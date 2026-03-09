@@ -1,5 +1,5 @@
 // server/api/team/requests/[id].decline.post.ts
-import { NotificationActionType, NotificationCategory } from '@prisma/client'
+import { NotificationActionType, NotificationCategory } from '@@/prisma/generated/client'
 import { eventHandler, createError } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'

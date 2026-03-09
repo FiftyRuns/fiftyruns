@@ -1,4 +1,4 @@
-import { ActivitySource } from '@prisma/client'
+import { ActivitySource } from '@@/prisma/generated/client'
 import { createError, eventHandler, readBody } from 'h3'
 import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'

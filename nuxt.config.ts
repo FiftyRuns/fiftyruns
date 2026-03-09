@@ -58,7 +58,13 @@ export default defineNuxtConfig({
     stravaWebhookCallbackUrl: process.env.STRAVA_WEBHOOK_CALLBACK_URL
   },
 
-  nitro: { preset: "vercel" },
+  nitro: {
+    preset: process.env.NODE_ENV === 'production' ? 'vercel' : 'node',
+    externals: {
+      inline: [],
+      external: ['argon2'],
+    },
+  },
 
   app: {
     head: {

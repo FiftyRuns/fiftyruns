@@ -1,5 +1,5 @@
 // server/api/post.create.post.ts
-import { ActivitySource, NotificationCategory } from '@prisma/client'
+import { ActivitySource, NotificationCategory } from '@@/prisma/generated/client'
 import { createError, eventHandler, getCookie, getHeader, readBody } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'

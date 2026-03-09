@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs sed -i \"s|''~/prisma/generated/client''|''@@/prisma/generated/client''|g\")",
+      "Bash(node -e \":*)"
+    ]
+  }
+}

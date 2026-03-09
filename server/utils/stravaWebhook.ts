@@ -1,5 +1,5 @@
-import { ActivitySource, Prisma, Visibility } from '@prisma/client'
-import type { StravaWebhookEvent as PrismaStravaEvent } from '@prisma/client'
+import { ActivitySource, Prisma, Visibility } from '@@/prisma/generated/client'
+import type { StravaWebhookEvent as PrismaStravaEvent } from '@@/prisma/generated/client'
 import { prisma } from './prisma'
 import { STRAVA_SUPPORTED_SPORT_TYPES, ensureStravaAccessToken, fetchStravaActivity, getStravaWebhookConfig } from './strava'
 import { updateChallengesForRun, type RunSnapshot } from './challengeProgress'

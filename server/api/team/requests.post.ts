@@ -1,5 +1,5 @@
 // server/api/team/requests.post.ts
-import { NotificationActionType, NotificationCategory } from '@prisma/client'
+import { NotificationActionType, NotificationCategory } from '@@/prisma/generated/client'
 import { eventHandler, createError, readBody } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
