@@ -27,10 +27,11 @@
                     {{ link.label }}
                 </NuxtLink>
             </li>
-            <li v-if="isLoggedIn">
-                <NuxtLink
-                    to="/profile"
+            <li v-if="isLoggedIn" ref="profileDropdownRef" class="relative">
+                <button
+                    type="button"
                     class="flex items-center gap-3 hover:text-[color:var(--color-accent)] transition cursor-pointer"
+                    @click="profileOpen = !profileOpen"
                 >
                     <span
                         class="relative h-9 w-9 overflow-hidden rounded-full border-2 border-[color:var(--color-primary)]/30 bg-white shadow-sm"
@@ -53,20 +54,37 @@
                         </span>
                     </span>
                     <span>{{ displayName }}</span>
-                </NuxtLink>
-            </li>
-            <li v-if="isLoggedIn">
-                <button
-                    type="button"
-                    class="hover:text-[color:var(--color-accent)] transition cursor-pointer disabled:opacity-60"
-                    :disabled="logoutPending"
-                    @click="handleLogout"
-                >
-                    Abmelden
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="profileOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                 </button>
-            </li>
-            <li v-if="isLoggedIn && logoutError" class="text-sm font-normal text-red-600">
-                {{ logoutError }}
+                <Transition
+                    enter-active-class="transition duration-150 ease-out"
+                    enter-from-class="opacity-0 -translate-y-1"
+                    enter-to-class="opacity-100 translate-y-0"
+                    leave-active-class="transition duration-100 ease-in"
+                    leave-from-class="opacity-100 translate-y-0"
+                    leave-to-class="opacity-0 -translate-y-1"
+                >
+                    <div v-if="profileOpen" class="absolute right-0 top-full mt-2 w-48 rounded-xl bg-white shadow-lg border border-black/10 py-1 z-50">
+                        <NuxtLink
+                            to="/profile"
+                            class="flex items-center gap-2 px-4 py-2 text-[color:var(--color-primary)] hover:bg-gray-50 hover:text-[color:var(--color-accent)] transition"
+                            @click="profileOpen = false"
+                        >
+                            Profil
+                        </NuxtLink>
+                        <button
+                            type="button"
+                            class="flex w-full items-center gap-2 px-4 py-2 text-[color:var(--color-primary)] hover:bg-gray-50 hover:text-[color:var(--color-accent)] transition disabled:opacity-60"
+                            :disabled="logoutPending"
+                            @click="handleLogout"
+                        >
+                            Abmelden
+                        </button>
+                        <p v-if="logoutError" class="px-4 py-1 text-xs text-red-600">{{ logoutError }}</p>
+                    </div>
+                </Transition>
             </li>
             </ul>
 
@@ -105,9 +123,12 @@
                         {{ link.label }}
                     </NuxtLink>
                 </li>
-                <li v-if="isLoggedIn">
-                    <NuxtLink @click="close()" to="/profile"
-                        class="flex items-center justify-center gap-3 px-3 py-2 hover:text-[color:var(--color-accent)] transition cursor-pointer">
+                <li v-if="isLoggedIn" class="w-full">
+                    <button
+                        type="button"
+                        class="flex items-center justify-center gap-3 px-3 py-2 w-full hover:text-[color:var(--color-accent)] transition cursor-pointer"
+                        @click="profileMobileOpen = !profileMobileOpen"
+                    >
                         <span
                             class="relative h-10 w-10 overflow-hidden rounded-full border-2 border-[color:var(--color-primary)]/30 bg-white shadow-sm"
                             aria-hidden="true"
@@ -129,20 +150,39 @@
                             </span>
                         </span>
                         <span>{{ displayName }}</span>
-                    </NuxtLink>
-                </li>
-                <li v-if="isLoggedIn">
-                    <button
-                        type="button"
-                        class="block px-3 py-2 text-[color:var(--color-primary)] hover:text-[color:var(--color-accent)] transition cursor-pointer disabled:opacity-60"
-                        :disabled="logoutPending"
-                        @click="handleLogout"
-                    >
-                        Abmelden
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform duration-200" :class="profileMobileOpen ? 'rotate-180' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
+                    <Transition
+                        enter-active-class="transition duration-150 ease-out"
+                        enter-from-class="opacity-0 -translate-y-1"
+                        enter-to-class="opacity-100 translate-y-0"
+                        leave-active-class="transition duration-100 ease-in"
+                        leave-from-class="opacity-100 translate-y-0"
+                        leave-to-class="opacity-0 -translate-y-1"
+                    >
+                        <div v-if="profileMobileOpen" class="flex flex-col items-center gap-1 mt-1">
+                            <NuxtLink
+                                to="/profile"
+                                class="px-3 py-2 hover:text-[color:var(--color-accent)] transition"
+                                @click="close()"
+                            >
+                                Profil
+                            </NuxtLink>
+                            <button
+                                type="button"
+                                class="px-3 py-2 hover:text-[color:var(--color-accent)] transition disabled:opacity-60"
+                                :disabled="logoutPending"
+                                @click="handleLogout"
+                            >
+                                Abmelden
+                            </button>
+                            <p v-if="logoutError" class="text-xs text-red-600">{{ logoutError }}</p>
+                        </div>
+                    </Transition>
                 </li>
             </ul>
-            <p v-if="logoutError" class="px-6 pb-4 text-sm text-red-600">{{ logoutError }}</p>
         </div>
     </Transition>
 </template>
@@ -162,6 +202,9 @@ type NavLink = {
 
 const open = ref(false)
 const scrolled = ref(false)
+const profileOpen = ref(false)
+const profileMobileOpen = ref(false)
+const profileDropdownRef = ref<HTMLElement | null>(null)
 const authUser = useAuthUser()
 const authTeam = useAuthTeam()
 const isLoggedIn = computed(() => Boolean(authUser.value))
@@ -225,7 +268,12 @@ watch(
 const onScroll = () => { scrolled.value = window.scrollY > 8 }
 const onResize = () => { if (window.innerWidth >= 1280) open.value = false }
 const toggle = () => { open.value = !open.value }
-const close = () => { open.value = false }
+const close = () => { open.value = false; profileMobileOpen.value = false }
+const onClickOutside = (e: MouseEvent) => {
+    if (profileDropdownRef.value && !profileDropdownRef.value.contains(e.target as Node)) {
+        profileOpen.value = false
+    }
+}
 const handleNavLinkClick = () => {
     if (open.value) {
         close()
@@ -246,11 +294,13 @@ onMounted(() => {
     onScroll()
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('resize', onResize, { passive: true })
+    document.addEventListener('click', onClickOutside)
 })
 
 onBeforeUnmount(() => {
     window.removeEventListener('scroll', onScroll)
     window.removeEventListener('resize', onResize)
+    document.removeEventListener('click', onClickOutside)
     resetBodyScroll()
 })
 

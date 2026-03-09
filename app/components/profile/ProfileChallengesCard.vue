@@ -1,5 +1,5 @@
 <template>
-  <ProfilePanel title="Meine Challenges" description="Verwalte deine aktiven und geplanten Herausforderungen.">
+  <ProfilePanel title="Meine Challenges" description="Verwalte deine aktiven und geplanten Herausforderungen." :collapsible="props.collapsible" :default-open="props.defaultOpen">
     <div v-if="challenges.length" class="space-y-4">
       <article
         v-for="challenge in challenges"
@@ -56,9 +56,11 @@ export type ChallengeSummary = {
   isAdmin?: boolean
 }
 
-defineProps<{
+const props = withDefaults(defineProps<{
   challenges: ChallengeSummary[]
-}>()
+  collapsible?: boolean
+  defaultOpen?: boolean
+}>(), {})
 
 defineEmits<{
   (e: 'create-challenge'): void

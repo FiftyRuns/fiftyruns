@@ -73,7 +73,16 @@ export default defineNuxtConfig({
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         { name: "description", content: "50runs" }
       ],
-      link: [{ rel: "icon", href: "/favicon.ico" }]
+      link: [{ rel: "icon", href: "/favicon.ico" }],
+      style: [
+        {
+          children: `
+            :root { --color-primary: #01497e; --color-accent: #a2c92d; }
+            html, body { background-color: white; color: #01497e; font-family: system-ui, sans-serif; margin: 0; }
+            body { padding-top: 72px; }
+          `
+        }
+      ]
     }
   }
 });

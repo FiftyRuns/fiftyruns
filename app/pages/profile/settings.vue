@@ -17,6 +17,8 @@
         <div class="space-y-6">
           <!-- Profil & Sichtbarkeit -->
           <ProfileSettingsForm
+            collapsible
+            :default-open="false"
             :model-value="settingsForm"
             :loading="settingsState.loading"
             :success-message="settingsState.success"
@@ -27,6 +29,8 @@
 
           <!-- Passwort ändern -->
           <ProfilePasswordCard
+            collapsible
+            :default-open="false"
             :model-value="passwordForm"
             :loading="passwordState.loading"
             :error-message="passwordState.error"
@@ -37,6 +41,8 @@
 
           <!-- Spenden / Auto-Donate -->
           <ProfileDonationCard
+            collapsible
+            :default-open="false"
             :model-value="donationSettings"
             :loading="donationState.loading"
             :success-message="donationState.success"
@@ -48,9 +54,31 @@
 
           <!-- Challenges (optional im Settings-Kontext anzeigen) -->
           <ProfileChallengesCard
+            collapsible
+            :default-open="false"
             :challenges="challenges"
             @create="createChallenge"
           />
+
+          <!-- Integrationen -->
+          <div class="grid gap-6 sm:grid-cols-2">
+            <ProfileStravaCard
+              collapsible
+              :default-open="false"
+              :integration="stravaIntegration"
+              :state="stravaState"
+              @connect="connectStrava"
+              @disconnect="disconnectStrava"
+            />
+            <ProfileGarminCard
+              collapsible
+              :default-open="false"
+              :integration="garminIntegration"
+              :state="garminState"
+              @connect="connectGarmin"
+              @disconnect="disconnectGarmin"
+            />
+          </div>
         </div>
 
         <!-- Sidebar -->
@@ -58,6 +86,8 @@
           <!-- Avatar -->
           <ProfileAvatarCard
             v-if="authUser"
+            collapsible
+            :default-open="false"
             :user="authUser"
             :preview="avatarPreview"
             :error="avatarState.error"
@@ -65,18 +95,6 @@
             @remove-picture="removeAvatar"
             @error="setAvatarError"
             @saved="handleAvatarSaved"
-          />
-          <ProfileStravaCard
-            :integration="stravaIntegration"
-            :state="stravaState"
-            @connect="connectStrava"
-            @disconnect="disconnectStrava"
-          />
-          <ProfileGarminCard
-            :integration="garminIntegration"
-            :state="garminState"
-            @connect="connectGarmin"
-            @disconnect="disconnectGarmin"
           />
         </aside>
       </div>

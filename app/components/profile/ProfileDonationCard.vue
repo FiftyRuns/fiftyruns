@@ -1,5 +1,5 @@
 <template>
-  <ProfilePanel title="Spenden & Unterstützung" description="Bestimme deinen Beitrag pro Lauf oder Challenge.">
+  <ProfilePanel title="Spenden & Unterstützung" description="Bestimme deinen Beitrag pro Lauf oder Challenge." :collapsible="props.collapsible" :default-open="props.defaultOpen">
     <div class="space-y-6">
       <div class="grid gap-4 sm:grid-cols-2">
         <label
@@ -71,6 +71,8 @@ const props = withDefaults(
     loading?: boolean
     successMessage?: string
     errorMessage?: string
+    collapsible?: boolean
+    defaultOpen?: boolean
   }>(),
   { loading: false, successMessage: '', errorMessage: '' },
 )
