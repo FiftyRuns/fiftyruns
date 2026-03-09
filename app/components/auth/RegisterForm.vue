@@ -11,11 +11,11 @@
 
         <form @submit.prevent="onSubmit" novalidate>
           <div class="space-y-5">
-            <ProfileImagePicker v-model="form.profilePicture" v-model:imageUrl="form.avatarUrl"
+            <ProfileImagePicker
+              v-model="form.profilePicture"
               :max-size="MAX_PROFILE_IMAGE_SIZE"
-              :auto-upload="true"
-              handle-upload-url="/api/blob.upload"
-              :csrf-token="csrfToken"
+              :auto-upload="false"
+              @update:model-value="onFileSelected"
               @error="(m) => (errors.profilePicture = m)"
             />
 
@@ -70,10 +70,67 @@
       </div>
     </div>
   </div>
+
+  <!-- Crop-Modal -->
+  <Teleport to="body">
+    <div
+      v-if="cropPhotoUrl"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+      @click.self="cancelCrop"
+    >
+      <div class="w-full max-w-sm rounded-2xl bg-white p-5 shadow-2xl">
+        <h3 class="mb-3 text-base font-semibold text-gray-800">Bild zuschneiden</h3>
+
+        <div
+          ref="cropContainerRef"
+          class="relative overflow-hidden rounded-full border-4 border-[var(--color-primary)]/40 select-none aspect-square"
+          :class="isDragging ? 'cursor-grabbing' : 'cursor-grab'"
+          @mousedown="onDragStart"
+          @touchstart.passive="onTouchStart"
+        >
+          <img
+            :src="cropPhotoUrl"
+            alt="Profilbild bearbeiten"
+            class="absolute max-w-none pointer-events-none"
+            :style="{
+              transform: `translate(${-cropOffsetX}px, ${-cropOffsetY}px)`,
+              width: scaledImageWidth ? scaledImageWidth + 'px' : '100%',
+              height: scaledImageHeight ? scaledImageHeight + 'px' : '100%',
+            }"
+            @load="onImageLoad"
+          />
+          <div class="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-xs text-white backdrop-blur-sm pointer-events-none whitespace-nowrap">
+            Ziehen zum Positionieren
+          </div>
+        </div>
+
+        <div class="mt-3 flex items-center gap-3 px-1">
+          <svg class="h-4 w-4 shrink-0 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/>
+          </svg>
+          <input
+            type="range" min="100" max="300" step="1"
+            :value="Math.round(zoomFactor * 100)"
+            class="w-full h-1.5 rounded-full accent-[var(--color-primary)] cursor-pointer"
+            @input="onZoomSlider(($event.target as HTMLInputElement).valueAsNumber)"
+          />
+          <svg class="h-5 w-5 shrink-0 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/>
+          </svg>
+        </div>
+
+        <div class="mt-4 flex justify-end gap-3">
+          <button type="button" class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50" @click="cancelCrop">Abbrechen</button>
+          <button type="button" class="rounded-lg bg-[var(--color-primary)] px-4 py-2 text-sm font-medium text-white hover:opacity-90" @click="confirmCrop">Übernehmen</button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { reactive, ref, computed, onBeforeUnmount } from 'vue'
+import { upload } from '@vercel/blob/client'
 import { Icon } from '@iconify/vue'
 import { useToast } from '../../composables/useToast'
 import FormButton from '../atoms/form/FormButton.vue'
@@ -106,6 +163,211 @@ const csrfToken = ref('')
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
+}
+
+// ── Crop-Editor ───────────────────────────────────────────────────────────────
+
+const cropPhotoUrl = ref<string | null>(null)
+const cropContainerRef = ref<HTMLElement | null>(null)
+const cropOffsetX = ref(0)
+const cropOffsetY = ref(0)
+const isDragging = ref(false)
+const imageNaturalWidth = ref(0)
+const imageNaturalHeight = ref(0)
+const dragStartPos = ref({ x: 0, y: 0, startOffsetX: 0, startOffsetY: 0 })
+const zoomFactor = ref(1)
+const pinchStartDist = ref(0)
+const pinchStartZoom = ref(1)
+const uploading = ref(false)
+
+function getCropSize() {
+  return cropContainerRef.value?.clientWidth ?? 320
+}
+
+const cropScale = computed(() => {
+  if (!cropContainerRef.value || !imageNaturalWidth.value || !imageNaturalHeight.value) return 1
+  const size = getCropSize()
+  const base = Math.max(size / imageNaturalWidth.value, size / imageNaturalHeight.value)
+  return base * zoomFactor.value
+})
+
+const scaledImageWidth = computed(() => imageNaturalWidth.value * cropScale.value)
+const scaledImageHeight = computed(() => imageNaturalHeight.value * cropScale.value)
+
+function getMaxOffset() {
+  const size = getCropSize()
+  return {
+    maxX: Math.max(0, scaledImageWidth.value - size),
+    maxY: Math.max(0, scaledImageHeight.value - size),
+  }
+}
+
+function onImageLoad(e: Event) {
+  const img = e.target as HTMLImageElement
+  imageNaturalWidth.value = img.naturalWidth
+  imageNaturalHeight.value = img.naturalHeight
+  zoomFactor.value = 1
+  const { maxX, maxY } = getMaxOffset()
+  cropOffsetX.value = maxX / 2
+  cropOffsetY.value = maxY / 2
+}
+
+function onZoomSlider(percent: number) {
+  const size = getCropSize()
+  const centerX = cropOffsetX.value + size / 2
+  const centerY = cropOffsetY.value + size / 2
+  const oldScale = cropScale.value
+  zoomFactor.value = percent / 100
+  const newScale = cropScale.value
+  const ratio = newScale / oldScale
+  clampOffset(centerX * ratio - size / 2, centerY * ratio - size / 2)
+}
+
+function clampOffset(offsetX: number, offsetY: number) {
+  const { maxX, maxY } = getMaxOffset()
+  cropOffsetX.value = Math.max(0, Math.min(maxX, offsetX))
+  cropOffsetY.value = Math.max(0, Math.min(maxY, offsetY))
+}
+
+function onDragStart(e: MouseEvent) {
+  isDragging.value = true
+  dragStartPos.value = { x: e.clientX, y: e.clientY, startOffsetX: cropOffsetX.value, startOffsetY: cropOffsetY.value }
+  window.addEventListener('mousemove', onDragMove)
+  window.addEventListener('mouseup', onDragEnd)
+}
+
+function onDragMove(e: MouseEvent) {
+  if (!isDragging.value) return
+  clampOffset(
+    dragStartPos.value.startOffsetX - (e.clientX - dragStartPos.value.x),
+    dragStartPos.value.startOffsetY - (e.clientY - dragStartPos.value.y),
+  )
+}
+
+function onDragEnd() {
+  isDragging.value = false
+  window.removeEventListener('mousemove', onDragMove)
+  window.removeEventListener('mouseup', onDragEnd)
+}
+
+function getTouchDist(e: TouchEvent) {
+  const dx = e.touches[0].clientX - e.touches[1].clientX
+  const dy = e.touches[0].clientY - e.touches[1].clientY
+  return Math.sqrt(dx * dx + dy * dy)
+}
+
+function onTouchStart(e: TouchEvent) {
+  if (e.touches.length === 2) {
+    pinchStartDist.value = getTouchDist(e)
+    pinchStartZoom.value = zoomFactor.value
+  } else {
+    const t = e.touches[0]
+    isDragging.value = true
+    dragStartPos.value = { x: t.clientX, y: t.clientY, startOffsetX: cropOffsetX.value, startOffsetY: cropOffsetY.value }
+  }
+  window.addEventListener('touchmove', onTouchMove, { passive: false })
+  window.addEventListener('touchend', onTouchEnd)
+}
+
+function onTouchMove(e: TouchEvent) {
+  e.preventDefault()
+  if (e.touches.length === 2) {
+    const dist = getTouchDist(e)
+    const raw = pinchStartZoom.value * (dist / pinchStartDist.value)
+    onZoomSlider(Math.max(1, Math.min(3, raw)) * 100)
+  } else if (isDragging.value) {
+    const t = e.touches[0]
+    clampOffset(
+      dragStartPos.value.startOffsetX - (t.clientX - dragStartPos.value.x),
+      dragStartPos.value.startOffsetY - (t.clientY - dragStartPos.value.y),
+    )
+  }
+}
+
+function onTouchEnd() {
+  isDragging.value = false
+  window.removeEventListener('touchmove', onTouchMove)
+  window.removeEventListener('touchend', onTouchEnd)
+}
+
+onBeforeUnmount(() => {
+  window.removeEventListener('mousemove', onDragMove)
+  window.removeEventListener('mouseup', onDragEnd)
+  window.removeEventListener('touchmove', onTouchMove)
+  window.removeEventListener('touchend', onTouchEnd)
+})
+
+async function cropToFile(): Promise<File> {
+  const size = getCropSize()
+  const scale = cropScale.value
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')!
+  const img = new Image()
+  img.src = cropPhotoUrl.value!
+  await new Promise(resolve => { img.onload = resolve })
+  ctx.drawImage(
+    img,
+    cropOffsetX.value / scale, cropOffsetY.value / scale,
+    size / scale, size / scale,
+    0, 0, size, size,
+  )
+  return new Promise(resolve => {
+    canvas.toBlob(blob => resolve(new File([blob!], 'avatar.webp', { type: 'image/webp' })), 'image/webp', 0.92)
+  })
+}
+
+async function onFileSelected(file: File | null) {
+  if (!file) return
+  if (cropPhotoUrl.value) URL.revokeObjectURL(cropPhotoUrl.value)
+  try {
+    const webpFile = await convertToWebP(file)
+    cropPhotoUrl.value = URL.createObjectURL(webpFile)
+  } catch {
+    cropPhotoUrl.value = URL.createObjectURL(file)
+  }
+}
+
+function closeCropModal() {
+  if (cropPhotoUrl.value) URL.revokeObjectURL(cropPhotoUrl.value)
+  cropPhotoUrl.value = null
+  cropOffsetX.value = 0
+  cropOffsetY.value = 0
+  zoomFactor.value = 1
+}
+
+function cancelCrop() {
+  closeCropModal()
+  form.profilePicture = null
+}
+
+async function confirmCrop() {
+  const croppedFile = await cropToFile()
+  if (croppedFile.size > MAX_PROFILE_IMAGE_SIZE) {
+    errors.profilePicture = 'Bild darf höchstens 2 MB groß sein.'
+    closeCropModal()
+    return
+  }
+  closeCropModal()
+  form.profilePicture = croppedFile
+  errors.profilePicture = undefined
+
+  // Upload sofort
+  try {
+    uploading.value = true
+    const res = await upload(croppedFile.name, croppedFile, {
+      access: 'public',
+      handleUploadUrl: '/api/blob.upload',
+      multipart: true,
+      ...(csrfToken.value ? { headers: { 'x-csrf-token': csrfToken.value } } : {}),
+    })
+    form.avatarUrl = res.url
+  } catch {
+    errors.profilePicture = 'Upload fehlgeschlagen.'
+  } finally {
+    uploading.value = false
+  }
 }
 
 const sanitizeBasic = (input: string) =>

@@ -3,7 +3,14 @@
     "allow": [
       "Bash(xargs sed -i \"s|''~/prisma/generated/client''|''@@/prisma/generated/client''|g\")",
       "Bash(node -e \":*)",
-      "Bash(xargs grep -l \"move\\\\|scale\\\\|crop\")"
+      "Bash(xargs grep -l \"move\\\\|scale\\\\|crop\")",
+      "Bash(npx prisma:*)",
+      "Bash(DATABASE_URL=\"postgresql://postgres.tfmwfnalqziuswjumkvf:sozXk4kRI6q5ZRum@aws-1-eu-central-1.pooler.supabase.com:5432/postgres?schema=stage\" npx prisma db execute --stdin 2)",
+      "Bash(1:*)",
+      "Bash(PGPASSWORD=\"sozXk4kRI6q5ZRum\" psql \"postgresql://postgres.tfmwfnalqziuswjumkvf@aws-1-eu-central-1.pooler.supabase.com:5432/postgres\" -c 'SELECT id, name, \"\"nameId\"\", email, \"\"createdAt\"\" FROM stage.\"\"User\"\" ORDER BY \"\"createdAt\"\" DESC LIMIT 20;')",
+      "Bash(PGPASSWORD=\"sozXk4kRI6q5ZRum\" psql \"postgresql://postgres.tfmwfnalqziuswjumkvf@aws-1-eu-central-1.pooler.supabase.com:5432/postgres\" -c \"UPDATE stage.\"\"User\"\" SET \"\"emailVerified\"\" = NOW\\(\\) WHERE email = ''ajungwirth@gmx.net'';\")",
+      "Bash(PGPASSWORD=\"sozXk4kRI6q5ZRum\" psql \"postgresql://postgres.tfmwfnalqziuswjumkvf@aws-1-eu-central-1.pooler.supabase.com:5432/postgres\" -c \"UPDATE stage.\"\"User\"\" SET \"\"emailVerified\"\" = TRUE WHERE email = ''ajungwirth@gmx.net'';\")",
+      "Bash(npm install @anthropic-ai/sdk)"
     ]
   }
 }

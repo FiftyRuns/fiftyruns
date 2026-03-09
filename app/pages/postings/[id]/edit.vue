@@ -10,7 +10,7 @@
           <Icon icon="ph:arrow-left-duotone" class="h-5 w-5" />
           Zurück
         </button>
-        <h1 class="text-3xl  font-semibold text-black">Beitrag bearbeiten</h1>
+        <h1 class="text-3xl font-semibold text-black">Beitrag bearbeiten</h1>
       </header>
 
       <div v-if="pending" class="space-y-4">
@@ -23,94 +23,12 @@
         {{ loadError }}
       </div>
 
-      <form v-else class="space-y-6" @submit.prevent="handleSubmit">
-        <div>
-          <label for="post-content" class="mt-2 mb-2 block text-sm font-semibold text-gray-800">Inhalt</label>
-          <textarea
-            id="post-content"
-            v-model="form.content"
-            rows="6"
-            class="w-full resize-y rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-            placeholder="Teile deine Laufmomente..."
-            required
-          ></textarea>
-        </div>
+      <form v-else class="flex flex-col gap-4" @submit.prevent="handleSubmit">
 
-        <div class="grid gap-6 sm:grid-cols-2">
-          <div>
-            <label for="post-visibility" class="mb-2 block text-sm font-semibold text-gray-800">Sichtbarkeit</label>
-            <select
-              id="post-visibility"
-              v-model="form.visibility"
-              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-            >
-              <option value="public">Öffentlich</option>
-              <option value="protected">Community</option>
-              <option value="private">Privat</option>
-            </select>
-          </div>
-
-          <div>
-            <label for="post-image" class="mb-2 block text-sm font-semibold text-gray-800">Bild-URL</label>
-            <input
-              id="post-image"
-              v-model="form.image"
-              type="url"
-              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-              placeholder="https://..."
-            />
-            <p class="mt-1 text-xs text-gray-500">Leerlassen, um das Bild zu entfernen.</p>
-          </div>
-        </div>
-
-        <div class="rounded-2xl border border-gray-100 bg-gray-50/70 p-4">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p class="text-sm font-semibold text-gray-800">Beitragsbild</p>
-              <p class="text-xs text-gray-500">Direkte URL verwenden oder Datei hochladen.</p>
-            </div>
-            <div class="flex items-center gap-2">
-              <span v-if="selectedFileName" class="max-w-[160px] truncate text-xs text-gray-500" :title="selectedFileName">
-                {{ selectedFileName }}
-              </span>
-              <label
-                for="post-image-file"
-                class="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100"
-              >
-                <Icon icon="ph:cloud-arrow-up-duotone" class="h-4 w-4" />
-                Datei wählen
-              </label>
-              <input
-                id="post-image-file"
-                ref="fileInputRef"
-                type="file"
-                accept="image/*"
-                class="sr-only"
-                @change="onFileSelected"
-              />
-            </div>
-          </div>
-
-          <div v-if="currentImageUrl" class="mt-3 overflow-hidden rounded-xl border border-gray-200 bg-white">
-            <img :src="currentImageUrl" alt="Aktuelles Beitragsbild" class="h-48 w-full object-cover" />
-            <div class="flex items-center justify-between gap-3 px-3 py-2 text-xs text-gray-500">
-              <span class="truncate" :title="currentImageUrl">{{ currentImageUrl }}</span>
-              <button
-                type="button"
-                class="inline-flex items-center gap-1 text-[var(--color-primary)] hover:text-red-600"
-                @click="clearImage"
-              >
-                <Icon icon="ph:trash-duotone" class="h-4 w-4" />
-                Entfernen
-              </button>
-            </div>
-          </div>
-          <p v-else class="mt-3 text-xs text-gray-500">Noch kein Bild ausgewählt.</p>
-        </div>
-
-        <div class="grid gap-6 sm:grid-cols-2">
-          <div>
-            <label for="post-distance" class="mb-2 block text-sm font-semibold text-gray-800">
+        <!-- Distanz + Zeit -->
+        <div class="flex gap-3">
+          <div class="flex-1">
+            <label for="post-distance" class="mb-1.5 block text-sm font-medium text-gray-700">
               Distanz (km)
             </label>
             <input
@@ -118,47 +36,144 @@
               v-model="form.distanceKm"
               type="text"
               inputmode="decimal"
-              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-              placeholder="z. B. 5.2"
+              class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+              placeholder="z. B. 8,5"
             />
-            <p class="mt-1 text-xs text-gray-500">Leer lassen, um die Distanz zu entfernen.</p>
           </div>
 
-          <div>
-            <label for="post-duration" class="mb-2 block text-sm font-semibold text-gray-800">
-              Dauer (hh:mm:ss oder mm:ss)
+          <div class="flex-1">
+            <label class="mb-1.5 block text-sm font-medium text-gray-700">Zeit (hh:mm)</label>
+            <div class="flex items-center gap-1.5">
+              <input
+                id="post-hours"
+                v-model="editHours"
+                type="number"
+                min="0"
+                max="23"
+                class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+                placeholder="hh"
+              />
+              <span class="font-medium text-gray-400">:</span>
+              <input
+                id="post-minutes"
+                v-model="editMinutes"
+                type="number"
+                min="0"
+                max="59"
+                class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+                placeholder="mm"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Beschreibung -->
+        <div>
+          <div class="mb-1.5 flex items-center justify-between gap-2">
+            <label for="post-content" class="text-sm font-medium text-gray-700">
+              Beschreibung <span class="font-normal text-gray-400">(optional)</span>
             </label>
+            <button
+              type="button"
+              class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5 px-2.5 py-1 text-xs font-medium text-[var(--color-primary)] transition hover:bg-[var(--color-primary)]/10 disabled:cursor-not-allowed disabled:opacity-50"
+              :disabled="aiLoading"
+              @click="reformulateWithAi"
+            >
+              <svg v-if="!aiLoading" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+              </svg>
+              <svg v-else class="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+              {{ aiLoading ? 'Wird generiert…' : 'Mit KI ausformulieren' }}
+            </button>
+          </div>
+          <textarea
+            id="post-content"
+            v-model="form.content"
+            rows="3"
+            class="w-full resize-none rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            placeholder="Ein Satz zum Lauf …"
+            maxlength="240"
+          ></textarea>
+          <div class="mt-1 text-right text-xs text-gray-400">{{ form.content.length }}/240</div>
+        </div>
+
+        <!-- Foto -->
+        <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50/60 p-3">
+          <label for="post-image-file" class="flex cursor-pointer items-center gap-3">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+              <Icon icon="ph:camera-duotone" class="h-4 w-4" />
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium text-gray-700">
+                {{ selectedFileName ? selectedFileName : (currentImageUrl ? 'Foto ändern' : 'Foto hinzufügen') }}
+              </p>
+              <p class="text-xs text-gray-400">
+                {{ selectedFileName ? 'Klicken zum Ändern' : (currentImageUrl ? 'Aktuelles Bild · Klicken zum Ändern' : 'optional · JPG, PNG, WebP') }}
+              </p>
+            </div>
             <input
-              id="post-duration"
-              v-model="form.duration"
-              type="text"
-              inputmode="numeric"
-              class="w-full rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-black shadow focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
-              placeholder="z. B. 00:27:45"
+              id="post-image-file"
+              ref="fileInputRef"
+              type="file"
+              accept="image/*"
+              class="sr-only"
+              @change="onFileSelected"
             />
-            <p class="mt-1 text-xs text-gray-500">Leer lassen, um die Dauer zu entfernen.</p>
+          </label>
+
+          <div v-if="currentImageUrl" class="mt-3 overflow-hidden rounded-xl border border-gray-200 bg-white">
+            <img :src="currentImageUrl" alt="Beitragsbild" class="h-48 w-full object-cover" />
+            <div class="flex justify-end px-3 py-2">
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
+                @click="clearImage"
+              >
+                <Icon icon="ph:trash-duotone" class="h-4 w-4" />
+                Bild entfernen
+              </button>
+            </div>
           </div>
         </div>
 
-        <div class="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            class="inline-flex items-center gap-2 rounded-2xl bg-[var(--color-primary)] px-6 py-3 text-sm font-semibold text-white shadow hover:bg-[var(--color-primary)]/90 disabled:cursor-not-allowed disabled:opacity-60"
-            :disabled="saving"
-          >
-            <Icon icon="ph:floppy-disk-duotone" class="h-5 w-5" />
-            Speichern
-          </button>
-          <button
-            type="button"
-            class="inline-flex items-center gap-2 rounded-2xl border border-gray-300 px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-100"
-            @click="goBack"
-          >
-            Abbrechen
-          </button>
-          <span v-if="saveError" class="text-sm text-red-600">{{ saveError }}</span>
-          <span v-else-if="saveSuccess" class="text-sm text-green-600">{{ saveSuccess }}</span>
+        <!-- Sichtbarkeit + Aktionen -->
+        <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs font-medium text-gray-500">Sichtbarkeit</label>
+            <select
+              id="post-visibility"
+              v-model="form.visibility"
+              class="h-[38px] rounded-xl border border-gray-200 bg-white px-3 text-sm text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            >
+              <option value="public">Öffentlich</option>
+              <option value="protected">Community</option>
+              <option value="private">Nur ich</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-xl border border-gray-300 px-5 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+              @click="goBack"
+            >
+              Abbrechen
+            </button>
+            <button
+              type="submit"
+              class="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[var(--color-primary)]/90 disabled:cursor-not-allowed disabled:opacity-60"
+              :disabled="saving"
+            >
+              <Icon icon="ph:floppy-disk-duotone" class="h-4 w-4" />
+              Speichern
+            </button>
+          </div>
         </div>
+
+        <p v-if="saveError" class="text-xs text-red-600">{{ saveError }}</p>
+        <p v-else-if="saveSuccess" class="text-xs text-green-600">{{ saveSuccess }}</p>
       </form>
     </div>
   </div>
@@ -191,10 +206,12 @@ const form = reactive({
   visibility: 'protected' as 'public' | 'protected' | 'private',
   image: '',
   distanceKm: '',
-  duration: '',
 })
 
+const editHours = ref('')
+const editMinutes = ref('')
 const saving = ref(false)
+const aiLoading = ref(false)
 const saveError = ref('')
 const saveSuccess = ref('')
 const selectedFile = ref<File | null>(null)
@@ -207,9 +224,7 @@ const { data, pending, error, refresh } = await useAsyncData(
     $fetch<EditPostResponse>(`/api/profile/posts/${postId}`, {
       credentials: 'include',
     }),
-  {
-    server: true,
-  },
+  { server: true },
 )
 
 watch(
@@ -220,7 +235,9 @@ watch(
     form.visibility = value.visibility
     form.image = value.image ?? ''
     form.distanceKm = formatDistanceInput(value.distanceInMeters)
-    form.duration = formatDurationInput(value.durationInSeconds)
+    const { h, m } = parseDurationToHoursMinutes(value.durationInSeconds)
+    editHours.value = h
+    editMinutes.value = m
     resetFileSelection()
   },
   { immediate: true },
@@ -233,15 +250,6 @@ const currentImageUrl = computed(() => {
   return trimmed.length ? trimmed : ''
 })
 const selectedFileName = computed(() => selectedFile.value?.name ?? '')
-
-watch(
-  () => form.image,
-  (value) => {
-    if (!value.trim()) return
-    if (!selectedFile.value && !filePreviewUrl.value) return
-    resetFileSelection()
-  },
-)
 
 function clearImage() {
   form.image = ''
@@ -259,24 +267,18 @@ function resetFileSelection() {
   }
 }
 
-function pad(input: number) {
-  return String(input).padStart(2, '0')
-}
-
 function formatDistanceInput(meters: number | null) {
   if (meters === null || meters === undefined) return ''
-  const km = meters / 1000
-  const fixed = km.toFixed(2)
-  return fixed.replace(/\.?0+$/, '')
+  return (meters / 1000).toFixed(2).replace(/\.?0+$/, '')
 }
 
-function formatDurationInput(seconds: number | null) {
-  if (seconds === null || seconds === undefined) return ''
+function parseDurationToHoursMinutes(seconds: number | null): { h: string; m: string } {
+  if (seconds === null || seconds === undefined) return { h: '', m: '' }
   const total = Math.max(0, Math.floor(seconds))
-  const h = Math.floor(total / 3600)
-  const m = Math.floor((total % 3600) / 60)
-  const s = total % 60
-  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`
+  return {
+    h: String(Math.floor(total / 3600)),
+    m: String(Math.floor((total % 3600) / 60)),
+  }
 }
 
 function parseDistanceToMeters(input: string): number | null {
@@ -289,40 +291,22 @@ function parseDistanceToMeters(input: string): number | null {
   return Math.round(normalized * 1000)
 }
 
-function parseDurationToSeconds(input: string): number | null {
-  const trimmed = input.trim()
-  if (!trimmed) return null
-
-  const m3 = /^(\d{1,2}):([0-5]?\d):([0-5]?\d)$/.exec(trimmed)
-  if (m3) {
-    const h = Number(m3[1])
-    const m = Number(m3[2])
-    const s = Number(m3[3])
-    if (!Number.isInteger(h) || !Number.isInteger(m) || !Number.isInteger(s)) {
-      throw new Error('Dauer darf nur ganze Zahlen ≥ 0 enthalten.')
-    }
-    return h * 3600 + m * 60 + s
+function parseDurationInputToSeconds(): number | null {
+  const h = editHours.value.trim()
+  const m = editMinutes.value.trim()
+  if (!h && !m) return null
+  const hNum = Number(h || '0')
+  const mNum = Number(m || '0')
+  if (!Number.isInteger(hNum) || !Number.isInteger(mNum) || hNum < 0 || hNum > 23 || mNum < 0 || mNum > 59) {
+    throw new Error('Stunden (0–23) und Minuten (0–59) eingeben.')
   }
-
-  const m2 = /^([0-5]?\d):([0-5]?\d)$/.exec(trimmed)
-  if (m2) {
-    const m = Number(m2[1])
-    const s = Number(m2[2])
-    if (!Number.isInteger(m) || !Number.isInteger(s)) {
-      throw new Error('Dauer darf nur ganze Zahlen ≥ 0 enthalten.')
-    }
-    return m * 60 + s
-  }
-
-  throw new Error('Dauer muss im Format hh:mm:ss oder mm:ss angegeben werden.')
+  return hNum * 3600 + mNum * 60
 }
 
 function onFileSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0] ?? null
-
   resetFileSelection()
-
   if (file) {
     selectedFile.value = file
     filePreviewUrl.value = URL.createObjectURL(file)
@@ -330,14 +314,32 @@ function onFileSelected(event: Event) {
   }
 }
 
+async function reformulateWithAi() {
+  aiLoading.value = true
+  try {
+    const h = editHours.value || '0'
+    const m = editMinutes.value || '0'
+    const duration = `${h.padStart(2, '0')}:${m.padStart(2, '0')}`
+    const { text } = await $fetch<{ text: string }>('/api/ai/reformulate', {
+      method: 'POST',
+      body: {
+        text: form.content || '',
+        distanceKm: form.distanceKm || '',
+        duration,
+      },
+      credentials: 'include',
+    })
+    form.content = text
+  } catch {
+    // ignore silently
+  } finally {
+    aiLoading.value = false
+  }
+}
+
 async function handleSubmit() {
   saveError.value = ''
   saveSuccess.value = ''
-
-  if (!form.content.trim()) {
-    saveError.value = 'Inhalt darf nicht leer sein.'
-    return
-  }
 
   const csrf = csrfCookie.value || ''
   if (!csrf) {
@@ -350,14 +352,14 @@ async function handleSubmit() {
 
   try {
     distanceInMeters = parseDistanceToMeters(form.distanceKm)
-    durationInSeconds = parseDurationToSeconds(form.duration)
+    durationInSeconds = parseDurationInputToSeconds()
   } catch (err: any) {
-    saveError.value = err?.message || 'Eingaben für Distanz oder Dauer sind ungültig.'
+    saveError.value = err?.message || 'Eingaben für Distanz oder Zeit sind ungültig.'
     return
   }
 
   if ((distanceInMeters === null) !== (durationInSeconds === null)) {
-    saveError.value = 'Distanz und Dauer müssen gemeinsam gesetzt oder entfernt werden.'
+    saveError.value = 'Distanz und Zeit müssen gemeinsam gesetzt oder entfernt werden.'
     return
   }
 
@@ -401,7 +403,11 @@ async function handleSubmit() {
 }
 
 function goBack() {
-  router.back()
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push(`/postings/${postId}`)
+  }
 }
 
 onBeforeUnmount(() => {

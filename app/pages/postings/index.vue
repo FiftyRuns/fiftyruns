@@ -11,6 +11,17 @@
             Alle öffentlichen und Community-Postings auf einen Blick.
           </p>
         </div>
+        <button
+          v-if="authUser"
+          type="button"
+          class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+          @click="showComposer = true"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Beitrag erstellen
+        </button>
       </header>
 
       <div v-if="error" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -41,13 +52,55 @@
       </section>
     </div>
   </div>
+
+  <!-- Post-Composer Modal -->
+  <Teleport to="body">
+    <div
+      v-if="showComposer"
+      class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 pt-24 backdrop-blur-sm"
+      @click.self="showComposer = false"
+    >
+      <div class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl">
+        <div class="flex items-center justify-between border-b border-black/5 px-6 py-4">
+          <h2 class="text-lg font-semibold text-black">Neuen Beitrag erstellen</h2>
+          <button
+            type="button"
+            class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            @click="showComposer = false"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <ProfilePostComposer
+            :model-value="composerForm"
+            :loading="composerState.loading"
+            :error-message="composerState.error"
+            :success-message="composerState.success"
+            @update:model-value="onComposerUpdate"
+            @submit="handleComposerSubmit"
+            @open-media-library="() => {}"
+          />
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useCommunityFeed } from '@/composables/useCommunityFeed'
+import { useAuthUser } from '@/composables/useAuthUser'
+import { useToast } from '@/composables/useToast'
 import PostingCardFeed from '@/components/cards/PostingCardFeed.vue'
+import ProfilePostComposer from '@/components/profile/ProfilePostComposer.vue'
+import type { PostComposerForm, PostComposerSubmitPayload } from '@/components/profile/ProfilePostComposer.vue'
 import type { ReactionEmoji } from '@/constants/reactions'
+
+const authUser = useAuthUser()
+const { showSuccess, showError } = useToast()
 
 const {
   posts,
@@ -62,13 +115,69 @@ const {
 } = useCommunityFeed()
 
 // Optimized lookup with Map for O(1) access
-const postsMap = computed(() => 
+const postsMap = computed(() =>
   new Map(posts.value?.map(p => [p.id, p]) || [])
 )
 
 onMounted(() => {
   loadFeed()
 })
+
+// ── Composer Modal ────────────────────────────────────────────────────────────
+
+const showComposer = ref(false)
+
+const composerForm = reactive<PostComposerForm>({
+  title: '',
+  content: '',
+  visibility: 'public',
+  distanceKm: '',
+  duration: '',
+  garminActivityId: '',
+  createdAt: new Date().toISOString(),
+})
+
+const composerState = reactive({ loading: false, error: '', success: '' })
+
+function onComposerUpdate(val: PostComposerForm) {
+  Object.assign(composerForm, val)
+}
+
+async function handleComposerSubmit(form: PostComposerSubmitPayload & { imageUrl?: string | null }) {
+  composerState.loading = true
+  composerState.error = ''
+  composerState.success = ''
+  try {
+    if (form.distanceInMeters == null || form.durationInSeconds == null) {
+      throw new Error('Bitte Distanz und Zeit eingeben.')
+    }
+    const csrf = useCookie('csrf_token').value
+    await $fetch('/api/profile/posts', {
+      method: 'POST',
+      headers: { 'x-csrf-token': csrf ?? '' },
+      body: {
+        content: form.content,
+        visibility: form.visibility,
+        image: form.imageUrl ?? null,
+        distanceInMeters: Math.round(form.distanceInMeters),
+        durationInSeconds: Math.round(form.durationInSeconds),
+        garminActivityId: form.garminActivityId || null,
+      },
+      credentials: 'include',
+    })
+    composerForm.title = composerForm.content = composerForm.distanceKm = composerForm.duration = ''
+    showComposer.value = false
+    showSuccess('Beitrag erfolgreich veröffentlicht!')
+    await loadFeed()
+  } catch (err: any) {
+    composerState.error = err?.data?.message || err?.message || 'Fehler beim Speichern.'
+    showError(composerState.error)
+  } finally {
+    composerState.loading = false
+  }
+}
+
+// ── Feed Reactions & Comments ─────────────────────────────────────────────────
 
 async function handleReaction(postId: string, emoji: ReactionEmoji) {
   const post = postsMap.value.get(postId)

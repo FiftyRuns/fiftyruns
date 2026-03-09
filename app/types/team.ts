@@ -117,6 +117,12 @@ export interface TeamDetail {
     role: TeamRole
     roleLabel: string
   }>
+  stats: {
+    totalRuns: number
+    totalDistanceMeters: number
+    totalDurationSeconds: number
+    activeMembers: number
+  }
   viewer: TeamViewerState
 }
 

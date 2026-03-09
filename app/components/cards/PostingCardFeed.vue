@@ -38,15 +38,25 @@
             </span>
           </span>
           <div class="min-w-0 flex-1">
-            <p class="truncate text-sm font-semibold text-black">
+            <p class="truncate text-base font-semibold text-black">
               {{ post.author.name }}
             </p>
-            <p class="text-xs text-gray-500">{{ formattedDate }}</p>
+            <p class="text-sm text-gray-500">{{ formattedDate }}</p>
           </div>
         </NuxtLink>
-        <span class="shrink-0 inline-flex h-7 items-center rounded-full border border-black/10 bg-gray-50 px-2.5 text-[10px] font-medium uppercase tracking-wide text-gray-600">
-          {{ visibilityLabel(post.visibility) }}
-        </span>
+        <div class="flex items-center gap-2">
+          <span class="shrink-0 inline-flex h-7 items-center rounded-full border border-black/10 bg-gray-50 px-2.5 text-xs font-medium uppercase tracking-wide text-gray-600">
+            {{ visibilityLabel(post.visibility) }}
+          </span>
+          <NuxtLink
+            v-if="isOwnPost"
+            :to="`/postings/${post.id}/edit`"
+            class="shrink-0 inline-flex h-7 w-7 items-center justify-center rounded-full text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
+            aria-label="Beitrag bearbeiten"
+          >
+            <Icon icon="ph:pencil-simple-duotone" class="h-3.5 w-3.5" />
+          </NuxtLink>
+        </div>
       </div>
     </template>
 
@@ -69,7 +79,7 @@
 
         <!-- Comments -->
         <details class="group">
-          <summary class="cursor-pointer text-xs font-semibold text-gray-700 hover:text-gray-900 flex items-center justify-between list-none">
+          <summary class="cursor-pointer text-sm font-semibold text-gray-700 hover:text-gray-900 flex items-center justify-between list-none">
             <span>Kommentare ({{ post.comments.length }})</span>
             <Icon icon="ph:caret-down" class="h-3.5 w-3.5 transition-transform group-open:rotate-180" />
           </summary>
@@ -100,7 +110,7 @@
                 </NuxtLink>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center justify-between gap-2">
-                    <div class="flex items-center gap-2 text-[10px] text-gray-500">
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
                       <NuxtLink
                         :to="`/profile/${encodeURIComponent(comment.author.nameId)}`"
                         class="font-medium text-gray-700 hover:text-[var(--color-primary)] truncate"
@@ -132,26 +142,26 @@
                     <textarea
                       v-model="editCommentText"
                       rows="2"
-                      class="w-full rounded-lg border border-gray-300 px-2 py-1 text-xs text-gray-800 focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
+                      class="w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm text-gray-800 focus:border-[var(--color-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)]"
                     ></textarea>
                     <div class="mt-1.5 flex gap-1.5">
                       <button
                         type="button"
                         @click="saveEdit(comment.id)"
-                        class="rounded px-2 py-1 text-[10px] font-semibold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 transition-colors"
+                        class="rounded px-2.5 py-1 text-xs font-semibold text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary)]/90 transition-colors"
                       >
                         Speichern
                       </button>
                       <button
                         type="button"
                         @click="cancelEdit"
-                        class="rounded px-2 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
+                        class="rounded px-2.5 py-1 text-xs font-semibold text-gray-600 hover:bg-gray-100 transition-colors"
                       >
                         Abbrechen
                       </button>
                     </div>
                   </div>
-                  <p v-else class="mt-0.5 whitespace-pre-line text-xs text-gray-700">{{ comment.text }}</p>
+                  <p v-else class="mt-0.5 whitespace-pre-line text-sm text-gray-700">{{ comment.text }}</p>
                 </div>
               </div>
             </div>
@@ -223,6 +233,8 @@ const editingCommentId = ref<string | null>(null)
 const editCommentText = ref('')
 const deletingCommentId = ref<string | null>(null)
 const showDeleteModal = ref(false)
+
+const isOwnPost = computed(() => props.post.author.id === authUser.value?.id)
 
 const isOwnComment = (comment: CommunityPost['comments'][0]) => {
   return comment.author.id === authUser.value?.id

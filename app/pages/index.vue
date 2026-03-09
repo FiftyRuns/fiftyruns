@@ -1,48 +1,42 @@
 <template>
+    <!-- Hero: Full-bleed über gesamten Viewport -->
     <section class="relative min-h-svh">
-        <!-- Hintergrundbild -->
         <div class="absolute inset-0">
             <NuxtImg src="/images/LandingPage_RV.webp" alt="Läufer auf einer Straße in der Natur"
                 class="h-full w-full object-cover" fetchpriority="high" preload format="webp" />
-            <div class="absolute inset-0 bg-black/40" aria-hidden="true"></div>
+            <!-- Gradient: links unten dunkel → rechts oben transparent -->
+            <div class="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/50 to-black/20" aria-hidden="true"></div>
         </div>
 
-        <!-- Hero-Content -->
-        <div class="relative z-10 flex min-h-svh items-center">
-            <div class="container mx-auto px-4">
-                <div class="mx-auto max-w-3xl rounded-3xl bg-white/70 p-6 shadow backdrop-blur sm:p-10">
-                    <h1
-                        class="text-center text-5xl font-extrabold tracking-tight text-[var(--color-primary)] sm:text-left sm:text-6xl">
+        <div class="relative z-10 flex min-h-svh items-end pb-24 sm:items-center sm:pb-0">
+            <div class="container mx-auto px-6">
+                <div class="max-w-2xl">
+                    <p class="mb-4 text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase">
+                        Die Lauf-Challenge
+                    </p>
+                    <h1 class="text-6xl font-black tracking-tight text-white leading-none sm:text-8xl">
                         <span class="sr-only">50runs</span>
-                        #50runs 🚀
+                        #50runs
                     </h1>
-
-                    <p
-                        class="mt-6 text-center text-xl font-medium leading-snug text-[var(--color-primary)] sm:text-left sm:text-2xl">
+                    <p class="mt-6 text-xl font-medium text-white/85 leading-relaxed sm:text-2xl">
                         Mit einer Challenge fit werden<br class="hidden sm:block" />
                         und etwas Gutes tun.
                     </p>
-
-                    <div class="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:items-center">
+                    <div class="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
                         <NuxtLink to="/register"
-                            class="inline-flex items-center rounded-2xl bg-[var(--color-accent)] px-6 py-3 text-base font-semibold text-[var(--color-primary)] shadow transition hover:brightness-95 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-accent)] focus-visible:ring-opacity-50"
+                            class="inline-flex items-center rounded-2xl bg-[var(--color-accent)] px-7 py-3.5 text-base font-bold text-[var(--color-primary)] shadow-lg transition hover:brightness-110 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[var(--color-accent)]/60"
                             aria-label="Jetzt registrieren">
                             Jetzt registrieren
                         </NuxtLink>
-
-                        <!-- Trennlinie in Zweitfarbe -->
-                        <span class="hidden h-6 w-px bg-[rgb(var(--color-accent-rgb)/0.6)] sm:inline-block"
-                            aria-hidden="true"></span>
-
-                        <span
-                            class="text-center text-sm font-medium text-[var(--color-primary)] sm:text-left sm:text-base">
-                            Ab {{ startDate }} geht’s wieder los!
+                        <span class="text-white/70 text-base font-medium">
+                            Ab {{ startDate }} geht's wieder los!
                         </span>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+
     <TextBlock width="wide" align="center" eyebrow="DIE IDEE" title="Mit jeder Einheit etwas Gutes tun"
         lead="Deine Aktivität schafft Mehrwert – für dich und andere.">
         <p>
@@ -58,14 +52,14 @@
         <hr />
     </TextBlock>
 
-    <TextDivider text="#50runs 🏃" :repeat="5" textColor="var(--color-accent)" />
+    <TextDivider text="#50runs" :repeat="5" textColor="var(--color-accent)" />
 
     <TextBlock width="wide" align="center" eyebrow="WIESO 50 LÄUFE?" title="Die Story dahinter"
         lead="Aus einer spontanen Idee wurde eine Bewegung – 50 Runs.">
         <p>
             Auf einem meiner Laufausflüge im Herbst 2013 hatte ich die Idee eine bestimmte Anzahl an Läufen im Winter zu
             schaffen. Einfach um ein wenig Sport zu betreiben.
-            Und irgendwie kam ich von 50 Läufen auf Fifty Shades of Grey und davon wiederum auf Fifty Runs `till May. 😉
+            Und irgendwie kam ich von 50 Läufen auf Fifty Shades of Grey und davon wiederum auf Fifty Runs till May.
             Wiederum bei einem Laufausflug hat mich ein Freund (Danke Stefan!) dann auf die Idee gebracht die 50 Läufe
             unter einen Charity-Stern zu stellen.
             Im {{ season }} starten die 50runs bereits zum {{ numberSeasonsWinter }}. Mal. Eine Sommer Edition gab es
@@ -75,10 +69,10 @@
         <hr />
     </TextBlock>
 
-    <TextDivider text="Mitlaufen? Auf jeden! #GemeinsamStark 💪🏃‍♀️" :repeat="1" textColor="var(--color-primary)" />
+    <TextDivider text="Mitlaufen? Auf jeden! #GemeinsamStark" :repeat="1" textColor="var(--color-primary)" />
 
     <TextBlock width="wide" align="center" eyebrow="BIST DU DABEI?" title="Die Grundidee hinter 50 Runs"
-        lead=" Gemeinsam laufen, motivieren und Gutes tun – Schritt für Schritt zur Challenge.">
+        lead="Gemeinsam laufen, motivieren und Gutes tun – Schritt für Schritt zur Challenge.">
         <p>
             Von {{ startDate }} bis {{ endDate }} versuche ich die 50 Läufe zu schaffen.
             Du machst es mir nach und läufst ebenfalls mindestens 50x.
@@ -87,10 +81,10 @@
         <hr />
     </TextBlock>
 
-    <TextDivider text="#CommunityfeiertEs 🚀" :repeat="1" textColor="var(--color-accent)" />
+    <TextDivider text="#CommunityfeiertEs" :repeat="1" textColor="var(--color-accent)" />
 
-    <TextBlock width="wide" align="center" eyebrow="💬 ECHTE STIMMEN VON 50RUNNERS"
-        title="Erfolgsstories unserer Community 🌟"
+    <TextBlock width="wide" align="center" eyebrow="ECHTE STIMMEN VON 50RUNNERS"
+        title="Erfolgsstories unserer Community"
         lead="Authentische Erfahrungen und echte Begeisterung aus erster Hand.">
     </TextBlock>
 

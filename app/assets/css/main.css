@@ -1,24 +1,48 @@
 @import "tailwindcss";
 
+/* === Inter Font === */
+@import url('https://fonts.bunny.net/css?family=inter:400,500,600,700,800,900&display=swap');
+
 /* === Globale Farbdefinitionen === */
 :root {
-  --color-primary: #01497e;   /* Congress Blue – Hauptfarbe */
+  /* Primary */
+  --color-primary: #01497e;
   --color-primary-rgb: 1 73 126;
-  --color-accent: #a2c92d; /* Akzentfarbe */
+  --color-primary-50: #f0f7ff;
+  --color-primary-100: #dceeff;
+  --color-primary-800: #013d6a;
+  --color-primary-900: #012e4f;
+
+  /* Accent */
+  --color-accent: #a2c92d;
   --color-accent-rgb: 162 201 45;
+  --color-accent-dark: #8aaa25;
+
+  /* Surface */
+  --color-surface: #f5f8fc;
+
+  /* Muted text */
+  --color-muted: #4a6580;
 }
 
 body {
   padding-top: 72px;
+  background-color: var(--color-surface);
 }
 
 html, body {
   color: var(--color-primary);
-  background-color: white;
-  font-family: system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 hr {
   border-color: var(--color-accent);
   border-width: 1px;
+}
+
+button:not(:disabled) {
+  cursor: pointer;
 }

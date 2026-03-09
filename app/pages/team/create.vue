@@ -74,9 +74,25 @@
           </div>
 
           <div>
-            <label for="team-description" class="mb-2 block text-sm font-semibold text-gray-800">
-              Beschreibung / Leitmotiv
-            </label>
+            <div class="mb-2 flex items-center justify-between gap-2">
+              <label for="team-description" class="text-sm font-semibold text-gray-800">
+                Beschreibung / Leitmotiv
+              </label>
+              <button
+                type="button"
+                class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5 px-2.5 py-1 text-xs font-medium text-[var(--color-primary)] transition hover:bg-[var(--color-primary)]/10 disabled:cursor-not-allowed disabled:opacity-50"
+                :disabled="aiLoading"
+                @click="reformulateWithAi"
+              >
+                <svg v-if="!aiLoading" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                </svg>
+                <svg v-else class="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+                {{ aiLoading ? 'Wird generiert…' : 'Mit KI ausformulieren' }}
+              </button>
+            </div>
             <textarea
               id="team-description"
               v-model.trim="form.description"
@@ -98,46 +114,55 @@
           </p>
         </header>
 
-        <div class="grid gap-6 md:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
-          <div>
+        <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50/60 p-3">
+          <label for="cover-file" class="flex cursor-pointer items-center gap-3">
+            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+              <Icon icon="ph:camera-duotone" class="h-4 w-4" />
+            </span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-medium text-gray-700">
+                {{ cover.file ? cover.file.name : (cover.preview ? 'Titelbild ändern' : 'Titelbild hochladen') }}
+              </p>
+              <p class="text-xs text-gray-400">
+                {{ cover.preview ? 'Klicken zum Ändern' : 'optional · JPG, PNG, WebP · max. 8 MB' }}
+              </p>
+            </div>
+            <input
+              id="cover-file"
+              ref="coverInputRef"
+              type="file"
+              accept="image/*"
+              class="sr-only"
+              @change="onCoverSelect"
+            />
+          </label>
+
+          <div v-if="cover.preview" class="mt-3">
             <div
-              class="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-3xl border border-dashed border-black/10 bg-gray-100"
+              class="relative mx-auto aspect-square w-full max-w-sm overflow-hidden rounded-2xl border border-[var(--color-primary)]/30 select-none"
+              :class="cover.isDragging ? 'cursor-grabbing' : 'cursor-grab'"
               @pointerdown="onCoverPointerDown"
               @pointerup="onCoverPointerUp"
               @pointerleave="onCoverPointerUp"
             >
-              <template v-if="cover.preview">
-                <img
-                  ref="coverImageRef"
-                  :src="cover.preview"
-                  alt="Teamcover Vorschau"
-                  class="absolute left-1/2 top-1/2 h-auto w-auto select-none"
-                  draggable="false"
-                  :style="coverImageStyle"
-                />
-                <div
-                  v-if="cover.isDragging"
-                  class="absolute inset-0 bg-black/10"
-                />
-              </template>
-              <div
-                v-else
-                class="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center text-gray-400"
-              >
-                <Icon icon="ph:image-duotone" class="h-10 w-10" />
-                <span class="text-xs">Ein quadratisches Bild (JPEG/PNG) hochladen</span>
-              </div>
-
-              <input
-                ref="coverInputRef"
-                type="file"
-                accept="image/*"
-                class="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                @change="onCoverSelect"
+              <img
+                ref="coverImageRef"
+                :src="cover.preview"
+                alt="Teamcover Vorschau"
+                class="absolute left-1/2 top-1/2 h-auto w-auto select-none pointer-events-none"
+                draggable="false"
+                :style="coverImageStyle"
               />
+              <div v-if="cover.isDragging" class="absolute inset-0 bg-black/10" />
+              <div class="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-black/50 px-3 py-1 text-xs text-white backdrop-blur-sm pointer-events-none whitespace-nowrap">
+                Ziehen zum Positionieren
+              </div>
             </div>
-            <div v-if="cover.preview" class="mt-4 flex flex-col gap-2">
-              <label for="cover-zoom" class="text-xs font-medium text-gray-600">Zoom</label>
+
+            <div class="mt-2 flex items-center gap-3 px-1">
+              <svg class="h-3.5 w-3.5 shrink-0 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/>
+              </svg>
               <input
                 id="cover-zoom"
                 v-model.number="cover.zoom"
@@ -145,31 +170,23 @@
                 min="1"
                 max="3"
                 step="0.01"
-                class="w-full accent-[var(--color-primary)]"
+                class="w-full h-1.5 rounded-full accent-[var(--color-primary)] cursor-pointer"
               />
-              <p class="text-xs text-gray-500">Ziehe das Bild im Ausschnitt, um es zu positionieren.</p>
-              <button type="button" class="self-start text-xs text-red-500 underline-offset-2 hover:underline" @click="resetCover">
+              <svg class="h-4 w-4 shrink-0 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35M11 8v6M8 11h6"/>
+              </svg>
+            </div>
+
+            <div class="mt-2 flex justify-end">
+              <button
+                type="button"
+                class="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700"
+                @click="resetCover"
+              >
+                <Icon icon="ph:trash-duotone" class="h-4 w-4" />
                 Bild entfernen
               </button>
             </div>
-          </div>
-
-          <div class="space-y-4 rounded-2xl border border-black/5 bg-white/70 p-5 text-sm text-gray-600">
-            <p class="font-semibold text-black">Tipps für ein gutes Cover</p>
-            <ul class="space-y-2 text-xs text-gray-600">
-              <li class="flex items-start gap-2">
-                <Icon icon="ph:check-circle-duotone" class="mt-0.5 h-4 w-4 text-[var(--color-primary)]" />
-                Quadratisches Motiv mit klaren Farben wählen.
-              </li>
-              <li class="flex items-start gap-2">
-                <Icon icon="ph:check-circle-duotone" class="mt-0.5 h-4 w-4 text-[var(--color-primary)]" />
-                Logos oder Grafiken mittig platzieren.
-              </li>
-              <li class="flex items-start gap-2">
-                <Icon icon="ph:check-circle-duotone" class="mt-0.5 h-4 w-4 text-[var(--color-primary)]" />
-                Max. 8 MB, Formate: JPG, PNG, WebP, AVIF.
-              </li>
-            </ul>
           </div>
         </div>
       </section>
@@ -524,6 +541,23 @@ const { showSuccess, showError } = useToast()
 const currentStep = ref(0)
 const stepError = ref('')
 const isSubmitting = ref(false)
+const aiLoading = ref(false)
+
+async function reformulateWithAi() {
+  aiLoading.value = true
+  try {
+    const { text } = await $fetch<{ text: string }>('/api/ai/team-description', {
+      method: 'POST',
+      body: { name: form.name, text: form.description },
+      credentials: 'include',
+    })
+    form.description = text
+  } catch {
+    // ignore silently
+  } finally {
+    aiLoading.value = false
+  }
+}
 
 const form = reactive({
   name: '',

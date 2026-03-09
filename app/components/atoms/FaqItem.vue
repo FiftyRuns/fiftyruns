@@ -1,7 +1,7 @@
 <template>
   <div class="border border-[var(--color-accent)] rounded-2xl bg-white/80 shadow-sm backdrop-blur-sm">
     <button @click="isOpen = !isOpen"
-      class="w-full text-left px-6 py-5 flex justify-between items-center font-semibold text-[var(--color-primary)] hover:bg-[rgb(var(--color-accent-rgb)/0.15)] transition-colors rounded-2xl focus:outline-none"
+      class="w-full text-left px-6 py-5 flex justify-between items-center text-base sm:text-lg font-semibold text-[var(--color-primary)] hover:bg-[rgb(var(--color-accent-rgb)/0.15)] transition-colors rounded-2xl focus:outline-none"
       :aria-expanded="isOpen">
       <span>{{ question }}</span>
       <svg :class="['w-6 h-6 transition-transform', isOpen ? 'rotate-180' : 'rotate-0']" fill="none"

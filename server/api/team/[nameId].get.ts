@@ -135,6 +135,24 @@ export default eventHandler(async (event) => {
     roleLabel: user.groupRole === 'ADMIN' ? 'Admin' : 'Mitglied',
   }))
 
+  const memberIds = group.users.map((u) => u.id)
+  const [statsAgg, activeMembersCount] = await Promise.all([
+    prisma.runningStatistic.aggregate({
+      where: { userId: { in: memberIds } },
+      _sum: { numberOfRuns: true, distanceInMeters: true, durationInSeconds: true },
+    }),
+    prisma.runningStatistic.count({
+      where: { userId: { in: memberIds }, numberOfRuns: { gt: 0 } },
+    }),
+  ])
+
+  const stats = {
+    totalRuns: statsAgg._sum.numberOfRuns ?? 0,
+    totalDistanceMeters: statsAgg._sum.distanceInMeters ?? 0,
+    totalDurationSeconds: statsAgg._sum.durationInSeconds ?? 0,
+    activeMembers: activeMembersCount,
+  }
+
   return {
     team: {
       id: group.id,
@@ -157,6 +175,7 @@ export default eventHandler(async (event) => {
           }
         : null,
       members,
+      stats,
       viewer: viewerState,
     },
   }

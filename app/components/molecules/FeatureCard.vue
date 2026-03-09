@@ -4,7 +4,7 @@
       <Icon :icon="icon" class="size-5" />
     </div>
     <h3 class="text-base font-semibold text-black">{{ title }}</h3>
-    <p class="text-sm text-gray-600 leading-relaxed">
+    <p class="text-base text-gray-600 leading-relaxed">
       {{ description }}
     </p>
   </div>
