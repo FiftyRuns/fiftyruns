@@ -1,5 +1,5 @@
-import { ActivitySource, Prisma, Visibility } from '@prisma/client'
-import type { GarminWebhookEvent as PrismaGarminEvent } from '@prisma/client'
+import { ActivitySource, Prisma, Visibility } from '@@/prisma/generated/client'
+import type { GarminWebhookEvent as PrismaGarminEvent } from '@@/prisma/generated/client'
 import { prisma } from './prisma'
 import {
   GARMIN_RUNNING_ACTIVITY_TYPES,

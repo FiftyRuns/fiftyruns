@@ -1,5 +1,5 @@
 <template>
-  <ProfilePanel title="Passwort aktualisieren" description="Wähle ein starkes Passwort, um dein Konto zu schützen.">
+  <ProfilePanel title="Passwort aktualisieren" description="Wähle ein starkes Passwort, um dein Konto zu schützen." :collapsible="props.collapsible" :default-open="props.defaultOpen">
     <form class="space-y-5" @submit.prevent="onSubmit">
       <InputField
         id="password-current"
@@ -113,6 +113,8 @@ const props = withDefaults(
     loading?: boolean
     errorMessage?: string
     successMessage?: string
+    collapsible?: boolean
+    defaultOpen?: boolean
   }>(),
   {
     loading: false,

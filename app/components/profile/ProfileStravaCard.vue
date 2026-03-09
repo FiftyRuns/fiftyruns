@@ -3,6 +3,8 @@
     id="strava-integration"
     title="Strava verbinden"
     description="Synchronisiere deine Aktivitäten automatisch und halte dein Laufprofil aktuell."
+    :collapsible="props.collapsible"
+    :default-open="props.defaultOpen"
   >
     <div class="space-y-4">
       <div
@@ -87,13 +89,15 @@ type StravaIntegration = {
   deauthorizedAt: string | null
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   integration: StravaIntegration
   state: {
     loading: boolean
     error: string
   }
-}>()
+  collapsible?: boolean
+  defaultOpen?: boolean
+}>(), {})
 
 defineEmits<{
   (e: 'connect'): void

@@ -2,6 +2,8 @@
   <ProfilePanel
     title="Garmin verbinden"
     description="Synchronisiere deine Aktivitäten automatisch von deiner Garmin-Uhr und halte dein Laufprofil aktuell."
+    :collapsible="props.collapsible"
+    :default-open="props.defaultOpen"
   >
     <div class="space-y-4">
       <div
@@ -79,13 +81,15 @@ type GarminIntegration = {
   tokenExpiresAt: string | null
 }
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   integration: GarminIntegration
   state: {
     loading: boolean
     error: string
   }
-}>()
+  collapsible?: boolean
+  defaultOpen?: boolean
+}>(), {})
 
 defineEmits<{
   (e: 'connect'): void

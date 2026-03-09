@@ -1,4 +1,4 @@
-import type { Prisma, ChallengeGoalType } from '@prisma/client'
+import type { Prisma, ChallengeGoalType } from '@@/prisma/generated/client'
 
 type TransactionClient = Prisma.TransactionClient
 

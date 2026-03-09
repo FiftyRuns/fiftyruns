@@ -1,5 +1,5 @@
 <template>
-  <ProfilePanel title="Persönliche Einstellungen" description="Passe deine öffentlichen Profilinformationen an.">
+  <ProfilePanel title="Persönliche Einstellungen" description="Passe deine öffentlichen Profilinformationen an." :collapsible="props.collapsible" :default-open="props.defaultOpen">
     <form class="space-y-6" @submit.prevent="onSubmit">
       <div class="grid gap-5 md:grid-cols-2">
         <InputField
@@ -89,6 +89,8 @@ const props = withDefaults(
     loading?: boolean
     successMessage?: string
     errorMessage?: string
+    collapsible?: boolean
+    defaultOpen?: boolean
   }>(),
   { loading: false, successMessage: '', errorMessage: '' },
 )

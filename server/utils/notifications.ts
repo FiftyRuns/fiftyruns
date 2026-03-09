@@ -1,5 +1,5 @@
-import { NotificationActionType, NotificationCategory, PrismaClient } from '@prisma/client'
-import type { Prisma as PrismaNamespace } from '@prisma/client'
+import { NotificationActionType, NotificationCategory, PrismaClient } from '@@/prisma/generated/client'
+import type { Prisma as PrismaNamespace } from '@@/prisma/generated/client'
 import { prisma } from './prisma'
 
 type PrismaClientOrTransaction = PrismaClient | PrismaNamespace.TransactionClient
