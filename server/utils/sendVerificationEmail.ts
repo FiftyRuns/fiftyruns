@@ -14,7 +14,7 @@ export async function sendVerificationEmail({ to, token }: { to: string; token: 
   }
 
   const resend = new Resend(process.env.RESEND_API_KEY)
-  const publicOrigin = process.env.PUBLIC_ORIGIN || 'https://50runs.app'
+  const publicOrigin = process.env.PUBLIC_ORIGIN || 'https://50runs.com'
   const link = `${publicOrigin.replace(/\/$/, '')}/api/auth/verify?token=${token}`
 
   const html = `
@@ -50,7 +50,7 @@ export async function sendVerificationEmail({ to, token }: { to: string; token: 
       <div class="wrapper">
         <div class="container">
           <div class="header">
-            <img src="https://50runs.app/images/50runs_Logo.webp" alt="50Runs Logo" />
+            <img src="https://50runs.com/images/50runs_Logo.webp" alt="50Runs Logo" />
             <h1>Willkommen bei 50Runs!</h1>
           </div>
           <div class="content">
@@ -75,7 +75,7 @@ export async function sendVerificationEmail({ to, token }: { to: string; token: 
   `
 
   await resend.emails.send({
-    from: '50Runs <onboarding@resend.dev>',
+    from: '50Runs <noreply@50runs.com>',
     to,
     subject: 'Bitte bestätige deine E-Mail-Adresse',
     html,

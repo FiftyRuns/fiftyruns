@@ -2,7 +2,7 @@ import { Resend } from 'resend'
 
 
 
-const FROM_ADDRESS = '50Runs Team <team-invite@resend.dev>'
+const FROM_ADDRESS = '50Runs Team <team@50runs.com>'
 const PRIMARY_COLOR = '#FF5F5F'
 const ACCENT_COLOR = '#4352FF'
 const BODY_BG = '#F7F8FC'
@@ -24,7 +24,7 @@ export async function sendTeamInviteEmail(payload: TeamInviteMailPayload) {
 
   const resend = new Resend(process.env.RESEND_API_KEY)
 
-  const publicOrigin = process.env.PUBLIC_ORIGIN || 'https://50runs.app'
+  const publicOrigin = process.env.PUBLIC_ORIGIN || 'https://50runs.com'
   const inviteUrl = `${publicOrigin.replace(/\/$/, '')}/team/invite/${payload.token}`
 
   const noteBlock = payload.note

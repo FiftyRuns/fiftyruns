@@ -41,7 +41,7 @@ export default defineNuxtConfig({
     '/api/**': {
       cors: true,
       headers: {
-        'Access-Control-Allow-Origin': process.env.PUBLIC_ORIGIN || 'https://50runs.app',
+        'Access-Control-Allow-Origin': process.env.PUBLIC_ORIGIN || 'https://50runs.com',
         'Access-Control-Allow-Credentials': 'true',
       }
     }
