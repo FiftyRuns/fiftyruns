@@ -4,7 +4,7 @@ const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.blob.vercel-storage.com https://50runs.app",
+  "img-src 'self' data: blob: https://*.blob.vercel-storage.com https://50runs.com",
   "font-src 'self'",
   "connect-src 'self' https://vercel.com https://*.vercel-storage.com",
   "frame-ancestors 'none'",
