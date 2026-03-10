@@ -18,6 +18,7 @@ type UpdatePostBody = {
   image?: string | null
   distanceInMeters?: number | null
   durationInSeconds?: number | null
+  createdAt?: string
 }
 
 export default eventHandler(async (event) => {
@@ -59,7 +60,7 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'Beitrag nicht gefunden.' })
   }
 
-  const updateData: { text?: string; visibility?: 'public' | 'protected' | 'private'; image?: string | null } = {}
+  const updateData: { text?: string; visibility?: 'public' | 'protected' | 'private'; image?: string | null; date?: Date } = {}
 
   if (typeof body.content === 'string') {
     const trimmed = body.content.trim()
@@ -74,6 +75,12 @@ export default eventHandler(async (event) => {
       throw createError({ statusCode: 400, message: 'Ungültige Sichtbarkeit.' })
     }
     updateData.visibility = body.visibility ?? 'protected'
+  }
+
+  if (body.createdAt) {
+    const d = new Date(body.createdAt)
+    if (isNaN(d.getTime())) throw createError({ statusCode: 400, message: 'Ungültiges Datum.' })
+    updateData.date = d
   }
 
   if ('image' in body) {

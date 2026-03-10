@@ -2,8 +2,15 @@
     <!-- Hero: Full-bleed über gesamten Viewport -->
     <section class="relative min-h-svh">
         <div class="absolute inset-0">
-            <NuxtImg src="/images/LandingPage_RV.webp" alt="Läufer auf einer Straße in der Natur"
-                class="h-full w-full object-cover" fetchpriority="high" preload format="webp" />
+            <video
+                autoplay muted loop playsinline
+                poster="/images/LandingPage_RV.webp"
+                class="h-full w-full object-cover"
+                aria-hidden="true"
+            >
+                <source src="/videos/hero.webm" type="video/webm" />
+                <source src="/videos/hero.mp4" type="video/mp4" />
+            </video>
             <!-- Gradient: links unten dunkel → rechts oben transparent -->
             <div class="absolute inset-0 bg-gradient-to-tr from-black/80 via-black/50 to-black/20" aria-hidden="true"></div>
         </div>
@@ -12,7 +19,7 @@
             <div class="container mx-auto px-6">
                 <div class="max-w-2xl">
                     <p class="mb-4 text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase">
-                        Die Lauf-Challenge
+                        Die Laufchallenge
                     </p>
                     <h1 class="text-6xl font-black tracking-tight text-white leading-none sm:text-8xl">
                         <span class="sr-only">50runs</span>
@@ -132,7 +139,7 @@ const TextDivider = defineAsyncComponent(() => import('../components/atoms/TextD
  * - Farben: Primär (Schrift) var(--color-primary), Sekundär (Trennlinien/Buttons) var(--color-accent)
  */
 
-const startDate = '15. Oktober 2025';
+const startDate = '15. Mai 2026';
 const endDate = '30. April 2026';
 const season = 'Herbst 2025';
 const numberSeasonsWinter = 13;

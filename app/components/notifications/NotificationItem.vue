@@ -42,21 +42,21 @@
             <span :class="['inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold', categoryColor]">
               {{ categoryLabel }}
             </span>
-            <p class="text-sm font-semibold text-black">{{ notification.title }}</p>
-            <p class="text-sm text-gray-600">{{ notification.message }}</p>
+            <p class="text-base font-semibold text-black">{{ notification.title }}</p>
+            <p class="text-base text-gray-600">{{ notification.message }}</p>
           </div>
-          <span class="shrink-0 text-xs font-medium text-gray-400">{{ relativeTime }}</span>
+          <span class="shrink-0 text-sm font-medium text-gray-400">{{ relativeTime }}</span>
         </div>
 
-        <p v-if="postingPreview" class="mt-2 rounded-xl bg-gray-50 px-3 py-2 text-xs text-gray-500">
+        <p v-if="postingPreview" class="mt-2 rounded-xl bg-gray-50 px-3 py-2 text-sm text-gray-500">
           {{ postingPreview }}
         </p>
 
-        <p v-if="commentPreview" class="mt-2 rounded-xl bg-[var(--color-primary)]/5 px-3 py-2 text-xs italic text-[var(--color-primary)]">
+        <p v-if="commentPreview" class="mt-2 rounded-xl bg-[var(--color-primary)]/5 px-3 py-2 text-sm italic text-[var(--color-primary)]">
           „{{ commentPreview }}"
         </p>
 
-        <div v-if="hasRunStats" class="mt-2 flex flex-wrap gap-3 text-xs text-gray-600">
+        <div v-if="hasRunStats" class="mt-2 flex flex-wrap gap-3 text-sm text-gray-600">
           <span v-if="distanceLabel">
             Distanz: <span class="font-semibold text-black">{{ distanceLabel }}</span>
           </span>
@@ -69,20 +69,20 @@
           <p class="text-sm font-semibold text-black">
             {{ joinRequestPayload?.requester?.name }} möchte dem Team {{ joinRequestPayload?.group?.name }} beitreten.
           </p>
-          <p v-if="joinRequestPayload?.message" class="rounded-lg bg-white/80 px-3 py-2 text-xs text-gray-700">
+          <p v-if="joinRequestPayload?.message" class="rounded-lg bg-white/80 px-3 py-2 text-sm text-gray-700">
             „{{ joinRequestPayload.message }}"
           </p>
           <div class="flex flex-wrap gap-2">
             <button
               type="button"
-              class="inline-flex items-center justify-center rounded-lg border border-black/10 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-black/5"
+              class="inline-flex items-center justify-center rounded-lg border border-black/10 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-black/5"
               @click="emit('decline', joinRequestPayload)"
             >
               Ablehnen
             </button>
             <button
               type="button"
-              class="inline-flex items-center justify-center rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-white hover:bg-[var(--color-primary)]/90"
+              class="inline-flex items-center justify-center rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[var(--color-primary)]/90"
               @click="emit('approve', joinRequestPayload)"
             >
               Bestätigen
@@ -90,13 +90,13 @@
           </div>
         </div>
 
-        <p v-else-if="joinRequestPayload" class="mt-2 text-xs text-gray-500">
+        <p v-else-if="joinRequestPayload" class="mt-2 text-sm text-gray-500">
           Anfrage-Status:
           <span class="font-semibold text-black">{{ joinRequestStatusLabel }}</span>
           <span v-if="joinRequestPayload.decidedAt"> — {{ formatDate(joinRequestPayload.decidedAt) }}</span>
         </p>
 
-        <div class="mt-3 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+        <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-500">
           <button
             v-if="!notification.isRead"
             type="button"
@@ -214,11 +214,11 @@ function formatTimeAgo(iso: string) {
   if (hours < 24) return `${hours} Std.`
   const days = Math.round(hours / 24)
   if (days < 7) return `${days} T.`
-  return date.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })
+  return date.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
 }
 
 function formatDate(iso?: string) {
   if (!iso) return ''
-  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' })
+  return new Date(iso).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })
 }
 </script>

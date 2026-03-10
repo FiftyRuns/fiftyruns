@@ -30,35 +30,81 @@
 
         <!-- Zeit -->
         <div class="flex-1">
-          <label class="mb-1.5 block text-sm font-medium text-gray-700">Zeit (hh:mm)</label>
+          <label class="mb-1.5 block text-sm font-medium text-gray-700">Zeit (hh:mm:ss)</label>
           <div class="flex items-center gap-1.5">
             <input
               id="post-hours"
-              type="number"
-              min="0"
-              max="23"
+              ref="hoursRef"
+              type="text"
+              inputmode="numeric"
+              maxlength="2"
               :value="hours"
               class="w-full rounded-xl border bg-white px-3 py-2.5 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
               :class="timeTouched && timeError ? 'border-red-400' : 'border-gray-200'"
               placeholder="hh"
-              @input="updateHours(($event.target as HTMLInputElement).value)"
+              @input="onTimeInput('h', $event)"
             />
             <span class="text-gray-400 font-medium">:</span>
             <input
               id="post-minutes"
-              type="number"
-              min="0"
-              max="59"
+              ref="minutesRef"
+              type="text"
+              inputmode="numeric"
+              maxlength="2"
               :value="minutes"
               class="w-full rounded-xl border bg-white px-3 py-2.5 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
               :class="timeTouched && timeError ? 'border-red-400' : 'border-gray-200'"
               placeholder="mm"
-              @input="updateMinutes(($event.target as HTMLInputElement).value)"
+              @input="onTimeInput('m', $event)"
+            />
+            <span class="text-gray-400 font-medium">:</span>
+            <input
+              id="post-seconds"
+              ref="secondsRef"
+              type="text"
+              inputmode="numeric"
+              maxlength="2"
+              :value="seconds"
+              class="w-full rounded-xl border bg-white px-3 py-2.5 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+              :class="timeTouched && timeError ? 'border-red-400' : 'border-gray-200'"
+              placeholder="ss"
+              @input="onTimeInput('s', $event)"
             />
           </div>
           <p v-if="timeTouched && timeError" class="mt-1 text-xs text-red-600">
-            Stunden (0–23) und Minuten (0–59) eingeben.
+            Stunden (0–23), Minuten (0–59) und Sekunden (0–59) eingeben.
           </p>
+        </div>
+      </div>
+
+      <!-- Datum & Uhrzeit -->
+      <div>
+        <label class="mb-1.5 block text-sm font-medium text-gray-700">Datum & Uhrzeit</label>
+        <div class="flex items-center gap-1.5">
+          <!-- TT -->
+          <input ref="dateRef" type="text" inputmode="numeric" maxlength="2" :value="dtParts.day" placeholder="TT"
+            class="w-12 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            @input="onDatePartInput('day', $event)" />
+          <span class="text-gray-400 font-medium">.</span>
+          <!-- MM -->
+          <input ref="monthRef" type="text" inputmode="numeric" maxlength="2" :value="dtParts.month" placeholder="MM"
+            class="w-12 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            @input="onDatePartInput('month', $event)" />
+          <span class="text-gray-400 font-medium">.</span>
+          <!-- JJJJ -->
+          <input ref="yearRef" type="text" inputmode="numeric" maxlength="4" :value="dtParts.year" placeholder="JJJJ"
+            class="w-20 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            @input="onDatePartInput('year', $event)" />
+          <span class="text-gray-400 font-medium px-1">–</span>
+          <!-- HH -->
+          <input ref="dtHoursRef" type="text" inputmode="numeric" maxlength="2" :value="dtParts.hours" placeholder="hh"
+            class="w-12 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            @input="onDatePartInput('dth', $event)" />
+          <span class="text-gray-400 font-medium">:</span>
+          <!-- MM -->
+          <input ref="dtMinutesRef" type="text" inputmode="numeric" maxlength="2" :value="dtParts.minutes" placeholder="mm"
+            class="w-12 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            @input="onDatePartInput('dtm', $event)" />
         </div>
       </div>
 
@@ -442,31 +488,45 @@ const distanceError = computed(() => {
 /** Zeit **/
 const hours = ref('')
 const minutes = ref('')
+const seconds = ref('')
+const hoursRef = ref<HTMLInputElement | null>(null)
+const minutesRef = ref<HTMLInputElement | null>(null)
+const secondsRef = ref<HTMLInputElement | null>(null)
 
-function updateHours(v: string) {
+function onTimeInput(field: 'h' | 'm' | 's', event: Event) {
+  const input = event.target as HTMLInputElement
+  const raw = input.value.replace(/\D/g, '').slice(0, 2)
+  input.value = raw
   timeTouched.value = true
-  hours.value = v
-  updateField('duration', `${(v || '0').padStart(2, '0')}:${(minutes.value || '0').padStart(2, '0')}`)
-}
 
-function updateMinutes(v: string) {
-  timeTouched.value = true
-  minutes.value = v
-  updateField('duration', `${(hours.value || '0').padStart(2, '0')}:${(v || '0').padStart(2, '0')}`)
+  if (field === 'h') {
+    hours.value = raw
+    updateField('duration', `${(raw || '0').padStart(2, '0')}:${(minutes.value || '0').padStart(2, '0')}:${(seconds.value || '0').padStart(2, '0')}`)
+    if (raw.length === 2) minutesRef.value?.focus()
+  } else if (field === 'm') {
+    minutes.value = raw
+    updateField('duration', `${(hours.value || '0').padStart(2, '0')}:${(raw || '0').padStart(2, '0')}:${(seconds.value || '0').padStart(2, '0')}`)
+    if (raw.length === 2) secondsRef.value?.focus()
+  } else {
+    seconds.value = raw
+    updateField('duration', `${(hours.value || '0').padStart(2, '0')}:${(minutes.value || '0').padStart(2, '0')}:${(raw || '0').padStart(2, '0')}`)
+  }
 }
 
 const timeError = computed(() => {
-  // Pflichtfelder → beide müssen gesetzt und gültig sein
-  if (hours.value === '' || minutes.value === '') return true
-  const h = Number(hours.value)
-  const m = Number(minutes.value)
+  const h = Number(hours.value || 0)
+  const m = Number(minutes.value || 0)
+  const s = Number(seconds.value || 0)
   return (
     !Number.isFinite(h) ||
     !Number.isFinite(m) ||
+    !Number.isFinite(s) ||
     h < 0 ||
     h > 23 ||
     m < 0 ||
-    m > 59
+    m > 59 ||
+    s < 0 ||
+    s > 59
   )
 })
 
@@ -481,9 +541,10 @@ const normalizedDistanceMeters = computed<number | null>(() => {
 
 const normalizedDurationSeconds = computed<number | null>(() => {
   if (timeError.value) return null
-  const h = Number(hours.value)
-  const m = Number(minutes.value)
-  return h * 3600 + m * 60
+  const h = Number(hours.value || 0)
+  const m = Number(minutes.value || 0)
+  const s = Number(seconds.value || 0)
+  return h * 3600 + m * 60 + s
 })
 
 /** Validierung & Submit **/
@@ -500,6 +561,48 @@ function formatSeconds(total: number) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
 }
 
+
+/** Datum & Zeit Felder **/
+const dateRef = ref<HTMLInputElement | null>(null)
+const monthRef = ref<HTMLInputElement | null>(null)
+const yearRef = ref<HTMLInputElement | null>(null)
+const dtHoursRef = ref<HTMLInputElement | null>(null)
+const dtMinutesRef = ref<HTMLInputElement | null>(null)
+
+function localParts(iso?: string) {
+  const d = iso ? new Date(iso) : new Date()
+  return {
+    day: String(d.getDate()).padStart(2, '0'),
+    month: String(d.getMonth() + 1).padStart(2, '0'),
+    year: String(d.getFullYear()),
+    hours: String(d.getHours()).padStart(2, '0'),
+    minutes: String(d.getMinutes()).padStart(2, '0'),
+  }
+}
+
+const dtParts = computed(() => localParts(form.value.createdAt))
+
+function onDatePartInput(field: 'day' | 'month' | 'year' | 'dth' | 'dtm', event: Event) {
+  const input = event.target as HTMLInputElement
+  const maxLen = field === 'year' ? 4 : 2
+  const raw = input.value.replace(/\D/g, '').slice(0, maxLen)
+  input.value = raw
+
+  const p = dtParts.value
+  let day = p.day, month = p.month, year = p.year, hours = p.hours, minutes = p.minutes
+
+  if (field === 'day') { day = raw; if (raw.length === 2) monthRef.value?.focus() }
+  else if (field === 'month') { month = raw; if (raw.length === 2) yearRef.value?.focus() }
+  else if (field === 'year') { year = raw; if (raw.length === 4) dtHoursRef.value?.focus() }
+  else if (field === 'dth') { hours = raw; if (raw.length === 2) dtMinutesRef.value?.focus() }
+  else if (field === 'dtm') { minutes = raw }
+
+  if (day.length === 2 && month.length === 2 && year.length === 4 && hours.length === 2 && minutes.length === 2) {
+    const iso = `${year}-${month}-${day}T${hours}:${minutes}:00`
+    const d = new Date(iso)
+    if (!isNaN(d.getTime())) updateField('createdAt', d.toISOString())
+  }
+}
 
 async function reformulateWithAi() {
   aiLoading.value = true

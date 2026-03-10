@@ -309,7 +309,7 @@ function hasRunData(post: PublicProfileResponse['posts'][number]) {
 }
 
 function formatDate(value: string) {
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value))
+  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value))
 }
 
 function visibilityLabel(visibility: Visibility) {

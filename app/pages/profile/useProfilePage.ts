@@ -503,16 +503,18 @@ export function useProfilePage() {
         body: {
           content: form.content,
           visibility: form.visibility,
-          image: form.imageUrl ?? null,               
+          image: form.imageUrl ?? null,
           distanceInMeters: Math.round(form.distanceInMeters),
           durationInSeconds: Math.round(form.durationInSeconds),
           garminActivityId: form.garminActivityId || null,
+          createdAt: form.createdAt || new Date().toISOString(),
         },
         credentials: 'include',
       })
       await Promise.all([loadPosts(), loadOverview()])
       showSuccess('Beitrag erfolgreich veröffentlicht!')
       postComposerForm.title = postComposerForm.content = postComposerForm.distanceKm = postComposerForm.duration = ''
+      postComposerForm.createdAt = new Date().toISOString()
     } catch (err: any) {
       if (process.dev) {
         console.error('[useProfilePage] Post submit failed', err)

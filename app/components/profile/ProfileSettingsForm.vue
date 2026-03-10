@@ -104,7 +104,7 @@ const form = computed(() => props.modelValue)
 
 const lastUpdated = computed(() => {
   const date = new Date(form.value.updatedAt)
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(date)
+  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(date)
 })
 
 function updateField<Key extends keyof ProfileSettings>(key: Key, value: ProfileSettings[Key]) {

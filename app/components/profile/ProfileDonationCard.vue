@@ -91,7 +91,7 @@ const donationOptions = [
 ]
 
 const lastUpdated = computed(() =>
-  new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
+  new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     .format(new Date(props.modelValue.updatedAt))
 )
 </script>

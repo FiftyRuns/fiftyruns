@@ -34,12 +34,12 @@
       >
         <header class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div>
-            <p class="text-sm font-semibold text-black">Benachrichtigungen</p>
-            <p class="text-xs text-gray-500">Bleib über Team &amp; Community auf dem Laufenden.</p>
+            <p class="text-base font-semibold text-black">Benachrichtigungen</p>
+            <p class="text-sm text-gray-500">Bleib über Team &amp; Community auf dem Laufenden.</p>
           </div>
           <button
             type="button"
-            class="self-start text-xs font-semibold text-[var(--color-primary)] hover:opacity-80 disabled:pointer-events-none disabled:text-gray-300 sm:self-auto"
+            class="self-start text-sm font-semibold text-[var(--color-primary)] hover:opacity-80 disabled:pointer-events-none disabled:text-gray-300 sm:self-auto"
             :disabled="!hasUnread"
             @click="handleMarkAll"
           >
@@ -52,7 +52,7 @@
             v-for="filter in filters"
             :key="filter.key"
             type="button"
-            class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition"
+            class="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm font-semibold transition"
             :class="[
               selectedCategory === filter.key
                 ? 'border-[var(--color-primary)]/40 bg-[var(--color-primary)]/10 text-[var(--color-primary)]'

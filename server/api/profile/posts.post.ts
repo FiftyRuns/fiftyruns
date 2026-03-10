@@ -77,7 +77,8 @@ export default eventHandler(async (event) => {
     }
   }
 
-  const now = new Date()
+  const now = body.createdAt ? new Date(body.createdAt) : new Date()
+  if (isNaN(now.getTime())) throw createError({ statusCode: 400, message: 'Ungültiges Datum.' })
   const season = `${now.getFullYear()}`
   const garminActivityId = body.garminActivityId ?? null
   const donationAmountInCent =

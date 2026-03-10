@@ -115,7 +115,7 @@ USAGE-BEISPIELE
     </ul>
     <hr />
     <p>
-      Ab <strong>15. Oktober 2025</strong> geht’s wieder los!
+      Ab <strong>15. Mai 2026</strong> geht’s wieder los!
     </p>
   </TextBlock>
 

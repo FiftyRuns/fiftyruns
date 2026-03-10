@@ -172,19 +172,19 @@
                 name="comment"
                 v-model="commentText"
                 rows="2"
-                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
+                class="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20"
                 placeholder="Kommentar schreiben..."
               ></textarea>
               <button
                 type="submit"
-                class="mt-1.5 w-full rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-xs font-semibold text-white shadow transition hover:bg-[var(--color-primary)]/90 disabled:cursor-not-allowed disabled:opacity-60"
+                class="mt-1.5 w-full rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-semibold text-white shadow transition hover:bg-[var(--color-primary)]/90 disabled:cursor-not-allowed disabled:opacity-60"
                 :disabled="commentPending"
               >
                 {{ commentPending ? 'Wird gesendet...' : 'Senden' }}
               </button>
-              <p v-if="commentError" class="mt-1 text-[10px] text-red-600">{{ commentError }}</p>
+              <p v-if="commentError" class="mt-1 text-xs text-red-600">{{ commentError }}</p>
             </form>
-            <p v-else class="text-xs text-gray-500">Anmelden um zu kommentieren</p>
+            <p v-else class="text-sm text-gray-500">Anmelden um zu kommentieren</p>
           </div>
         </details>
       </div>
@@ -202,7 +202,7 @@ import type { CommunityPost } from '@/composables/useCommunityFeed'
 import type { ReactionEmoji } from '@/constants/reactions'
 
 // Cached formatters outside component
-const dateFormatter = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' })
+const dateFormatter = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
 function initials(name: string) {
   return name

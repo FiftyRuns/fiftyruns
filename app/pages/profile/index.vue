@@ -9,45 +9,38 @@
           image: avatarPreview || authUser.image,
           bio: settingsForm.bio
         }"
-        :team="teamInfo"
         :strava="stravaIntegration"
         :strava-state="stravaState"
         :garmin="garminIntegration"
         :garmin-state="garminState"
         @edit-profile="goToSettings"
         @change-picture="triggerAvatarUpload"
-        @view-team="openTeamOverview"
-        @discover-team="discoverTeams"
-        @manage-team="openTeamManagement"
         @open-post-composer="scrollToComposer"
         @connect-strava="connectStrava"
         @disconnect-strava="disconnectStrava"
         @connect-garmin="connectGarmin"
         @disconnect-garmin="disconnectGarmin" />
 
+      <ProfileTeamCard
+        :team="teamInfo"
+        @manage="openTeamManagement"
+        @discover="discoverTeams"
+        @create-team="createTeam"
+        @leave-team="leaveTeam"
+      />
+
       <ProfileStatsGrid :stats="stats" />
 
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
-        <div class="space-y-6">
-          <div id="composer-anchor">
-            <ProfilePostComposer :model-value="postComposerForm" :loading="postComposerState.loading"
-              :error-message="postComposerState.error" :success-message="postComposerState.success"
-              @update:model-value="onPostComposerUpdate" @submit="handlePostSubmit"
-              @open-media-library="openMediaLibrary" />
-          </div>
-
-          <ProfilePostsCard :posts="posts" @open="openPost" @edit="editPost" @confirm-delete="deletePost"
-            @compose="scrollToComposer" />
+      <div class="space-y-6">
+        <div id="composer-anchor">
+          <ProfilePostComposer :model-value="postComposerForm" :loading="postComposerState.loading"
+            :error-message="postComposerState.error" :success-message="postComposerState.success"
+            @update:model-value="onPostComposerUpdate" @submit="handlePostSubmit"
+            @open-media-library="openMediaLibrary" />
         </div>
-        <aside class="space-y-6">
-          <ProfileTeamCard
-            :team="teamInfo"
-            @manage="openTeamManagement"
-            @discover="discoverTeams"
-            @create-team="createTeam"
-            @leave-team="leaveTeam"
-          />
-        </aside>
+
+        <ProfilePostsCard :posts="posts" @open="openPost" @edit="editPost" @confirm-delete="deletePost"
+          @compose="scrollToComposer" />
       </div>
     </div>
   </div>

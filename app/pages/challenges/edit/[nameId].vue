@@ -36,12 +36,12 @@
               </label>
               <label class="flex flex-col gap-2 text-sm font-medium text-gray-700">
                 Zeitraum Start
-                <input v-model="form.startAt" type="date" required
+                <input v-model="form.startAt" type="date" lang="de" required
                   class="rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" />
               </label>
               <label class="flex flex-col gap-2 text-sm font-medium text-gray-700">
                 Zeitraum Ende
-                <input v-model="form.endAt" type="date" required
+                <input v-model="form.endAt" type="date" lang="de" required
                   class="rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" />
               </label>
               <label class="flex flex-col gap-2 text-sm font-medium text-gray-700">
@@ -55,11 +55,27 @@
               </label>
             </div>
 
-            <label class="flex flex-col gap-2 text-sm font-medium text-gray-700">
-              Beschreibung
+            <div class="flex flex-col gap-2 text-sm font-medium text-gray-700">
+              <div class="flex items-center justify-between gap-2">
+                <span>Beschreibung</span>
+                <button
+                  type="button"
+                  class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5 px-2.5 py-1 text-xs font-medium text-[var(--color-primary)] transition hover:bg-[var(--color-primary)]/10 disabled:cursor-not-allowed disabled:opacity-50"
+                  :disabled="aiLoading"
+                  @click="reformulateWithAi"
+                >
+                  <svg v-if="!aiLoading" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+                  </svg>
+                  <svg v-else class="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                  </svg>
+                  {{ aiLoading ? 'Wird generiert…' : 'Mit KI ausformulieren' }}
+                </button>
+              </div>
               <textarea v-model="form.description" rows="4"
                 class="rounded-xl border border-gray-300 px-3 py-2 text-sm text-gray-800 shadow-sm focus:border-[var(--color-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/20" />
-            </label>
+            </div>
 
             <label class="flex flex-col gap-2 text-sm font-medium text-gray-700">
               Preis / Gewinn (optional)
@@ -240,6 +256,23 @@ const { showSuccess, showError } = useToast()
 
 const submitting = ref(false)
 const loadError = ref('')
+const aiLoading = ref(false)
+
+async function reformulateWithAi() {
+  aiLoading.value = true
+  try {
+    const { text } = await $fetch<{ text: string }>('/api/ai/challenge-description', {
+      method: 'POST',
+      body: { name: form.name, text: form.description },
+      credentials: 'include',
+    })
+    form.description = text
+  } catch {
+    // ignore silently
+  } finally {
+    aiLoading.value = false
+  }
+}
 const initialTeamId = ref<string | null>(null)
 
 const form = reactive({

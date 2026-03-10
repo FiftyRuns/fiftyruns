@@ -472,7 +472,7 @@ function formatDuration(seconds: number) {
 }
 
 function formatShortDate(value: string) {
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(new Date(value))
+  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value))
 }
 
 function initials(name: string) {

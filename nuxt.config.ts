@@ -68,6 +68,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: { lang: 'de' },
       title: "50runs",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1" },

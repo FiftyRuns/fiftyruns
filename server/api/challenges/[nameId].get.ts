@@ -2,7 +2,7 @@ import { createError, eventHandler } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
 
-const dateFormatter = new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' })
+const dateFormatter = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
 
 export default eventHandler(async (event) => {
   const nameId = event.context.params?.nameId
