@@ -105,48 +105,45 @@
             </NuxtLink>
           </div>
 
-          <div v-if="profile.posts.length" class="space-y-4">
-            <article v-for="post in profile.posts" :key="post.id"
-              class="rounded-3xl border border-black/5 bg-white/90 p-6 shadow-sm backdrop-blur">
-              <header class="flex flex-wrap items-center gap-2 text-xs text-gray-500">
-                <span
-                  class="rounded-full border border-black/10 bg-gray-50 px-2 py-1 text-[11px] uppercase tracking-wide">
-                  {{ visibilityLabel(post.visibility) }}
-                </span>
-                <span>{{ formatDate(post.createdAt) }}</span>
-              </header>
-
-              <p v-if="post.text" class="mt-4 whitespace-pre-line text-sm text-gray-800">
-                {{ post.text }}
-              </p>
-
-              <div v-if="post.image" class="mt-4 overflow-hidden rounded-2xl">
-                <NuxtImg :src="post.image" :alt="`Bild zum Beitrag von ${profile.user.name}`" width="960" height="540"
-                  class="h-60 w-full object-cover" sizes="(min-width: 1024px) 40vw, 100vw" format="webp"
-                  loading="lazy" />
-              </div>
-
-              <div v-if="hasRunData(post)" class="mt-4 flex flex-wrap items-center gap-3 text-xs text-gray-600">
-                <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1">
-                  <Icon icon="ph:road-horizon-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
-                  {{ formatDistance(post.runningExercise.distanceInMeters) }}
-                </span>
-                <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1">
-                  <Icon icon="ph:timer-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
-                  {{ formatDuration(post.runningExercise.durationInSeconds) }}
-                </span>
-                <span v-if="post.runningExercise.source === 'STRAVA'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5">
-                  <img 
-                    src="/brand/strava/api_logo_pwrdBy_strava_stack_orange.png" 
-                    alt="Strava" 
-                    class="h-3 w-auto"
-                  />
-                </span>
-                <span v-if="post.runningExercise.source === 'GARMIN'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
-                  Datenquelle: Garmin
-                </span>
-              </div>
-            </article>
+          <div v-if="profile.posts.length" class="grid gap-4 sm:grid-cols-3">
+            <PostingCard
+              v-for="post in profile.posts"
+              :key="post.id"
+              :content="post.text"
+              :image="post.image"
+              :image-alt="`Bild zum Beitrag von ${profile.user.name}`"
+              :distance-in-meters="post.runningExercise.distanceInMeters"
+              :duration-in-seconds="post.runningExercise.durationInSeconds"
+              :show-run-data="true"
+              :source="post.runningExercise.source"
+            >
+              <template #header>
+                <div class="flex items-center gap-3 p-4">
+                  <span class="relative h-10 w-10 shrink-0 overflow-hidden rounded-full border border-black/10 bg-gray-100">
+                    <NuxtImg
+                      v-if="profile.user.image"
+                      :src="profile.user.image"
+                      :alt="`Profilbild von ${profile.user.name}`"
+                      class="h-full w-full object-cover"
+                      width="40"
+                      height="40"
+                      loading="lazy"
+                      sizes="40px"
+                    />
+                    <span v-else class="grid h-full w-full place-items-center text-xs font-semibold uppercase text-[var(--color-primary)]">
+                      {{ initials(profile.user.name) }}
+                    </span>
+                  </span>
+                  <div class="min-w-0 flex-1">
+                    <p class="truncate text-base font-semibold text-black">{{ profile.user.name }}</p>
+                    <p class="text-sm text-gray-500">{{ formatDate(post.createdAt) }}</p>
+                  </div>
+                  <span class="shrink-0 inline-flex h-7 items-center rounded-full border border-black/10 bg-gray-50 px-2.5 text-xs font-medium uppercase tracking-wide text-gray-600">
+                    {{ visibilityLabel(post.visibility) }}
+                  </span>
+                </div>
+              </template>
+            </PostingCard>
           </div>
           <div v-else
             class="rounded-3xl border border-dashed border-black/10 bg-white/80 p-10 text-center text-sm text-gray-500">
@@ -164,6 +161,7 @@ import { Icon } from '@iconify/vue'
 import { useRoute } from 'vue-router'
 import { useAsyncData, useFetch } from 'nuxt/app'
 import ProfileStatCard from '../../components/profile/ProfileStatCard.vue'
+import PostingCard from '../../components/cards/PostingCard.vue'
 
 type GroupRole = 'ADMIN' | 'MEMBER' | null
 type Visibility = 'public' | 'protected' | 'private'
@@ -302,10 +300,6 @@ function translateRole(role: GroupRole) {
   if (role === 'ADMIN') return 'Admin'
   if (role === 'MEMBER') return 'Mitglied'
   return 'Team'
-}
-
-function hasRunData(post: PublicProfileResponse['posts'][number]) {
-  return Boolean(post.runningExercise.distanceInMeters || post.runningExercise.durationInSeconds)
 }
 
 function formatDate(value: string) {

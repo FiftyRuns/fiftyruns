@@ -31,6 +31,16 @@
 
       <ProfileStatsGrid :stats="stats" />
 
+      <ProfileDonationCard
+        :model-value="donationSettings"
+        :loading="donationState.loading"
+        :success-message="donationState.success"
+        :error-message="donationState.error"
+        @update:model-value="onDonationUpdate"
+        @save="handleDonationSave"
+        @open-history="openDonationHistory"
+      />
+
       <div class="space-y-6">
         <div id="composer-anchor">
           <ProfilePostComposer :model-value="postComposerForm" :loading="postComposerState.loading"
@@ -52,6 +62,7 @@ import ProfileStatsGrid from '../../components/profile/ProfileStatsGrid.vue'
 import ProfilePostComposer from '../../components/profile/ProfilePostComposer.vue'
 import ProfilePostsCard from '../../components/profile/ProfilePostsCard.vue'
 import ProfileTeamCard from '../../components/profile/ProfileTeamCard.vue'
+import ProfileDonationCard from '../../components/profile/ProfileDonationCard.vue'
 import { useProfilePage } from './useProfilePage'
 
 const {
@@ -63,6 +74,11 @@ const {
   postComposerState,
   settingsForm,
   avatarPreview,
+  donationSettings,
+  donationState,
+  onDonationUpdate,
+  handleDonationSave,
+  openDonationHistory,
   goToSettings,
   scrollToComposer,
   triggerAvatarUpload,
