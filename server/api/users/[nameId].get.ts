@@ -2,10 +2,9 @@ import { createError, eventHandler } from 'h3'
 import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
 
-const CURRENT_SEASON = String(new Date().getFullYear())
-
 export default eventHandler(async (event) => {
   const session = await resolveSession(event)
+  const CURRENT_SEASON = String(new Date().getFullYear())
 
   const nameIdParam = event.context.params?.nameId
   if (!nameIdParam || typeof nameIdParam !== 'string') {

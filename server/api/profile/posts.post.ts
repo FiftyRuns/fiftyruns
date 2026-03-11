@@ -47,6 +47,9 @@ export default eventHandler(async (event) => {
   if (!content) {
     throw createError({ statusCode: 400, message: 'Beitragsinhalt darf nicht leer sein.' })
   }
+  if (content.length > 2000) {
+    throw createError({ statusCode: 400, message: 'Beitragsinhalt darf maximal 2000 Zeichen lang sein.' })
+  }
 
   const visibility = body.visibility ?? 'protected'
   if (!['public', 'protected', 'private'].includes(visibility)) {
@@ -68,7 +71,7 @@ export default eventHandler(async (event) => {
   if (body.image) {
     try {
       const u = new URL(body.image)
-      if (!u.protocol.startsWith('http')) {
+      if (u.protocol !== 'https:') {
         throw new Error('Ungültige URL')
       }
       imageUrl = u.toString()
@@ -79,8 +82,17 @@ export default eventHandler(async (event) => {
 
   const now = body.createdAt ? new Date(body.createdAt) : new Date()
   if (isNaN(now.getTime())) throw createError({ statusCode: 400, message: 'Ungültiges Datum.' })
-  const season = `${now.getFullYear()}`
-  const garminActivityId = body.garminActivityId ?? null
+  // Season immer serverseitig bestimmen – verhindert Season-Manipulation durch den Client
+  const season = String(new Date().getFullYear())
+
+  let garminActivityId: string | null = null
+  if (body.garminActivityId) {
+    const raw = String(body.garminActivityId)
+    if (!/^[a-zA-Z0-9_-]{1,64}$/.test(raw)) {
+      throw createError({ statusCode: 400, message: 'Ungültige Garmin-Aktivitäts-ID.' })
+    }
+    garminActivityId = raw
+  }
   const donationAmountInCent =
     donorPreferences?.autoDonate && donorPreferences.runDonationMultiplier
       ? DONATION_MULTIPLIER_TO_CENTS[donorPreferences.runDonationMultiplier] ?? 0
