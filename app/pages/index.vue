@@ -19,14 +19,14 @@
             <div class="container mx-auto px-6">
                 <div class="max-w-2xl">
                     <p class="mb-4 text-sm font-semibold tracking-widest text-[var(--color-accent)] uppercase">
-                        Die Laufchallenge
+                        Die Laufchallenges
                     </p>
                     <h1 class="text-6xl font-black tracking-tight text-white leading-none sm:text-8xl">
                         <span class="sr-only">50runs</span>
                         #50runs
                     </h1>
                     <p class="mt-6 text-xl font-medium text-white/85 leading-relaxed sm:text-2xl">
-                        Mit einer Challenge fit werden<br class="hidden sm:block" />
+                        Mit euren Challenges fit werden<br class="hidden sm:block" />
                         und etwas Gutes tun.
                     </p>
                     <div class="mt-10 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
@@ -35,9 +35,7 @@
                             aria-label="Jetzt registrieren">
                             Jetzt registrieren
                         </NuxtLink>
-                        <span class="text-white/70 text-base font-medium">
-                            Ab {{ startDate }} geht's wieder los!
-                        </span>
+
                     </div>
                 </div>
             </div>
@@ -51,9 +49,7 @@
             Wähle aus dem
             <a href="https://service.bmf.gv.at/service/allg/spenden/show_mast.asp#aw" target="_blank"
                 rel="noopener noreferrer" style="text-decoration: underline;">
-                offiziellen Spendenverzeichnis des österreichischen Finanzministeriums
-            </a>
-            eine förderungswürdige Organisation aus.
+                offiziellen Spendenverzeichnis des österreichischen Finanzministeriums</a> eine förderungswürdige Organisation aus.
             So wird dein Training zu einem Beitrag für soziale Projekte.
         </p>
         <hr />
@@ -69,9 +65,7 @@
             Und irgendwie kam ich von 50 Läufen auf Fifty Shades of Grey und davon wiederum auf Fifty Runs till May.
             Wiederum bei einem Laufausflug hat mich ein Freund (Danke Stefan!) dann auf die Idee gebracht die 50 Läufe
             unter einen Charity-Stern zu stellen.
-            Im {{ season }} starten die 50runs bereits zum {{ numberSeasonsWinter }}. Mal. Eine Sommer Edition gab es
-            auch
-            bereits {{ numberSeasonsSummer }} Mal!
+            Im Mai 2026 starten die 50runs bereits zum 16. Mal!
         </p>
         <hr />
     </TextBlock>
@@ -141,9 +135,9 @@ const TextDivider = defineAsyncComponent(() => import('../components/atoms/TextD
 
 const startDate = '15. Mai 2026';
 const endDate = '30. April 2026';
-const season = 'Herbst 2025';
+const season = 'Mai 2026';
 const numberSeasonsWinter = 13;
-const numberSeasonsSummer = 2;
+const numberSeasonsSummer = 3;
 
 useHead({
     title: '#50runs',

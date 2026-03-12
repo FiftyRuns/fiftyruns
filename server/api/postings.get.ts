@@ -6,7 +6,6 @@ import { REACTION_EMOJIS } from '../../app/constants/reactions'
 
 export default eventHandler(async (event) => {
   const session = await resolveSession(event)
-  if (!session) throw createError({ statusCode: 401, message: 'Nicht angemeldet.' })
 
   const q = getQuery(event)
   const rawTake = Number(q.take ?? 20)
@@ -71,15 +70,16 @@ export default eventHandler(async (event) => {
     countsByPost.set(postingId, m)
   }
 
-  // 3) Viewer-Reaction …
-  const viewerReactions = await prisma.reaction.findMany({
-    where: { postingId: { in: postIds }, userId: session.user.id },
-    select: { postingId: true, type: true }
-  })
-
+  // 3) Viewer-Reaction (nur für eingeloggte Nutzer)
   const viewerByPost = new Map<string, string>()
-  for (const r of viewerReactions) {
-    if (r.postingId != null) viewerByPost.set(r.postingId, r.type)
+  if (session) {
+    const viewerReactions = await prisma.reaction.findMany({
+      where: { postingId: { in: postIds }, userId: session.user.id },
+      select: { postingId: true, type: true }
+    })
+    for (const r of viewerReactions) {
+      if (r.postingId != null) viewerByPost.set(r.postingId, r.type)
+    }
   }
 
   return {

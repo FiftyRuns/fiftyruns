@@ -13,13 +13,10 @@
         <div class="flex items-center gap-2 text-sm text-gray-500">
           <span>{{ formattedDate }}</span>
           <span>·</span>
-          <span class="inline-flex h-6 items-center rounded-full border border-black/10 bg-gray-50 px-2 text-xs font-medium uppercase tracking-wide text-gray-600">
-            {{ post.visibilityLabel }}
-          </span>
           <span v-if="post.source === 'STRAVA'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5">
-            <img 
-              src="/brand/strava/api_logo_pwrdBy_strava_horiz_orange.png" 
-              alt="Strava" 
+            <img
+              src="/brand/strava/api_logo_pwrdBy_strava_horiz_orange.png"
+              alt="Strava"
               class="h-3 w-auto"
             />
           </span>
@@ -27,6 +24,9 @@
             Datenquelle: Garmin
           </span>
         </div>
+        <span class="inline-flex h-6 items-center rounded-full border border-black/10 bg-gray-50 px-2 text-xs font-medium uppercase tracking-wide text-gray-600">
+          {{ post.visibilityLabel }}
+        </span>
       </div>
     </template>
 

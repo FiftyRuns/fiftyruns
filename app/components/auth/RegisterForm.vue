@@ -2,6 +2,23 @@
   <div class="lg:sticky lg:top-6">
     <div class="rounded-2xl bg-white/90 shadow-xl ring-1 ring-black/5 backdrop-blur">
       <div class="p-6 sm:p-8">
+
+        <!-- Erfolgsmeldung -->
+        <div v-if="registered" class="flex flex-col items-center gap-4 py-6 text-center">
+          <div class="flex h-16 w-16 items-center justify-center rounded-full bg-[var(--color-primary)]/10">
+            <Icon icon="ph:check-circle-duotone" class="h-9 w-9 text-[var(--color-primary)]" />
+          </div>
+          <h2 class="text-xl font-semibold text-black">Registrierung erfolgreich!</h2>
+          <p class="text-sm text-gray-600">Bitte prüfe deine E-Mails und bestätige dein Konto, um dich einzuloggen.</p>
+          <NuxtLink
+            to="/login"
+            class="mt-2 inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 transition"
+          >
+            Zum Login
+          </NuxtLink>
+        </div>
+
+        <div v-else>
         <div class="mb-6 text-center">
           <h1 class="text-2xl  font-semibold tracking-tight" :style="{ color: 'var(--color-primary)' }">
             Konto erstellen
@@ -67,6 +84,7 @@
             <NuxtLink to="/login" class="underline">Zum Login</NuxtLink>
           </p>
         </form>
+        </div>
       </div>
     </div>
   </div>
@@ -157,6 +175,7 @@ const errors = reactive<Record<string, string | undefined>>({})
 const serverError = ref('')
 const serverSuccess = ref('')
 const pending = ref(false)
+const registered = ref(false)
 const showPassword = ref(false)
 const showPasswordConfirm = ref(false)
 const csrfToken = ref('')
@@ -464,7 +483,7 @@ const onSubmit = async () => {
         avatarUrl: form.avatarUrl,
       },
     })
-    showSuccess('Registrierung erfolgreich. Bitte E-Mail prüfen und Konto bestätigen.')
+    registered.value = true
   } catch (error: any) {
     showError(error?.data?.message || 'Registrierung fehlgeschlagen.')
   } finally {

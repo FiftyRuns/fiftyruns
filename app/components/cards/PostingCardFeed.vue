@@ -69,8 +69,12 @@
             :key="reaction.emoji"
             type="button"
             class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs transition"
-            :class="post.viewerReaction === reaction.emoji ? 'bg-[var(--color-accent)]/20 text-[var(--color-primary)]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-            @click="handleReaction(reaction.emoji)"
+            :class="[
+              isOwnPost ? 'cursor-default opacity-50' : '',
+              post.viewerReaction === reaction.emoji ? 'bg-[var(--color-accent)]/20 text-[var(--color-primary)]' : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+            ]"
+            :disabled="isOwnPost"
+            @click="!isOwnPost && handleReaction(reaction.emoji)"
           >
             <span class="text-base leading-none">{{ reaction.emoji }}</span>
             <span class="tabular-nums">{{ reaction.count }}</span>

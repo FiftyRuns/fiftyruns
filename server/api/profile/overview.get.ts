@@ -34,7 +34,7 @@ export default eventHandler(async (event) => {
   // Parallelize database queries
   const [stat, userData] = await Promise.all([
     // Get running statistics
-    prisma.runningStatistic.findUnique({ 
+    prisma.runningStatistic.findUnique({
       where: { userId },
       select: {
         numberOfRuns: true,
@@ -43,7 +43,7 @@ export default eventHandler(async (event) => {
         season: true
       }
     }),
-    
+
     // Get user with group data in parallel
     prisma.user.findUnique({
       where: { id: userId },
@@ -123,13 +123,13 @@ export default eventHandler(async (event) => {
       hint: 'Diese Saison', 
       icon: 'ph:chart-line-duotone' 
     },
-    { 
-      label: 'Aktive Serien', 
-      value: `${runs} Läufe`, 
-      hint: 'Anzahl Läufe', 
-      icon: 'ph:fire-duotone' 
+    {
+      label: 'Aktive Serien',
+      value: `${runs} Läufe`,
+      hint: 'Anzahl Läufe',
+      icon: 'ph:fire-duotone'
     },
   ]
 
-  return { team, stats }
+  return { team, stats, runs }
 })

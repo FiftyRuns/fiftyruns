@@ -21,7 +21,23 @@
       </div>
 
       <div>
-        <label for="profile-bio" class="mb-2 block text-sm font-medium text-gray-700">Über dich</label>
+        <div class="mb-2 flex items-center justify-between gap-2">
+          <label for="profile-bio" class="text-sm font-medium text-gray-700">Über dich</label>
+          <button
+            type="button"
+            class="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/5 px-2.5 py-1 text-xs font-medium text-[var(--color-primary)] transition hover:bg-[var(--color-primary)]/10 disabled:cursor-not-allowed disabled:opacity-50"
+            :disabled="aiLoading"
+            @click="reformulateWithAi"
+          >
+            <svg v-if="!aiLoading" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+            </svg>
+            <svg v-else class="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+            </svg>
+            {{ aiLoading ? 'Wird generiert…' : 'Mit KI ausformulieren' }}
+          </button>
+        </div>
         <textarea
           id="profile-bio"
           rows="4"
@@ -77,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import InputField from '../molecules/form/InputField.vue'
 import ProfilePanel from './ProfilePanel.vue'
 import FormButton from '../atoms/form/FormButton.vue'
@@ -101,6 +117,24 @@ const emit = defineEmits<{
 }>()
 
 const form = computed(() => props.modelValue)
+
+const aiLoading = ref(false)
+
+async function reformulateWithAi() {
+  aiLoading.value = true
+  try {
+    const { text } = await $fetch<{ text: string }>('/api/ai/profile-bio', {
+      method: 'POST',
+      body: { text: form.value.bio },
+      credentials: 'include',
+    })
+    updateField('bio', text)
+  } catch {
+    // ignore silently
+  } finally {
+    aiLoading.value = false
+  }
+}
 
 const lastUpdated = computed(() => {
   const date = new Date(form.value.updatedAt)

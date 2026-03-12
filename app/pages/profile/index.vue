@@ -21,18 +21,33 @@
         @connect-garmin="connectGarmin"
         @disconnect-garmin="disconnectGarmin" />
 
-      <ProfileTeamCard
-        :team="teamInfo"
-        @manage="openTeamManagement"
-        @discover="discoverTeams"
-        @create-team="createTeam"
-        @leave-team="leaveTeam"
-      />
-
       <ProfileStatsGrid :stats="stats" />
+
+      <div id="composer-anchor">
+        <ProfilePostComposer :model-value="postComposerForm" :loading="postComposerState.loading"
+          :error-message="postComposerState.error" :success-message="postComposerState.success"
+          @update:model-value="onPostComposerUpdate" @submit="handlePostSubmit"
+          @open-media-library="openMediaLibrary" />
+      </div>
+
+      <div class="grid gap-8 lg:grid-cols-2">
+        <ProfileTeamCard
+          :team="teamInfo"
+          @manage="openTeamManagement"
+          @discover="discoverTeams"
+          @create-team="createTeam"
+          @leave-team="leaveTeam"
+        />
+
+        <ProfileChallengesCard
+          :challenges="challenges"
+          @create="createChallenge"
+        />
+      </div>
 
       <ProfileDonationCard
         :model-value="donationSettings"
+        :total-donation-cent="totalDonationCent"
         :loading="donationState.loading"
         :success-message="donationState.success"
         :error-message="donationState.error"
@@ -41,17 +56,8 @@
         @open-history="openDonationHistory"
       />
 
-      <div class="space-y-6">
-        <div id="composer-anchor">
-          <ProfilePostComposer :model-value="postComposerForm" :loading="postComposerState.loading"
-            :error-message="postComposerState.error" :success-message="postComposerState.success"
-            @update:model-value="onPostComposerUpdate" @submit="handlePostSubmit"
-            @open-media-library="openMediaLibrary" />
-        </div>
-
-        <ProfilePostsCard :posts="posts" @open="openPost" @edit="editPost" @confirm-delete="deletePost"
-          @compose="scrollToComposer" />
-      </div>
+      <ProfilePostsCard :posts="posts" @open="openPost" @edit="editPost" @confirm-delete="deletePost"
+        @compose="scrollToComposer" />
     </div>
   </div>
 </template>
@@ -63,11 +69,13 @@ import ProfilePostComposer from '../../components/profile/ProfilePostComposer.vu
 import ProfilePostsCard from '../../components/profile/ProfilePostsCard.vue'
 import ProfileTeamCard from '../../components/profile/ProfileTeamCard.vue'
 import ProfileDonationCard from '../../components/profile/ProfileDonationCard.vue'
+import ProfileChallengesCard from '../../components/profile/ProfileChallengesCard.vue'
 import { useProfilePage } from './useProfilePage'
 
 const {
   authUser,
   stats,
+  totalDonationCent,
   posts,
   teamInfo,
   postComposerForm,
@@ -101,5 +109,7 @@ const {
   garminState,
   connectGarmin,
   disconnectGarmin,
+  challenges,
+  createChallenge,
 } = useProfilePage()
 </script>

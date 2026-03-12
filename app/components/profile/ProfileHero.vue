@@ -77,12 +77,7 @@
           Profil bearbeiten
         </button>
 
-        <button type="button"
-          class="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)]/40 bg-white px-4 py-2 text-sm font-semibold text-[var(--color-accent)] shadow-sm hover:bg-[var(--color-accent)]/10 cursor-pointer"
-          @click="$emit('open-post-composer')">
-          <Icon icon="ph:pen-nib-duotone" class="h-5 w-5" />
-          Beitrag erstellen
-        </button>
+
       </div>
     </div>
   </div>

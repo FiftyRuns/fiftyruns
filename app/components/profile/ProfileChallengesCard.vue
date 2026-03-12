@@ -11,9 +11,19 @@
             <h3 class="text-base font-semibold text-black">{{ challenge.name }}</h3>
             <p class="text-sm text-gray-500">{{ challenge.description }}</p>
           </div>
-          <div class="flex items-center gap-2 text-xs text-gray-500">
-            <Icon icon="ph:calendar-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
-            <span>{{ challenge.period }}</span>
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <Icon icon="ph:calendar-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
+              <span>{{ challenge.period }}</span>
+            </div>
+            <NuxtLink
+              v-if="challenge.isAdmin"
+              :to="`/challenges/edit/${challenge.nameId}`"
+              class="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-2.5 py-1 text-xs font-medium text-gray-600 shadow-sm transition hover:bg-gray-50"
+            >
+              <Icon icon="ph:pencil-simple-duotone" class="h-3.5 w-3.5" />
+              Bearbeiten
+            </NuxtLink>
           </div>
         </div>
         <div class="mt-3 flex flex-wrap items-center gap-3 text-sm text-gray-500">
@@ -47,6 +57,7 @@ import FormButton from '../atoms/form/FormButton.vue'
 
 export type ChallengeSummary = {
   id: string
+  nameId: string
   name: string
   description: string
   period: string

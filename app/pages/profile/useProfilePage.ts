@@ -1,5 +1,5 @@
 // app/pages/profile/useProfilePage.ts
-import { reactive, ref, onMounted, watch } from 'vue'
+import { reactive, ref, computed, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useCookie } from 'nuxt/app'
 import { useAuthUser } from '../../composables/useAuthUser'
@@ -35,6 +35,8 @@ export function useProfilePage() {
   const sidebarRef = ref<HTMLElement | null>(null)
 
   const stats = ref<ProfileStat[]>([])
+  const totalRuns = ref(0)
+  const totalDonationCent = computed(() => donationSettings.amount * totalRuns.value * 100)
   const posts = ref<PostSummary[]>([])
   const challenges = ref<ChallengeSummary[]>([])
   const teamInfo = ref<TeamInfo | null>(null)
@@ -321,11 +323,12 @@ export function useProfilePage() {
 
   async function loadOverview() {
     try {
-      const data = await $fetch<{ team: TeamInfo | null; stats: ProfileStat[] }>('/api/profile/overview', {
+      const data = await $fetch<{ team: TeamInfo | null; stats: ProfileStat[]; runs: number }>('/api/profile/overview', {
         credentials: 'include',
       })
       teamInfo.value = data.team
       stats.value = data.stats
+      totalRuns.value = data.runs ?? 0
       setAuthTeam(
         data.team
           ? {
@@ -720,6 +723,7 @@ export function useProfilePage() {
     authUser,
     sidebarRef,
     stats,
+    totalDonationCent,
     posts,
     challenges,
     teamInfo,

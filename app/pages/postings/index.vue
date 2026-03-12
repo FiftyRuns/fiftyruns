@@ -40,15 +40,48 @@
       </div>
 
       <section v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <PostingCardFeed
-          v-for="post in posts"
-          :key="post.id"
-          :post="post"
-          @reaction="handleReaction"
-          @comment="handleComment"
-          @edit-comment="handleEditComment"
-          @delete-comment="handleDeleteComment"
-        />
+        <template v-for="(post, index) in posts" :key="post.id">
+          <PostingCardFeed
+            :post="post"
+            @reaction="handleReaction"
+            @comment="handleComment"
+            @edit-comment="handleEditComment"
+            @delete-comment="handleDeleteComment"
+          />
+          <section
+            v-if="!authUser && index === 2"
+            class="relative overflow-hidden rounded-3xl bg-[var(--color-primary)] p-8 shadow-sm sm:col-span-2 lg:col-span-3"
+          >
+            <div class="pointer-events-none absolute inset-0 opacity-10">
+              <Icon icon="ph:newspaper-duotone" class="absolute -right-8 -top-8 h-48 w-48 text-white" />
+            </div>
+            <div class="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Mach mit!</p>
+                <h2 class="text-xl font-semibold text-white">Beiträge kommentieren & reagieren</h2>
+                <p class="max-w-md text-sm text-white/70">
+                  Erstelle ein kostenloses Konto oder melde dich an, um selbst Beiträge zu erstellen und mit der Community zu interagieren.
+                </p>
+              </div>
+              <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+                <NuxtLink
+                  to="/register"
+                  class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-primary)] shadow transition hover:bg-white/90"
+                >
+                  <Icon icon="ph:user-plus-duotone" class="h-5 w-5" />
+                  Registrieren
+                </NuxtLink>
+                <NuxtLink
+                  to="/login"
+                  class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  <Icon icon="ph:sign-in-duotone" class="h-5 w-5" />
+                  Anmelden
+                </NuxtLink>
+              </div>
+            </div>
+          </section>
+        </template>
       </section>
     </div>
   </div>
@@ -91,6 +124,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { Icon } from '@iconify/vue'
 import { useCommunityFeed } from '@/composables/useCommunityFeed'
 import { useAuthUser } from '@/composables/useAuthUser'
 import { useToast } from '@/composables/useToast'
