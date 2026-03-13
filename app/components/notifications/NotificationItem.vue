@@ -75,15 +75,15 @@
           <div class="flex flex-wrap gap-2">
             <button
               type="button"
-              class="inline-flex items-center justify-center rounded-lg border border-black/10 px-3 py-1.5 text-sm font-semibold text-gray-700 hover:bg-black/5"
-              @click="emit('decline', joinRequestPayload)"
+              class="inline-flex min-h-[44px] items-center justify-center rounded-lg border border-black/10 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-black/5 active:bg-black/10"
+              @click.stop="emit('decline', joinRequestPayload)"
             >
               Ablehnen
             </button>
             <button
               type="button"
-              class="inline-flex items-center justify-center rounded-lg bg-[var(--color-primary)] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[var(--color-primary)]/90"
-              @click="emit('approve', joinRequestPayload)"
+              class="inline-flex min-h-[44px] items-center justify-center rounded-lg bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[var(--color-primary)]/90 active:opacity-80"
+              @click.stop="emit('approve', joinRequestPayload)"
             >
               Bestätigen
             </button>

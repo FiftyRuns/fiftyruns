@@ -80,31 +80,13 @@
       <!-- Datum & Uhrzeit -->
       <div>
         <label class="mb-1.5 block text-sm font-medium text-gray-700">Datum & Uhrzeit</label>
-        <div class="flex items-center gap-1.5">
-          <!-- TT -->
-          <input ref="dateRef" type="text" inputmode="numeric" maxlength="2" :value="dtParts.day" placeholder="TT"
-            class="w-12 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
-            @input="onDatePartInput('day', $event)" />
-          <span class="text-gray-400 font-medium">.</span>
-          <!-- MM -->
-          <input ref="monthRef" type="text" inputmode="numeric" maxlength="2" :value="dtParts.month" placeholder="MM"
-            class="w-12 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
-            @input="onDatePartInput('month', $event)" />
-          <span class="text-gray-400 font-medium">.</span>
-          <!-- JJJJ -->
-          <input ref="yearRef" type="text" inputmode="numeric" maxlength="4" :value="dtParts.year" placeholder="JJJJ"
-            class="w-20 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
-            @input="onDatePartInput('year', $event)" />
-          <span class="text-gray-400 font-medium px-1">–</span>
-          <!-- HH -->
-          <input ref="dtHoursRef" type="text" inputmode="numeric" maxlength="2" :value="dtParts.hours" placeholder="hh"
-            class="w-12 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
-            @input="onDatePartInput('dth', $event)" />
-          <span class="text-gray-400 font-medium">:</span>
-          <!-- MM -->
-          <input ref="dtMinutesRef" type="text" inputmode="numeric" maxlength="2" :value="dtParts.minutes" placeholder="mm"
-            class="w-12 rounded-xl border border-gray-200 bg-white px-2 py-2.5 text-center text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
-            @input="onDatePartInput('dtm', $event)" />
+        <div class="grid grid-cols-2 gap-2">
+          <input type="date" :value="dtDateValue"
+            class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            @change="onDateChange($event)" />
+          <input type="time" :value="dtTimeValue"
+            class="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-base text-black shadow-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/40"
+            @change="onTimeChange($event)" />
         </div>
       </div>
 
@@ -565,45 +547,31 @@ function formatSeconds(total: number) {
 
 
 /** Datum & Zeit Felder **/
-const dateRef = ref<HTMLInputElement | null>(null)
-const monthRef = ref<HTMLInputElement | null>(null)
-const yearRef = ref<HTMLInputElement | null>(null)
-const dtHoursRef = ref<HTMLInputElement | null>(null)
-const dtMinutesRef = ref<HTMLInputElement | null>(null)
+const dtDateValue = computed(() => {
+  const d = form.value.createdAt ? new Date(form.value.createdAt) : new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+})
 
-function localParts(iso?: string) {
-  const d = iso ? new Date(iso) : new Date()
-  return {
-    day: String(d.getDate()).padStart(2, '0'),
-    month: String(d.getMonth() + 1).padStart(2, '0'),
-    year: String(d.getFullYear()),
-    hours: String(d.getHours()).padStart(2, '0'),
-    minutes: String(d.getMinutes()).padStart(2, '0'),
-  }
+const dtTimeValue = computed(() => {
+  const d = form.value.createdAt ? new Date(form.value.createdAt) : new Date()
+  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+})
+
+function onDateChange(event: Event) {
+  const dateStr = (event.target as HTMLInputElement).value
+  if (!dateStr) return
+  const [year, month, day] = dateStr.split('-')
+  const time = dtTimeValue.value
+  const d = new Date(`${year}-${month}-${day}T${time}:00`)
+  if (!isNaN(d.getTime())) updateField('createdAt', d.toISOString())
 }
 
-const dtParts = computed(() => localParts(form.value.createdAt))
-
-function onDatePartInput(field: 'day' | 'month' | 'year' | 'dth' | 'dtm', event: Event) {
-  const input = event.target as HTMLInputElement
-  const maxLen = field === 'year' ? 4 : 2
-  const raw = input.value.replace(/\D/g, '').slice(0, maxLen)
-  input.value = raw
-
-  const p = dtParts.value
-  let day = p.day, month = p.month, year = p.year, hours = p.hours, minutes = p.minutes
-
-  if (field === 'day') { day = raw; if (raw.length === 2) monthRef.value?.focus() }
-  else if (field === 'month') { month = raw; if (raw.length === 2) yearRef.value?.focus() }
-  else if (field === 'year') { year = raw; if (raw.length === 4) dtHoursRef.value?.focus() }
-  else if (field === 'dth') { hours = raw; if (raw.length === 2) dtMinutesRef.value?.focus() }
-  else if (field === 'dtm') { minutes = raw }
-
-  if (day.length === 2 && month.length === 2 && year.length === 4 && hours.length === 2 && minutes.length === 2) {
-    const iso = `${year}-${month}-${day}T${hours}:${minutes}:00`
-    const d = new Date(iso)
-    if (!isNaN(d.getTime())) updateField('createdAt', d.toISOString())
-  }
+function onTimeChange(event: Event) {
+  const timeStr = (event.target as HTMLInputElement).value
+  if (!timeStr) return
+  const date = dtDateValue.value
+  const d = new Date(`${date}T${timeStr}:00`)
+  if (!isNaN(d.getTime())) updateField('createdAt', d.toISOString())
 }
 
 async function reformulateWithAi() {

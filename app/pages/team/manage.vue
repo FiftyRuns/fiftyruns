@@ -276,6 +276,12 @@
               {{ pendingRequests.length }} offen
             </span>
           </header>
+          <div v-if="joinRequestSuccess" class="mb-4 rounded-xl bg-green-50 px-4 py-3 text-sm text-green-700">
+            {{ joinRequestSuccess }}
+          </div>
+          <div v-if="joinRequestError" class="mb-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+            {{ joinRequestError }}
+          </div>
           <div v-if="!team.joinRequests.length" class="rounded-2xl border border-dashed border-black/10 bg-white/70 p-6 text-center text-sm text-gray-500">
             Noch keine Anfragen.
           </div>
@@ -679,6 +685,8 @@ watch(
 
 const requestActions = reactive<Record<string, { approve?: boolean; decline?: boolean }>>({})
 const memberActions = reactive<Record<string, boolean>>({})
+const joinRequestError = ref('')
+const joinRequestSuccess = ref('')
 
 const inviteState = reactive({ loading: false, error: '', success: '' })
 const deleteState = reactive({ loading: false, error: '' })
@@ -1024,6 +1032,8 @@ async function inviteUser(user: { id: string; name: string; nameId: string; emai
 }
 
 async function approveRequest(id: string) {
+  joinRequestError.value = ''
+  joinRequestSuccess.value = ''
   requestActions[id] = { ...(requestActions[id] ?? {}), approve: true }
   try {
     await $fetch(`/api/team/requests/${id}/approve`, {
@@ -1031,17 +1041,18 @@ async function approveRequest(id: string) {
       headers: { 'x-csrf-token': csrf.value ?? '' },
       credentials: 'include',
     })
+    joinRequestSuccess.value = 'Mitglied erfolgreich aufgenommen.'
     await refresh()
   } catch (err: any) {
-    if (process.dev) {
-      console.error('[team/manage] Anfrage bestätigen fehlgeschlagen', err)
-    }
+    joinRequestError.value = err?.data?.message ?? 'Anfrage konnte nicht angenommen werden.'
   } finally {
     requestActions[id] = { ...(requestActions[id] ?? {}), approve: false }
   }
 }
 
 async function declineRequest(id: string) {
+  joinRequestError.value = ''
+  joinRequestSuccess.value = ''
   requestActions[id] = { ...(requestActions[id] ?? {}), decline: true }
   try {
     await $fetch(`/api/team/requests/${id}/decline`, {
@@ -1049,11 +1060,10 @@ async function declineRequest(id: string) {
       headers: { 'x-csrf-token': csrf.value ?? '' },
       credentials: 'include',
     })
+    joinRequestSuccess.value = 'Anfrage wurde abgelehnt.'
     await refresh()
   } catch (err: any) {
-    if (process.dev) {
-      console.error('[team/manage] Anfrage ablehnen fehlgeschlagen', err)
-    }
+    joinRequestError.value = err?.data?.message ?? 'Anfrage konnte nicht abgelehnt werden.'
   } finally {
     requestActions[id] = { ...(requestActions[id] ?? {}), decline: false }
   }
