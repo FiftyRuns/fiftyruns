@@ -1172,6 +1172,11 @@ export type GarminTokenExchangeFindManyArgs<ExtArgs extends runtime.Types.Extens
    * Skip the first `n` GarminTokenExchanges.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of GarminTokenExchanges.
+   */
   distinct?: Prisma.GarminTokenExchangeScalarFieldEnum | Prisma.GarminTokenExchangeScalarFieldEnum[]
 }
 

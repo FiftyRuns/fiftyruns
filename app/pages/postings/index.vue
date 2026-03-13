@@ -196,10 +196,12 @@ async function handleComposerSubmit(form: PostComposerSubmitPayload & { imageUrl
         distanceInMeters: Math.round(form.distanceInMeters),
         durationInSeconds: Math.round(form.durationInSeconds),
         garminActivityId: form.garminActivityId || null,
+        createdAt: form.createdAt || new Date().toISOString(),
       },
       credentials: 'include',
     })
     composerForm.title = composerForm.content = composerForm.distanceKm = composerForm.duration = ''
+    composerForm.createdAt = new Date().toISOString()
     showComposer.value = false
     showSuccess('Beitrag erfolgreich veröffentlicht!')
     await loadFeed()

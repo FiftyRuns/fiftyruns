@@ -1087,6 +1087,11 @@ export type StravaOAuthStateFindManyArgs<ExtArgs extends runtime.Types.Extension
    * Skip the first `n` StravaOAuthStates.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of StravaOAuthStates.
+   */
   distinct?: Prisma.StravaOAuthStateScalarFieldEnum | Prisma.StravaOAuthStateScalarFieldEnum[]
 }
 

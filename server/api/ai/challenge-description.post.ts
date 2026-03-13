@@ -8,6 +8,13 @@ export default defineEventHandler(async (event) => {
 
   const { name, text } = await readBody<{ name?: string; text?: string }>(event)
 
+  if (text && text.length > 500) {
+    throw createError({ statusCode: 400, message: 'Text darf maximal 500 Zeichen lang sein.' })
+  }
+  if (name && name.length > 200) {
+    throw createError({ statusCode: 400, message: 'Name darf maximal 200 Zeichen lang sein.' })
+  }
+
   const apiKey = process.env.ANTHROPIC_API_KEY
   if (!apiKey) throw createError({ statusCode: 500, message: 'ANTHROPIC_API_KEY fehlt.' })
 

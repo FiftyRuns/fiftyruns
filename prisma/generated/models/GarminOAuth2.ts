@@ -1104,6 +1104,11 @@ export type GarminOAuth2FindManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Skip the first `n` GarminOAuth2s.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of GarminOAuth2s.
+   */
   distinct?: Prisma.GarminOAuth2ScalarFieldEnum | Prisma.GarminOAuth2ScalarFieldEnum[]
 }
 

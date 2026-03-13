@@ -5,6 +5,7 @@ import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
 import { updateChallengesForRun } from '../../utils/challengeProgress'
 import { createNotification } from '../../utils/notifications'
+import { getCurrentPostingSeason, parsePostingDateInput } from '../../utils/postingDate'
 
 const DONATION_MULTIPLIER_TO_CENTS: Record<'x1' | 'x2' | 'x5' | 'x10', number> = {
   x1: 100,
@@ -20,6 +21,7 @@ type CreatePostBody = {
   distanceInMeters: number
   durationInSeconds: number
   garminActivityId?: string | null
+  createdAt?: string
 }
 
 function assertCsrf(event: Parameters<typeof getHeader>[0]) {
@@ -80,10 +82,9 @@ export default eventHandler(async (event) => {
     }
   }
 
-  const now = body.createdAt ? new Date(body.createdAt) : new Date()
-  if (isNaN(now.getTime())) throw createError({ statusCode: 400, message: 'Ungültiges Datum.' })
+  const now = parsePostingDateInput(body.createdAt)
   // Season immer serverseitig bestimmen – verhindert Season-Manipulation durch den Client
-  const season = String(new Date().getFullYear())
+  const season = getCurrentPostingSeason()
 
   let garminActivityId: string | null = null
   if (body.garminActivityId) {

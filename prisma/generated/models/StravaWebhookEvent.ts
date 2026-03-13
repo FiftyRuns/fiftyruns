@@ -1188,6 +1188,11 @@ export type StravaWebhookEventFindManyArgs<ExtArgs extends runtime.Types.Extensi
    * Skip the first `n` StravaWebhookEvents.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of StravaWebhookEvents.
+   */
   distinct?: Prisma.StravaWebhookEventScalarFieldEnum | Prisma.StravaWebhookEventScalarFieldEnum[]
 }
 

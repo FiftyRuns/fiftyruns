@@ -115,7 +115,7 @@ export function useProfilePage() {
       router.push('/login')
       return
     }
-    await Promise.all([loadProfileData(), loadOverview(), loadPosts(), loadChallenges()])
+    await Promise.allSettled([loadProfileData(), loadOverview(), loadPosts(), loadChallenges()])
     handleStravaCallback()
     handleGarminCallback()
   })

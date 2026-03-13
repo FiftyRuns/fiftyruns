@@ -454,8 +454,12 @@ const validate = () => {
 }
 
 const fetchCsrf = async () => {
-  const { token } = await $fetch<{ token: string }>('/api/security/csrf', { method: 'GET' })
-  csrfToken.value = token
+  try {
+    const { token } = await $fetch<{ token: string }>('/api/security/csrf', { method: 'GET' })
+    csrfToken.value = token
+  } catch {
+    serverError.value = 'Sicherheitstoken konnte nicht geladen werden. Bitte Seite neu laden.'
+  }
 }
 
 if (process.client) {

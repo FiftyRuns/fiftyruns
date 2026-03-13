@@ -1474,6 +1474,11 @@ export type ChallengeHighscoreFindManyArgs<ExtArgs extends runtime.Types.Extensi
    * Skip the first `n` ChallengeHighscores.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of ChallengeHighscores.
+   */
   distinct?: Prisma.ChallengeHighscoreScalarFieldEnum | Prisma.ChallengeHighscoreScalarFieldEnum[]
 }
 

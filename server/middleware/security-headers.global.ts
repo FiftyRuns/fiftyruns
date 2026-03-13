@@ -3,10 +3,10 @@ import { defineEventHandler, setHeaders } from 'h3'
 const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline' https://fonts.bunny.net",
   "img-src 'self' data: blob: https://*.blob.vercel-storage.com https://50runs.com",
-  "font-src 'self'",
-  "connect-src 'self' https://vercel.com https://*.vercel-storage.com",
+  "font-src 'self' data: https://fonts.bunny.net",
+  "connect-src 'self' https://vercel.com https://*.vercel-storage.com https://fonts.bunny.net",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

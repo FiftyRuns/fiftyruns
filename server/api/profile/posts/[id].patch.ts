@@ -4,6 +4,7 @@ import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
 import { assertCsrf } from '../../../utils/csrf'
 import { updateChallengesForRun } from '../../../utils/challengeProgress'
+import { parsePostingDateInput } from '../../../utils/postingDate'
 
 const DONATION_MULTIPLIER_TO_CENTS: Record<'x1' | 'x2' | 'x5' | 'x10', number> = {
   x1: 100,
@@ -67,6 +68,9 @@ export default eventHandler(async (event) => {
     if (!trimmed) {
       throw createError({ statusCode: 400, message: 'Beitragsinhalt darf nicht leer sein.' })
     }
+    if (trimmed.length > 2000) {
+      throw createError({ statusCode: 400, message: 'Beitragsinhalt darf maximal 2000 Zeichen lang sein.' })
+    }
     updateData.text = trimmed
   }
 
@@ -78,9 +82,7 @@ export default eventHandler(async (event) => {
   }
 
   if (body.createdAt) {
-    const d = new Date(body.createdAt)
-    if (isNaN(d.getTime())) throw createError({ statusCode: 400, message: 'Ungültiges Datum.' })
-    updateData.date = d
+    updateData.date = parsePostingDateInput(body.createdAt)
   }
 
   if ('image' in body) {
@@ -91,7 +93,7 @@ export default eventHandler(async (event) => {
       } else {
         try {
           const parsed = new URL(trimmed)
-          if (!parsed.protocol.startsWith('http')) {
+          if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
             throw new Error('Ungültiges Protokoll')
           }
           updateData.image = parsed.toString()
@@ -194,8 +196,18 @@ export default eventHandler(async (event) => {
         durationInSeconds: post.runningExercise.durationInSeconds,
       }
     : null
+  const nextSnapshot =
+    runAction === 'delete'
+      ? null
+      : runAction === 'none'
+        ? previousSnapshot
+        : {
+            distanceInMeters: nextDistance,
+            durationInSeconds: nextDuration,
+          }
 
-  const runDate = post.date
+  const nextRunDate = updateData.date ?? post.date
+  const runDateChanged = Boolean(updateData.date && updateData.date.getTime() !== post.date.getTime())
 
   await prisma.$transaction(async (tx) => {
     if (Object.keys(updateData).length) {
@@ -278,18 +290,28 @@ export default eventHandler(async (event) => {
       }
     }
 
-    if (runAction !== 'none') {
-      const nextSnapshot =
-        runAction === 'delete'
-          ? null
-          : {
-              distanceInMeters: nextDistance,
-              durationInSeconds: nextDuration,
-            }
+    if (runDateChanged) {
+      if (previousSnapshot) {
+        await updateChallengesForRun(tx, {
+          userId: session.user.id,
+          runDate: post.date,
+          previous: previousSnapshot,
+          next: null,
+        })
+      }
 
+      if (nextSnapshot) {
+        await updateChallengesForRun(tx, {
+          userId: session.user.id,
+          runDate: nextRunDate,
+          previous: null,
+          next: nextSnapshot,
+        })
+      }
+    } else if (runAction !== 'none') {
       await updateChallengesForRun(tx, {
         userId: session.user.id,
-        runDate,
+        runDate: nextRunDate,
         previous: previousSnapshot,
         next: nextSnapshot,
       })

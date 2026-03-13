@@ -139,6 +139,7 @@
           @input="updateField('content', ($event.target as HTMLTextAreaElement).value)"
         />
         <div class="mt-1 text-right text-xs text-gray-400">{{ form.content.length }}/240</div>
+        <p v-if="aiError" class="mt-1 text-xs text-red-600">{{ aiError }}</p>
       </div>
 
       <!-- Foto (kompakt) -->
@@ -235,6 +236,7 @@ import { computed, ref, onBeforeUnmount } from 'vue'
 const distanceTouched = ref(false)
 const timeTouched = ref(false)
 const aiLoading = ref(false)
+const aiError = ref('')
 import ProfilePanel from './ProfilePanel.vue'
 import FormButton from '../atoms/form/FormButton.vue'
 import { upload } from '@vercel/blob/client'
@@ -606,6 +608,7 @@ function onDatePartInput(field: 'day' | 'month' | 'year' | 'dth' | 'dtm', event:
 
 async function reformulateWithAi() {
   aiLoading.value = true
+  aiError.value = ''
   try {
     const { text } = await $fetch<{ text: string }>('/api/ai/reformulate', {
       method: 'POST',
@@ -618,7 +621,7 @@ async function reformulateWithAi() {
     })
     updateField('content', text)
   } catch {
-    // ignore silently
+    aiError.value = 'KI-Umformulierung fehlgeschlagen. Bitte erneut versuchen.'
   } finally {
     aiLoading.value = false
   }

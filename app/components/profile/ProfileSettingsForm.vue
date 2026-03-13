@@ -48,6 +48,7 @@
           @input="updateField('bio', ($event.target as HTMLTextAreaElement).value)"
         />
         <p class="mt-1 text-xs text-gray-400">Maximal 280 Zeichen.</p>
+        <p v-if="aiError" class="mt-1 text-xs text-red-600">{{ aiError }}</p>
       </div>
 
       <div class="grid gap-5 sm:grid-cols-2">
@@ -119,9 +120,11 @@ const emit = defineEmits<{
 const form = computed(() => props.modelValue)
 
 const aiLoading = ref(false)
+const aiError = ref('')
 
 async function reformulateWithAi() {
   aiLoading.value = true
+  aiError.value = ''
   try {
     const { text } = await $fetch<{ text: string }>('/api/ai/profile-bio', {
       method: 'POST',
@@ -130,7 +133,7 @@ async function reformulateWithAi() {
     })
     updateField('bio', text)
   } catch {
-    // ignore silently
+    aiError.value = 'KI-Umformulierung fehlgeschlagen. Bitte erneut versuchen.'
   } finally {
     aiLoading.value = false
   }
