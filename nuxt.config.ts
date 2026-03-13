@@ -68,17 +68,29 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: { lang: 'de' },
       title: "50runs",
       meta: [
         { name: "viewport", content: "width=device-width, initial-scale=1" },
         { name: "description", content: "50runs" }
       ],
-      link: [{ rel: "icon", href: "/favicon.ico" }],
+      link: [
+        { rel: "icon", href: "/favicon.ico" },
+        { rel: "preconnect", href: "https://fonts.bunny.net" },
+        { rel: "stylesheet", href: "https://fonts.bunny.net/css?family=inter:400,500,600,700,800,900&display=swap" },
+      ],
       style: [
         {
           children: `
-            :root { --color-primary: #01497e; --color-accent: #a2c92d; }
-            html, body { background-color: white; color: #01497e; font-family: system-ui, sans-serif; margin: 0; }
+            :root {
+              --color-primary: #01497e;
+              --color-primary-rgb: 1 73 126;
+              --color-accent: #a2c92d;
+              --color-accent-rgb: 162 201 45;
+              --color-surface: #f5f8fc;
+              --color-muted: #4a6580;
+            }
+            html, body { background-color: #f5f8fc; color: #01497e; font-family: 'Inter', system-ui, sans-serif; font-size: 16px; -webkit-font-smoothing: antialiased; margin: 0; }
             body { padding-top: 72px; }
           `
         }

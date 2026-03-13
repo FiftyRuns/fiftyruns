@@ -27,20 +27,12 @@
         </label>
       </div>
 
-      <div class="rounded-2xl border border-dashed border-black/10 bg-white/70 p-4 text-sm text-gray-600">
-        <div class="flex items-center gap-2 text-[var(--color-primary)]">
-          <Icon icon="ph:hand-heart-duotone" class="h-5 w-5" />
-          <span>Automatische Spende aktivieren</span>
+<div class="rounded-2xl border border-black/5 bg-white/70 px-4 py-3 shadow-sm flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+          <Icon icon="ph:heart-duotone" class="h-5 w-5 text-[var(--color-primary)]" />
+          <span>Meine Spende gesamt</span>
         </div>
-        <label class="mt-3 flex items-start gap-3 text-xs text-gray-600">
-          <input
-            class="mt-1 h-4 w-4 rounded border-gray-300 text-[var(--color-primary)] focus:ring-[var(--color-primary)]/40"
-            type="checkbox"
-            :checked="modelValue.autoDonate"
-            @change="$emit('update:model-value', { ...modelValue, autoDonate: ($event.target as HTMLInputElement).checked })"
-          />
-          <span>Ich möchte nach jeder Challenge automatisch den oben gewählten Betrag spenden.</span>
-        </label>
+        <span class="text-sm font-semibold text-black">{{ totalDonationFormatted }}</span>
       </div>
 
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -50,7 +42,6 @@
           <p v-else-if="errorMessage" class="text-xs font-medium text-red-600">{{ errorMessage }}</p>
         </div>
         <div class="flex items-center gap-2">
-          <FormButton variant="secondary" label="Historie" @click="$emit('open-history')" />
           <FormButton variant="primary" :loading="loading" label="Plan speichern" @click="$emit('save')" />
         </div>
       </div>
@@ -68,13 +59,14 @@ import type { DonationSettings } from '../../types/profile'
 const props = withDefaults(
   defineProps<{
     modelValue: DonationSettings
+    totalDonationCent?: number
     loading?: boolean
     successMessage?: string
     errorMessage?: string
     collapsible?: boolean
     defaultOpen?: boolean
   }>(),
-  { loading: false, successMessage: '', errorMessage: '' },
+  { loading: false, successMessage: '', errorMessage: '', totalDonationCent: 0 },
 )
 
 defineEmits<{
@@ -90,8 +82,12 @@ const donationOptions = [
   { value: 10, label: '10 € Fokus',       description: 'Für ambitionierte Spendenziele.',      icon: 'ph:trophy-duotone' },
 ]
 
+const totalDonationFormatted = computed(() =>
+  ((props.totalDonationCent) / 100).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €'
+)
+
 const lastUpdated = computed(() =>
-  new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' })
+  new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
     .format(new Date(props.modelValue.updatedAt))
 )
 </script>

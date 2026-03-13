@@ -11,6 +11,17 @@
             Alle öffentlichen und Community-Postings auf einen Blick.
           </p>
         </div>
+        <button
+          v-if="authUser"
+          type="button"
+          class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-[var(--color-primary)] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:opacity-90"
+          @click="showComposer = true"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Beitrag erstellen
+        </button>
       </header>
 
       <div v-if="error" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -29,25 +40,101 @@
       </div>
 
       <section v-else class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        <PostingCardFeed
-          v-for="post in posts"
-          :key="post.id"
-          :post="post"
-          @reaction="handleReaction"
-          @comment="handleComment"
-          @edit-comment="handleEditComment"
-          @delete-comment="handleDeleteComment"
-        />
+        <template v-for="(post, index) in posts" :key="post.id">
+          <PostingCardFeed
+            :post="post"
+            @reaction="handleReaction"
+            @comment="handleComment"
+            @edit-comment="handleEditComment"
+            @delete-comment="handleDeleteComment"
+          />
+          <section
+            v-if="!authUser && index === 2"
+            class="relative overflow-hidden rounded-3xl bg-[var(--color-primary)] p-8 shadow-sm sm:col-span-2 lg:col-span-3"
+          >
+            <div class="pointer-events-none absolute inset-0 opacity-10">
+              <Icon icon="ph:newspaper-duotone" class="absolute -right-8 -top-8 h-48 w-48 text-white" />
+            </div>
+            <div class="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div class="space-y-2">
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Mach mit!</p>
+                <h2 class="text-xl font-semibold text-white">Beiträge kommentieren & reagieren</h2>
+                <p class="max-w-md text-sm text-white/70">
+                  Erstelle ein kostenloses Konto oder melde dich an, um selbst Beiträge zu erstellen und mit der Community zu interagieren.
+                </p>
+              </div>
+              <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+                <NuxtLink
+                  to="/register"
+                  class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-primary)] shadow transition hover:bg-white/90"
+                >
+                  <Icon icon="ph:user-plus-duotone" class="h-5 w-5" />
+                  Registrieren
+                </NuxtLink>
+                <NuxtLink
+                  to="/login"
+                  class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+                >
+                  <Icon icon="ph:sign-in-duotone" class="h-5 w-5" />
+                  Anmelden
+                </NuxtLink>
+              </div>
+            </div>
+          </section>
+        </template>
       </section>
     </div>
   </div>
+
+  <!-- Post-Composer Modal -->
+  <Teleport to="body">
+    <div
+      v-if="showComposer"
+      class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/60 p-4 pt-24 backdrop-blur-sm"
+      @click.self="showComposer = false"
+    >
+      <div class="w-full max-w-2xl rounded-3xl bg-white shadow-2xl">
+        <div class="flex items-center justify-between border-b border-black/5 px-6 py-4">
+          <h2 class="text-lg font-semibold text-black">Neuen Beitrag erstellen</h2>
+          <button
+            type="button"
+            class="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+            @click="showComposer = false"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 6 6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <div class="p-6">
+          <ProfilePostComposer
+            :model-value="composerForm"
+            :loading="composerState.loading"
+            :error-message="composerState.error"
+            :success-message="composerState.success"
+            @update:model-value="onComposerUpdate"
+            @submit="handleComposerSubmit"
+            @open-media-library="() => {}"
+          />
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { Icon } from '@iconify/vue'
 import { useCommunityFeed } from '@/composables/useCommunityFeed'
+import { useAuthUser } from '@/composables/useAuthUser'
+import { useToast } from '@/composables/useToast'
 import PostingCardFeed from '@/components/cards/PostingCardFeed.vue'
+import ProfilePostComposer from '@/components/profile/ProfilePostComposer.vue'
+import type { PostComposerForm, PostComposerSubmitPayload } from '@/components/profile/ProfilePostComposer.vue'
 import type { ReactionEmoji } from '@/constants/reactions'
+
+const authUser = useAuthUser()
+const { showSuccess, showError } = useToast()
 
 const {
   posts,
@@ -62,13 +149,71 @@ const {
 } = useCommunityFeed()
 
 // Optimized lookup with Map for O(1) access
-const postsMap = computed(() => 
+const postsMap = computed(() =>
   new Map(posts.value?.map(p => [p.id, p]) || [])
 )
 
 onMounted(() => {
   loadFeed()
 })
+
+// ── Composer Modal ────────────────────────────────────────────────────────────
+
+const showComposer = ref(false)
+
+const composerForm = reactive<PostComposerForm>({
+  title: '',
+  content: '',
+  visibility: 'public',
+  distanceKm: '',
+  duration: '',
+  garminActivityId: '',
+  createdAt: new Date().toISOString(),
+})
+
+const composerState = reactive({ loading: false, error: '', success: '' })
+
+function onComposerUpdate(val: PostComposerForm) {
+  Object.assign(composerForm, val)
+}
+
+async function handleComposerSubmit(form: PostComposerSubmitPayload & { imageUrl?: string | null }) {
+  composerState.loading = true
+  composerState.error = ''
+  composerState.success = ''
+  try {
+    if (form.distanceInMeters == null || form.durationInSeconds == null) {
+      throw new Error('Bitte Distanz und Zeit eingeben.')
+    }
+    const csrf = useCookie('csrf_token').value
+    await $fetch('/api/profile/posts', {
+      method: 'POST',
+      headers: { 'x-csrf-token': csrf ?? '' },
+      body: {
+        content: form.content,
+        visibility: form.visibility,
+        image: form.imageUrl ?? null,
+        distanceInMeters: Math.round(form.distanceInMeters),
+        durationInSeconds: Math.round(form.durationInSeconds),
+        garminActivityId: form.garminActivityId || null,
+        createdAt: form.createdAt || new Date().toISOString(),
+      },
+      credentials: 'include',
+    })
+    composerForm.title = composerForm.content = composerForm.distanceKm = composerForm.duration = ''
+    composerForm.createdAt = new Date().toISOString()
+    showComposer.value = false
+    showSuccess('Beitrag erfolgreich veröffentlicht!')
+    await loadFeed()
+  } catch (err: any) {
+    composerState.error = err?.data?.message || err?.message || 'Fehler beim Speichern.'
+    showError(composerState.error)
+  } finally {
+    composerState.loading = false
+  }
+}
+
+// ── Feed Reactions & Comments ─────────────────────────────────────────────────
 
 async function handleReaction(postId: string, emoji: ReactionEmoji) {
   const post = postsMap.value.get(postId)

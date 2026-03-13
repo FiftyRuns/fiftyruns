@@ -10,23 +10,23 @@
   >
     <template #header>
       <div class="flex items-center justify-between p-4">
-        <div class="flex items-center gap-2 text-xs text-gray-500">
+        <div class="flex items-center gap-2 text-sm text-gray-500">
           <span>{{ formattedDate }}</span>
           <span>·</span>
-          <span class="inline-flex h-6 items-center rounded-full border border-black/10 bg-gray-50 px-2 text-[10px] font-medium uppercase tracking-wide text-gray-600">
-            {{ post.visibilityLabel }}
-          </span>
           <span v-if="post.source === 'STRAVA'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5">
-            <img 
-              src="/brand/strava/api_logo_pwrdBy_strava_horiz_orange.png" 
-              alt="Strava" 
+            <img
+              src="/brand/strava/api_logo_pwrdBy_strava_horiz_orange.png"
+              alt="Strava"
               class="h-3 w-auto"
             />
           </span>
-          <span v-if="post.source === 'GARMIN'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-600">
+          <span v-if="post.source === 'GARMIN'" class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
             Datenquelle: Garmin
           </span>
         </div>
+        <span class="inline-flex h-6 items-center rounded-full border border-black/10 bg-gray-50 px-2 text-xs font-medium uppercase tracking-wide text-gray-600">
+          {{ post.visibilityLabel }}
+        </span>
       </div>
     </template>
 
@@ -34,11 +34,11 @@
       <div class="p-4">
         <!-- Stats -->
         <div class="mb-3 flex flex-wrap items-center gap-1.5">
-          <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700">
+          <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-sm text-gray-700">
             <Icon icon="ph:heart-duotone" class="h-3.5 w-3.5 text-[var(--color-accent)]" />
             <span class="tabular-nums">{{ post.reactions }}</span>
           </span>
-          <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700">
+          <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2.5 py-1 text-sm text-gray-700">
             <Icon icon="ph:chat-centered-duotone" class="h-3.5 w-3.5 text-[var(--color-accent)]/80" />
             <span class="tabular-nums">{{ post.comments }}</span>
           </span>
@@ -48,7 +48,7 @@
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="flex-1 inline-flex items-center justify-center gap-1 rounded-xl border border-black/10 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:bg-gray-100"
+            class="flex-1 inline-flex items-center justify-center gap-1 rounded-xl border border-black/10 px-3 py-1.5 text-sm font-medium text-gray-700 transition hover:bg-gray-100"
             @click="handleEdit"
             title="Beitrag bearbeiten"
           >
@@ -58,7 +58,7 @@
 
           <button
             type="button"
-            class="flex-1 inline-flex items-center justify-center gap-1 rounded-xl border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50"
+            class="flex-1 inline-flex items-center justify-center gap-1 rounded-xl border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-50"
             @click="handleDelete"
             title="Beitrag löschen"
           >
@@ -92,7 +92,7 @@ type PostSummaryWithLabel = {
 }
 
 // Cached formatters outside component
-const dateFormatter = new Intl.DateTimeFormat('de-DE', { dateStyle: 'short', timeStyle: 'short' })
+const dateFormatter = new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
 const props = defineProps<{
   post: PostSummaryWithLabel

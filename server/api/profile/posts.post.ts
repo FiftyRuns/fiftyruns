@@ -5,6 +5,7 @@ import { prisma } from '../../utils/prisma'
 import { resolveSession } from '../../utils/session'
 import { updateChallengesForRun } from '../../utils/challengeProgress'
 import { createNotification } from '../../utils/notifications'
+import { getCurrentPostingSeason, parsePostingDateInput } from '../../utils/postingDate'
 
 const DONATION_MULTIPLIER_TO_CENTS: Record<'x1' | 'x2' | 'x5' | 'x10', number> = {
   x1: 100,
@@ -20,6 +21,7 @@ type CreatePostBody = {
   distanceInMeters: number
   durationInSeconds: number
   garminActivityId?: string | null
+  createdAt?: string
 }
 
 function assertCsrf(event: Parameters<typeof getHeader>[0]) {
@@ -47,6 +49,9 @@ export default eventHandler(async (event) => {
   if (!content) {
     throw createError({ statusCode: 400, message: 'Beitragsinhalt darf nicht leer sein.' })
   }
+  if (content.length > 2000) {
+    throw createError({ statusCode: 400, message: 'Beitragsinhalt darf maximal 2000 Zeichen lang sein.' })
+  }
 
   const visibility = body.visibility ?? 'protected'
   if (!['public', 'protected', 'private'].includes(visibility)) {
@@ -68,7 +73,7 @@ export default eventHandler(async (event) => {
   if (body.image) {
     try {
       const u = new URL(body.image)
-      if (!u.protocol.startsWith('http')) {
+      if (u.protocol !== 'https:') {
         throw new Error('Ungültige URL')
       }
       imageUrl = u.toString()
@@ -77,9 +82,18 @@ export default eventHandler(async (event) => {
     }
   }
 
-  const now = new Date()
-  const season = `${now.getFullYear()}`
-  const garminActivityId = body.garminActivityId ?? null
+  const now = parsePostingDateInput(body.createdAt)
+  // Season immer serverseitig bestimmen – verhindert Season-Manipulation durch den Client
+  const season = getCurrentPostingSeason()
+
+  let garminActivityId: string | null = null
+  if (body.garminActivityId) {
+    const raw = String(body.garminActivityId)
+    if (!/^[a-zA-Z0-9_-]{1,64}$/.test(raw)) {
+      throw createError({ statusCode: 400, message: 'Ungültige Garmin-Aktivitäts-ID.' })
+    }
+    garminActivityId = raw
+  }
   const donationAmountInCent =
     donorPreferences?.autoDonate && donorPreferences.runDonationMultiplier
       ? DONATION_MULTIPLIER_TO_CENTS[donorPreferences.runDonationMultiplier] ?? 0

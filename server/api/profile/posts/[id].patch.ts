@@ -4,6 +4,7 @@ import { prisma } from '../../../utils/prisma'
 import { resolveSession } from '../../../utils/session'
 import { assertCsrf } from '../../../utils/csrf'
 import { updateChallengesForRun } from '../../../utils/challengeProgress'
+import { parsePostingDateInput } from '../../../utils/postingDate'
 
 const DONATION_MULTIPLIER_TO_CENTS: Record<'x1' | 'x2' | 'x5' | 'x10', number> = {
   x1: 100,
@@ -18,6 +19,7 @@ type UpdatePostBody = {
   image?: string | null
   distanceInMeters?: number | null
   durationInSeconds?: number | null
+  createdAt?: string
 }
 
 export default eventHandler(async (event) => {
@@ -59,12 +61,15 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 404, message: 'Beitrag nicht gefunden.' })
   }
 
-  const updateData: { text?: string; visibility?: 'public' | 'protected' | 'private'; image?: string | null } = {}
+  const updateData: { text?: string; visibility?: 'public' | 'protected' | 'private'; image?: string | null; date?: Date } = {}
 
   if (typeof body.content === 'string') {
     const trimmed = body.content.trim()
     if (!trimmed) {
       throw createError({ statusCode: 400, message: 'Beitragsinhalt darf nicht leer sein.' })
+    }
+    if (trimmed.length > 2000) {
+      throw createError({ statusCode: 400, message: 'Beitragsinhalt darf maximal 2000 Zeichen lang sein.' })
     }
     updateData.text = trimmed
   }
@@ -76,6 +81,10 @@ export default eventHandler(async (event) => {
     updateData.visibility = body.visibility ?? 'protected'
   }
 
+  if (body.createdAt) {
+    updateData.date = parsePostingDateInput(body.createdAt)
+  }
+
   if ('image' in body) {
     if (typeof body.image === 'string') {
       const trimmed = body.image.trim()
@@ -84,7 +93,7 @@ export default eventHandler(async (event) => {
       } else {
         try {
           const parsed = new URL(trimmed)
-          if (!parsed.protocol.startsWith('http')) {
+          if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') {
             throw new Error('Ungültiges Protokoll')
           }
           updateData.image = parsed.toString()
@@ -187,8 +196,18 @@ export default eventHandler(async (event) => {
         durationInSeconds: post.runningExercise.durationInSeconds,
       }
     : null
+  const nextSnapshot =
+    runAction === 'delete'
+      ? null
+      : runAction === 'none'
+        ? previousSnapshot
+        : {
+            distanceInMeters: nextDistance,
+            durationInSeconds: nextDuration,
+          }
 
-  const runDate = post.date
+  const nextRunDate = updateData.date ?? post.date
+  const runDateChanged = Boolean(updateData.date && updateData.date.getTime() !== post.date.getTime())
 
   await prisma.$transaction(async (tx) => {
     if (Object.keys(updateData).length) {
@@ -271,18 +290,28 @@ export default eventHandler(async (event) => {
       }
     }
 
-    if (runAction !== 'none') {
-      const nextSnapshot =
-        runAction === 'delete'
-          ? null
-          : {
-              distanceInMeters: nextDistance,
-              durationInSeconds: nextDuration,
-            }
+    if (runDateChanged) {
+      if (previousSnapshot) {
+        await updateChallengesForRun(tx, {
+          userId: session.user.id,
+          runDate: post.date,
+          previous: previousSnapshot,
+          next: null,
+        })
+      }
 
+      if (nextSnapshot) {
+        await updateChallengesForRun(tx, {
+          userId: session.user.id,
+          runDate: nextRunDate,
+          previous: null,
+          next: nextSnapshot,
+        })
+      }
+    } else if (runAction !== 'none') {
       await updateChallengesForRun(tx, {
         userId: session.user.id,
-        runDate,
+        runDate: nextRunDate,
         previous: previousSnapshot,
         next: nextSnapshot,
       })

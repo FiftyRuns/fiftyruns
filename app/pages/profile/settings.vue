@@ -12,91 +12,64 @@
         </NuxtLink>
       </header>
 
-      <div class="grid gap-6 lg:grid-cols-[minmax(0,2fr),minmax(0,1fr)]">
-        <!-- Hauptspalte -->
-        <div class="space-y-6">
-          <!-- Profil & Sichtbarkeit -->
-          <ProfileSettingsForm
+      <div class="flex flex-col gap-6">
+        <!-- Profil & Sichtbarkeit -->
+        <ProfileSettingsForm
+          collapsible
+          :default-open="false"
+          :model-value="settingsForm"
+          :loading="settingsState.loading"
+          :success-message="settingsState.success"
+          :error-message="settingsState.error"
+          @update:model-value="onSettingsUpdate"
+          @submit="f => handleSettingsSubmit(f as any)"
+        />
+
+        <!-- Profilbild -->
+        <ProfileAvatarCard
+          v-if="authUser"
+          collapsible
+          :default-open="false"
+          :user="authUser"
+          :preview="avatarPreview"
+          :error="avatarState.error"
+          @select-picture="handleAvatarSelect"
+          @remove-picture="removeAvatar"
+          @error="setAvatarError"
+          @saved="handleAvatarSaved"
+        />
+
+        <!-- Passwort ändern -->
+        <ProfilePasswordCard
+          collapsible
+          :default-open="false"
+          :model-value="passwordForm"
+          :loading="passwordState.loading"
+          :error-message="passwordState.error"
+          :success-message="passwordState.success"
+          @update:model-value="onPasswordUpdate"
+          @submit="handlePasswordSubmit"
+        />
+
+        <!-- Integrationen -->
+        <div class="grid gap-6 sm:grid-cols-2">
+          <ProfileStravaCard
             collapsible
             :default-open="false"
-            :model-value="settingsForm"
-            :loading="settingsState.loading"
-            :success-message="settingsState.success"
-            :error-message="settingsState.error"
-            @update:model-value="onSettingsUpdate"
-            @submit="f => handleSettingsSubmit(f as any)"
+            :integration="stravaIntegration"
+            :state="stravaState"
+            @connect="connectStrava"
+            @disconnect="disconnectStrava"
           />
-
-          <!-- Passwort ändern -->
-          <ProfilePasswordCard
+          <ProfileGarminCard
             collapsible
             :default-open="false"
-            :model-value="passwordForm"
-            :loading="passwordState.loading"
-            :error-message="passwordState.error"
-            :success-message="passwordState.success"
-            @update:model-value="onPasswordUpdate"
-            @submit="handlePasswordSubmit"
+            :integration="garminIntegration"
+            :state="garminState"
+            @connect="connectGarmin"
+            @disconnect="disconnectGarmin"
           />
-
-          <!-- Spenden / Auto-Donate -->
-          <ProfileDonationCard
-            collapsible
-            :default-open="false"
-            :model-value="donationSettings"
-            :loading="donationState.loading"
-            :success-message="donationState.success"
-            :error-message="donationState.error"
-            @update:model-value="onDonationUpdate"
-            @save="handleDonationSave"
-            @open-history="openDonationHistory"
-          />
-
-          <!-- Challenges (optional im Settings-Kontext anzeigen) -->
-          <ProfileChallengesCard
-            collapsible
-            :default-open="false"
-            :challenges="challenges"
-            @create="createChallenge"
-          />
-
-          <!-- Integrationen -->
-          <div class="grid gap-6 sm:grid-cols-2">
-            <ProfileStravaCard
-              collapsible
-              :default-open="false"
-              :integration="stravaIntegration"
-              :state="stravaState"
-              @connect="connectStrava"
-              @disconnect="disconnectStrava"
-            />
-            <ProfileGarminCard
-              collapsible
-              :default-open="false"
-              :integration="garminIntegration"
-              :state="garminState"
-              @connect="connectGarmin"
-              @disconnect="disconnectGarmin"
-            />
-          </div>
         </div>
-
-        <!-- Sidebar -->
-        <aside class="space-y-6">
-          <!-- Avatar -->
-          <ProfileAvatarCard
-            v-if="authUser"
-            collapsible
-            :default-open="false"
-            :user="authUser"
-            :preview="avatarPreview"
-            :error="avatarState.error"
-            @select-picture="handleAvatarSelect"
-            @remove-picture="removeAvatar"
-            @error="setAvatarError"
-            @saved="handleAvatarSaved"
-          />
-        </aside>
       </div>
     </div>
   </div>
@@ -105,8 +78,6 @@
 <script setup lang="ts">
 import ProfileSettingsForm from '../../components/profile/ProfileSettingsForm.vue'
 import ProfilePasswordCard from '../../components/profile/ProfilePasswordCard.vue'
-import ProfileDonationCard from '../../components/profile/ProfileDonationCard.vue'
-import ProfileChallengesCard from '../../components/profile/ProfileChallengesCard.vue'
 import ProfileAvatarCard from '../../components/profile/ProfileAvatarCard.vue'
 import ProfileStravaCard from '../../components/profile/ProfileStravaCard.vue'
 import ProfileGarminCard from '../../components/profile/ProfileGarminCard.vue'
@@ -119,9 +90,6 @@ const {
   settingsState,
   passwordForm,
   passwordState,
-  donationSettings,
-  donationState,
-  challenges,
   avatarPreview,
   avatarState,
   stravaIntegration,
@@ -132,11 +100,8 @@ const {
   // Actions
   onSettingsUpdate,
   onPasswordUpdate,
-  onDonationUpdate,
   handleSettingsSubmit,
   handlePasswordSubmit,
-  handleDonationSave,
-  openDonationHistory,
   handleAvatarSelect,
   removeAvatar,
   setAvatarError,
@@ -145,6 +110,5 @@ const {
   disconnectStrava,
   connectGarmin,
   disconnectGarmin,
-  createChallenge,
 } = useProfilePage()
 </script>

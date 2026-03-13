@@ -920,6 +920,11 @@ export type GarminWebhookEventFindManyArgs<ExtArgs extends runtime.Types.Extensi
    * Skip the first `n` GarminWebhookEvents.
    */
   skip?: number
+  /**
+   * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+   * 
+   * Filter by unique combinations of GarminWebhookEvents.
+   */
   distinct?: Prisma.GarminWebhookEventScalarFieldEnum | Prisma.GarminWebhookEventScalarFieldEnum[]
 }
 

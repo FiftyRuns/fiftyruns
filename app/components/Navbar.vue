@@ -17,11 +17,12 @@
             <NotificationBell v-if="isLoggedIn" />
 
             <!-- Desktop-Menü -->
-            <ul class="hidden xl:flex items-center gap-8 text-[color:var(--color-primary)]  font-semibold text-lg">
+            <ul class="hidden xl:flex items-center gap-8 text-[color:var(--color-primary)] font-semibold text-base">
             <li v-for="link in navLinks" :key="`desktop-${link.key}`">
                 <NuxtLink
                     :to="link.to"
-                    class="hover:text-[color:var(--color-accent)] transition cursor-pointer"
+                    class="relative py-1 hover:text-[color:var(--color-accent)] transition-colors cursor-pointer after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:rounded-full after:bg-[var(--color-accent)] after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-200"
+                    active-class="text-[color:var(--color-accent)] after:scale-x-100"
                     @click="handleNavLinkClick"
                 >
                     {{ link.label }}
@@ -222,12 +223,8 @@ const avatarInitials = computed(() => {
 const avatarAlt = computed(() =>
     authUser.value?.name ? `Profilbild von ${authUser.value.name}` : 'Profilbild'
 )
-const teamLinkTarget = computed(() =>
-    authTeam.value?.nameId ? `/team/${authTeam.value.nameId}` : '/team/discover'
-)
-const teamLinkLabel = computed(() =>
-    authTeam.value?.name ? authTeam.value.name : 'Teams'
-)
+const teamLinkTarget = computed(() => '/team/discover')
+const teamLinkLabel = computed(() => 'Teams')
 const staticNavLinks: NavLink[] = [
     { key: 'leaderboard', label: 'Leaderboard', to: '/leaderboard' },
     { key: 'challenges', label: 'Challenges', to: '/challenges' },

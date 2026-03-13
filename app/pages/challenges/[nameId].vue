@@ -108,6 +108,16 @@
               </div>
             </div>
 
+            <div v-if="challengeRunning" class="rounded-xl bg-[var(--color-primary)] px-4 py-3">
+              <p class="mb-2 text-xs font-semibold uppercase tracking-wider text-white/60">Endet in</p>
+              <div class="flex items-end gap-3">
+                <div v-for="unit in countdown" :key="unit.label" class="flex flex-col items-center">
+                  <span class="tabular-nums text-2xl font-black text-white leading-none">{{ unit.value }}</span>
+                  <span class="mt-0.5 text-[10px] font-semibold tracking-wider text-white/50 uppercase">{{ unit.label }}</span>
+                </div>
+              </div>
+            </div>
+
             <button
               v-if="isLoggedIn && !viewer.isAdmin && (viewer.isMember || viewerCanJoin)"
               type="button"
@@ -140,6 +150,40 @@
             </div>
 
             <p v-if="actionError" class="text-xs font-medium text-red-600">{{ actionError }}</p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        v-if="!isLoggedIn"
+        class="relative overflow-hidden rounded-3xl bg-[var(--color-primary)] p-8 shadow-sm"
+      >
+        <div class="pointer-events-none absolute inset-0 opacity-10">
+          <Icon icon="ph:trophy-duotone" class="absolute -right-8 -top-8 h-48 w-48 text-white" />
+        </div>
+        <div class="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div class="space-y-2">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Mach mit!</p>
+            <h2 class="text-xl font-semibold text-white">Tritt dieser Challenge bei</h2>
+            <p class="max-w-md text-sm text-white/70">
+              Erstelle ein kostenloses Konto oder melde dich an, um an der Challenge teilzunehmen und im Leaderboard aufzusteigen.
+            </p>
+          </div>
+          <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+            <NuxtLink
+              to="/register"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-primary)] shadow transition hover:bg-white/90"
+            >
+              <Icon icon="ph:user-plus-duotone" class="h-5 w-5" />
+              Registrieren
+            </NuxtLink>
+            <NuxtLink
+              to="/login"
+              class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+            >
+              <Icon icon="ph:sign-in-duotone" class="h-5 w-5" />
+              Anmelden
+            </NuxtLink>
           </div>
         </div>
       </section>
@@ -250,7 +294,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { Icon } from '@iconify/vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useCookie } from 'nuxt/app'
@@ -370,6 +414,34 @@ const visibilityLabel = computed(() => {
   }
 })
 
+const challengeRunning = computed(() => {
+  if (!challenge.value) return false
+  const now = Date.now()
+  return now >= new Date(challenge.value.startAt).getTime() && now < new Date(challenge.value.endAt).getTime()
+})
+
+function getTimeLeft() {
+  if (!challenge.value) return { days: 0, hours: 0, minutes: 0, seconds: 0 }
+  const diff = Math.max(0, new Date(challenge.value.endAt).getTime() - Date.now())
+  return {
+    days: Math.floor(diff / 86400000),
+    hours: Math.floor((diff % 86400000) / 3600000),
+    minutes: Math.floor((diff % 3600000) / 60000),
+    seconds: Math.floor((diff % 60000) / 1000),
+  }
+}
+const timeLeft = ref(getTimeLeft())
+let timer: ReturnType<typeof setInterval> | null = null
+onMounted(() => { timer = setInterval(() => { timeLeft.value = getTimeLeft() }, 1000) })
+onBeforeUnmount(() => { if (timer) clearInterval(timer) })
+const pad = (n: number) => String(n).padStart(2, '0')
+const countdown = computed(() => [
+  { label: 'Tage', value: String(timeLeft.value.days) },
+  { label: 'Std', value: pad(timeLeft.value.hours) },
+  { label: 'Min', value: pad(timeLeft.value.minutes) },
+  { label: 'Sek', value: pad(timeLeft.value.seconds) },
+])
+
 const statusLabel = computed(() => {
   if (!challenge.value) return ''
   const now = Date.now()
@@ -472,7 +544,7 @@ function formatDuration(seconds: number) {
 }
 
 function formatShortDate(value: string) {
-  return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium' }).format(new Date(value))
+  return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(value))
 }
 
 function initials(name: string) {

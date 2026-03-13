@@ -98,18 +98,12 @@ export async function sendTeamInviteEmail(payload: TeamInviteMailPayload) {
 }
 
 function escapeHtml(value: string) {
-  return value.replace(/[&<>"]+/g, (match) => {
-    switch (match) {
-      case '&':
-        return '&amp;'
-      case '<':
-        return '&lt;'
-      case '>':
-        return '&gt;'
-      case '"':
-        return '&quot;'
-      default:
-        return match
-    }
-  })
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }
+  return value.replace(/[&<>"']/g, (char) => map[char] ?? char)
 }

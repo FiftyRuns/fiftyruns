@@ -33,33 +33,6 @@
             <span>{{ user.email }}</span>
           </div>
 
-          <div v-if="team"
-            class="inline-flex flex-wrap items-center gap-2 rounded-full border border-black/5 bg-white px-3 py-1.5 text-sm text-gray-700 shadow-sm">
-            <Icon icon="ph:users-three-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
-            <span>{{ team.name }}</span>
-            <span v-if="team.roleLabel" class="text-gray-400">· {{ team.roleLabel }}</span>
-            <button
-              type="button"
-              class="text-[var(--color-accent)] underline-offset-2 hover:underline"
-              @click="$emit('view-team')"
-            >
-              Team ansehen
-            </button>
-            <button
-              v-if="team.roleLabel === 'Admin'"
-              type="button"
-              class="text-[var(--color-primary)] underline-offset-2 hover:underline"
-              @click="$emit('manage-team')"
-            >
-              Team managen
-            </button>
-          </div>
-          <button v-else type="button"
-            class="inline-flex items-center gap-2 rounded-full border border-dashed border-[var(--color-primary)]/40 px-4 py-2 text-sm font-semibold text-[var(--color-primarys)] hover:bg-white hover:shadow"
-            @click="$emit('discover-team')">
-            <Icon icon="ph:user-plus-duotone" class="h-4 w-4" />
-            Teams entdecken
-          </button>
         </div>
       </div>
 
@@ -104,12 +77,7 @@
           Profil bearbeiten
         </button>
 
-        <button type="button"
-          class="inline-flex items-center justify-center gap-2 rounded-xl border border-[var(--color-accent)]/40 bg-white px-4 py-2 text-sm font-semibold text-[var(--color-accent)] shadow-sm hover:bg-[var(--color-accent)]/10 cursor-pointer"
-          @click="$emit('open-post-composer')">
-          <Icon icon="ph:pen-nib-duotone" class="h-5 w-5" />
-          Beitrag erstellen
-        </button>
+
       </div>
     </div>
   </div>
@@ -127,13 +95,6 @@ type UserSummary = {
   bio?: string | null
 }
 
-type TeamSummary = {
-  id: string
-  name: string
-  nameId: string
-  roleLabel?: string | null
-} | null
-
 type StravaSummary = {
   connected: boolean
   connectedAt?: string | null
@@ -147,19 +108,15 @@ type StravaState = {
 
 const props = defineProps<{
   user: UserSummary
-  team?: TeamSummary
   strava?: StravaSummary
   stravaState?: StravaState
 }>()
 
-const { user, team, strava, stravaState } = toRefs(props)
+const { user, strava, stravaState } = toRefs(props)
 
 defineEmits<{
   (e: 'edit-profile'): void
   (e: 'change-picture'): void
-  (e: 'view-team'): void
-  (e: 'discover-team'): void
-  (e: 'manage-team'): void
   (e: 'open-post-composer'): void
   (e: 'connect-strava'): void
   (e: 'disconnect-strava'): void

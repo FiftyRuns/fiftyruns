@@ -17,7 +17,7 @@
         </NuxtLink>
       </header>
 
-      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div
           class="flex w-full max-w-xl items-center gap-3 rounded-2xl border border-black/5 bg-white/80 px-4 py-2 shadow-sm">
           <Icon icon="ph:magnifying-glass-duotone" class="h-5 w-5 text-[var(--color-primary)]" aria-hidden="true" />
@@ -31,6 +31,40 @@
           Aktualisieren
         </FormButton>
       </div>
+
+      <section
+        v-if="!isLoggedIn"
+        class="relative overflow-hidden rounded-3xl bg-[var(--color-primary)] p-8 shadow-sm"
+      >
+        <div class="pointer-events-none absolute inset-0 opacity-10">
+          <Icon icon="ph:trophy-duotone" class="absolute -right-8 -top-8 h-48 w-48 text-white" />
+        </div>
+        <div class="relative flex flex-col items-start gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div class="space-y-2">
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">Mach mit!</p>
+            <h2 class="text-xl font-semibold text-white">Challenges beitreten & Fortschritt tracken</h2>
+            <p class="max-w-md text-sm text-white/70">
+              Erstelle ein kostenloses Konto oder melde dich an, um an Challenges teilzunehmen und im Leaderboard aufzusteigen.
+            </p>
+          </div>
+          <div class="flex shrink-0 flex-col gap-3 sm:flex-row">
+            <NuxtLink
+              to="/register"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-[var(--color-primary)] shadow transition hover:bg-white/90"
+            >
+              <Icon icon="ph:user-plus-duotone" class="h-5 w-5" />
+              Registrieren
+            </NuxtLink>
+            <NuxtLink
+              to="/login"
+              class="inline-flex items-center justify-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
+            >
+              <Icon icon="ph:sign-in-duotone" class="h-5 w-5" />
+              Anmelden
+            </NuxtLink>
+          </div>
+        </div>
+      </section>
 
       <div v-if="errorMessage" class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
         {{ errorMessage }}

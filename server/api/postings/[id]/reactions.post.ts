@@ -58,6 +58,10 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 403, message: 'Dieser Beitrag ist privat.' })
   }
 
+  if (post.userId === session.user.id) {
+    throw createError({ statusCode: 403, message: 'Du kannst nicht auf deinen eigenen Beitrag reagieren.' })
+  }
+
   const existing = await prisma.reaction.findUnique({
     where: {
       userId_postingId: {

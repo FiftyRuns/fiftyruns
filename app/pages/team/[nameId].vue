@@ -21,87 +21,89 @@
 
       <div v-else class="space-y-8">
         <header class="overflow-hidden rounded-3xl border border-black/5 bg-white/90 shadow-sm">
-          <div class="flex flex-col gap-4 p-6 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)]">Team</p>
-              <h1 class="text-3xl font-semibold text-black">{{ team.name }}</h1>
-              <p class="mt-2 text-sm text-gray-600">
-                {{ team.description || 'Dieses Team hat noch keine Beschreibung hinterlegt.' }}
-              </p>
-              <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                <span class="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)]/10 px-3 py-1 font-semibold text-[var(--color-primary)]">
-                  <Icon icon="ph:users-three-duotone" class="h-4 w-4" />
-                  {{ team.memberCount }} Mitglieder
-                </span>
-                <span class="inline-flex items-center gap-2">
-                  <Icon icon="ph:map-pin-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
-                  {{ team.location || 'Kein Standort angegeben' }}
-                </span>
-                <span v-if="team.createdAt" class="inline-flex items-center gap-2">
-                  <Icon icon="ph:calendar-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
-                  gegründet {{ formatDate(team.createdAt) }}
-                </span>
-                <span class="inline-flex items-center gap-2">
-                  <Icon icon="ph:eye-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
-                  {{ visibilityLabel(team.visibility, team.requireApproval) }}
-                </span>
+          <div class="flex flex-col gap-4 p-6">
+            <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+              <div class="min-w-0">
+                <p class="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--color-accent)]">Team</p>
+                <h1 class="text-3xl font-semibold text-black">{{ team.name }}</h1>
+                <p class="mt-2 text-sm text-gray-600">
+                  {{ team.description || 'Dieses Team hat noch keine Beschreibung hinterlegt.' }}
+                </p>
+                <div class="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                  <span class="inline-flex items-center gap-2 rounded-full bg-[var(--color-primary)]/10 px-3 py-1 font-semibold text-[var(--color-primary)]">
+                    <Icon icon="ph:users-three-duotone" class="h-4 w-4" />
+                    {{ team.memberCount }} Mitglieder
+                  </span>
+                  <span class="inline-flex items-center gap-2">
+                    <Icon icon="ph:map-pin-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
+                    {{ team.location || 'Kein Standort angegeben' }}
+                  </span>
+                  <span v-if="team.createdAt" class="inline-flex items-center gap-2">
+                    <Icon icon="ph:calendar-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
+                    gegründet {{ formatDate(team.createdAt) }}
+                  </span>
+                  <span class="inline-flex items-center gap-2">
+                    <Icon icon="ph:eye-duotone" class="h-4 w-4 text-[var(--color-primary)]" />
+                    {{ visibilityLabel(team.visibility, team.requireApproval) }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="shrink-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <FormButton
+                    v-if="team.viewer.isMember && team.viewer.role === 'ADMIN'"
+                    label="Team verwalten"
+                    :button-class="['bg-[var(--color-accent)] text-black hover:bg-[var(--color-accent)]/90']"
+                    @click="$router.push('/team/manage')"
+                  />
+                  <FormButton
+                    v-else-if="team.viewer.isMember"
+                    variant="secondary"
+                    label="Du bist Mitglied"
+                    disabled
+                  />
+                  <FormButton
+                    v-else-if="team.viewer.requestStatus === 'pending'"
+                    variant="ghost"
+                    :button-class="['text-xs text-gray-500']"
+                    label="Anfrage ausstehend"
+                    disabled
+                  />
+                  <FormButton
+                    v-else-if="team.viewer.requestStatus === 'approved'"
+                    variant="ghost"
+                    :button-class="['text-xs text-gray-500']"
+                    label="Anfrage angenommen – überprüfe deine E-Mails"
+                    disabled
+                  />
+                  <FormButton
+                    v-else-if="team.viewer.requestStatus === 'declined'"
+                    variant="ghost"
+                    :button-class="['text-xs text-gray-500']"
+                    label="Letzte Anfrage wurde abgelehnt"
+                    disabled
+                  />
+                </div>
               </div>
             </div>
 
-            <div class="flex flex-col items-start gap-3 md:items-end">
-              <div v-if="team.admin" class="flex items-center gap-3">
-                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-sm font-semibold text-[var(--color-primary)]">
-                  <NuxtImg
-                    v-if="team.admin.image"
-                    :src="team.admin.image"
-                    :alt="team.admin.name"
-                    class="h-12 w-12 rounded-full object-cover"
-                    width="96"
-                    height="96"
-                    format="webp"
-                  />
-                  <span v-else>{{ team.admin.name.slice(0, 2).toUpperCase() }}</span>
-                </div>
-                <div>
-                  <p class="text-xs uppercase tracking-[0.2em] text-gray-500">Team-Admin</p>
-                  <p class="text-sm font-semibold text-black">{{ team.admin.name }}</p>
-                </div>
+            <div v-if="team.admin" class="flex items-center gap-3 border-t border-black/5 pt-4">
+              <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[var(--color-primary)]/10 text-xs font-semibold text-[var(--color-primary)]">
+                <NuxtImg
+                  v-if="team.admin.image"
+                  :src="team.admin.image"
+                  :alt="team.admin.name"
+                  class="h-9 w-9 rounded-full object-cover"
+                  width="72"
+                  height="72"
+                  format="webp"
+                />
+                <span v-else>{{ team.admin.name.slice(0, 2).toUpperCase() }}</span>
               </div>
-
-              <div class="flex flex-wrap items-center gap-2">
-                <FormButton
-                  v-if="team.viewer.isMember && team.viewer.role === 'ADMIN'"
-                  label="Team verwalten"
-                  :button-class="['bg-[var(--color-accent)] text-black hover:bg-[var(--color-accent)]/90']"
-                  @click="$router.push('/team/manage')"
-                />
-                <FormButton
-                  v-else-if="team.viewer.isMember"
-                  variant="secondary"
-                  label="Du bist Mitglied"
-                  disabled
-                />
-                <FormButton
-                  v-else-if="team.viewer.requestStatus === 'pending'"
-                  variant="ghost"
-                  :button-class="['text-xs text-gray-500']"
-                  label="Anfrage ausstehend"
-                  disabled
-                />
-                <FormButton
-                  v-else-if="team.viewer.requestStatus === 'approved'"
-                  variant="ghost"
-                  :button-class="['text-xs text-gray-500']"
-                  label="Anfrage angenommen – überprüfe deine E-Mails"
-                  disabled
-                />
-                <FormButton
-                  v-else-if="team.viewer.requestStatus === 'declined'"
-                  variant="ghost"
-                  :button-class="['text-xs text-gray-500']"
-                  label="Letzte Anfrage wurde abgelehnt"
-                  disabled
-                />
+              <div>
+                <p class="text-xs text-gray-500">Admin</p>
+                <p class="text-sm font-semibold text-black">{{ team.admin.name }}</p>
               </div>
             </div>
           </div>
@@ -187,7 +189,7 @@
             <h2 class="text-xl font-semibold text-black">Mitglieder</h2>
             <span class="text-sm text-gray-500">{{ team.members.length }} angezeigt</span>
           </header>
-          <div class="grid gap-4 md:grid-cols-2">
+          <div class="grid gap-4 md:grid-cols-4">
             <article
               v-for="member in team.members"
               :key="member.id"
@@ -210,6 +212,40 @@
                 <p class="text-xs text-gray-500">{{ member.roleLabel }}</p>
               </div>
             </article>
+          </div>
+        </section>
+
+        <section class="rounded-3xl border border-black/5 bg-white/90 p-6 shadow-sm">
+          <h2 class="mb-6 text-xl font-semibold text-black">Team-Statistiken</h2>
+          <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div class="flex flex-col gap-1 rounded-2xl border border-black/5 bg-white/70 p-4">
+              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                <Icon icon="ph:sneaker-move-duotone" class="h-4 w-4" />
+              </span>
+              <p class="mt-2 text-2xl font-bold text-black">{{ team.stats.totalRuns.toLocaleString('de-DE') }}</p>
+              <p class="text-xs text-gray-500">Läufe gesamt</p>
+            </div>
+            <div class="flex flex-col gap-1 rounded-2xl border border-black/5 bg-white/70 p-4">
+              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                <Icon icon="ph:path-duotone" class="h-4 w-4" />
+              </span>
+              <p class="mt-2 text-2xl font-bold text-black">{{ formatKm(team.stats.totalDistanceMeters) }}</p>
+              <p class="text-xs text-gray-500">Kilometer gesamt</p>
+            </div>
+            <div class="flex flex-col gap-1 rounded-2xl border border-black/5 bg-white/70 p-4">
+              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                <Icon icon="ph:timer-duotone" class="h-4 w-4" />
+              </span>
+              <p class="mt-2 text-2xl font-bold text-black">{{ formatDuration(team.stats.totalDurationSeconds) }}</p>
+              <p class="text-xs text-gray-500">Dauer gelaufen</p>
+            </div>
+            <div class="flex flex-col gap-1 rounded-2xl border border-black/5 bg-white/70 p-4">
+              <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-primary)]/10 text-[var(--color-primary)]">
+                <Icon icon="ph:users-duotone" class="h-4 w-4" />
+              </span>
+              <p class="mt-2 text-2xl font-bold text-black">{{ team.stats.activeMembers }}</p>
+              <p class="text-xs text-gray-500">Aktive Läufer</p>
+            </div>
           </div>
         </section>
       </div>
@@ -304,6 +340,20 @@ function visibilityLabel(visibility: TeamDetail['visibility'], requireApproval: 
 function formatDate(value: string | null) {
   if (!value) return '—'
   return new Date(value).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function formatKm(meters: number) {
+  const km = meters / 1000
+  return km >= 1000
+    ? km.toLocaleString('de-DE', { maximumFractionDigits: 0 })
+    : km.toLocaleString('de-DE', { maximumFractionDigits: 1 })
+}
+
+function formatDuration(seconds: number) {
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  if (h >= 100) return h.toLocaleString('de-DE') + ' h'
+  return m > 0 ? `${h}h ${m}m` : `${h}h`
 }
 
 async function submitRequest() {

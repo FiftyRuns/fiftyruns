@@ -108,7 +108,7 @@ defineEmits<{
 const connectedSince = computed(() => {
   if (!props.integration.connectedAt) return ''
   try {
-    return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(
+    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(
       new Date(props.integration.connectedAt),
     )
   } catch {
@@ -119,7 +119,7 @@ const connectedSince = computed(() => {
 const tokenExpiresAt = computed(() => {
   if (!props.integration.tokenExpiresAt) return ''
   try {
-    return new Intl.DateTimeFormat('de-DE', { dateStyle: 'medium', timeStyle: 'short' }).format(
+    return new Intl.DateTimeFormat('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(
       new Date(props.integration.tokenExpiresAt),
     )
   } catch {

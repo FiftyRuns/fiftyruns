@@ -23,14 +23,14 @@
 
             <!-- Zitattext -->
             <blockquote
-                :class="['font-medium leading-relaxed', compact ? 'text-[15px] sm:text-base md:text-lg' : 'text-base sm:text-lg md:text-xl']">
+                :class="['font-medium leading-relaxed', compact ? 'text-base sm:text-lg' : 'text-lg sm:text-xl']">
                 <slot />
             </blockquote>
 
             <!-- Autorinfos -->
             <figcaption class="mt-8 sm:mt-10 text-center sm:text-left">
                 <p class="font-extrabold text-[var(--color-accent)] text-lg leading-tight">{{ author }}</p>
-                <p v-if="role" class="text-sm  text-black/80">{{ role }}</p>
+                <p v-if="role" class="text-base text-black/80">{{ role }}</p>
             </figcaption>
 
             <!-- Profilbild -->
