@@ -1,8 +1,9 @@
 // server/api/blob.upload.post.ts
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
-import { defineEventHandler, readBody, createError, getRequestURL, getHeader, getCookie } from 'h3'
+import { defineEventHandler, readBody, createError, getHeader, getCookie } from 'h3'
 import { resolveSession } from '../utils/session'
 import { prisma } from '../utils/prisma'
+import { getBlobCallbackUrl } from '../utils/blobCallbackUrl'
 
 export default defineEventHandler(async (event) => {
   // 0) Voraussetzung: RW-Token vorhanden
@@ -26,9 +27,8 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, message: 'Nicht angemeldet.' })
   }
 
-  // 3) Absolute Callback-URL (lokal & Vercel). Alternativ ENV: VERCEL_BLOB_CALLBACK_URL
-  const origin = getRequestURL(event).origin
-  const callbackUrl = process.env.VERCEL_BLOB_CALLBACK_URL || `${origin}/api/blob.upload`
+  // 3) Absolute Callback-URL (lokal & Vercel)
+  const callbackUrl = getBlobCallbackUrl(event, '/api/blob.upload')
 
   // 4) Token generieren + Upload finalisieren
   return await handleUpload({

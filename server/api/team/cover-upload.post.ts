@@ -2,6 +2,7 @@
 import { handleUpload, type HandleUploadBody } from '@vercel/blob/client'
 import { defineEventHandler, readBody, createError, getHeader, getCookie } from 'h3'
 import { resolveSession } from '../../utils/session'
+import { getBlobCallbackUrl } from '../../utils/blobCallbackUrl'
 
 export default defineEventHandler(async (event) => {
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
@@ -20,8 +21,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  const origin = new URL(getHeader(event, 'origin') || `http://${event.node.req.headers.host ?? 'localhost'}`).origin
-  const callbackUrl = process.env.VERCEL_BLOB_CALLBACK_URL || `${origin}/api/team/cover-upload`
+  const callbackUrl = getBlobCallbackUrl(event, '/api/team/cover-upload')
 
   return await handleUpload({
     body,

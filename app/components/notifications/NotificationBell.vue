@@ -70,6 +70,10 @@
           </button>
         </div>
 
+        <div v-if="actionError" class="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-600">
+          {{ actionError }}
+        </div>
+
         <div class="mt-4 space-y-2 lg:max-h-[440px] lg:overflow-y-auto lg:pr-1">
           <div v-if="loading" class="py-10 text-center text-sm text-gray-500">Lade Benachrichtigungen …</div>
           <div v-else-if="error" class="py-10 text-center text-sm text-red-500">{{ error }}</div>
@@ -81,8 +85,8 @@
               :category-label="categoryLabels[item.category]"
               :category-color="categoryColors[item.category]"
               @mark-read="markAsRead"
-              @approve="approveJoinRequest"
-              @decline="declineJoinRequest"
+              @approve="handleApprove"
+              @decline="handleDecline"
             />
             <div v-if="!notifications.length" class="py-10 text-center text-sm text-gray-500">
               Keine Benachrichtigungen vorhanden.
@@ -121,6 +125,7 @@ const {
 
 const open = ref(false)
 const wrapper = ref<HTMLElement | null>(null)
+const actionError = ref('')
 
 const handleOutsideClick = (event: MouseEvent) => {
   const target = event.target as Node | null
@@ -145,6 +150,24 @@ function handleCategory(category: NotificationFilterKey) {
 
 async function handleMarkAll() {
   await markAllAsRead()
+}
+
+async function handleApprove(payload: Parameters<typeof approveJoinRequest>[0]) {
+  actionError.value = ''
+  try {
+    await approveJoinRequest(payload)
+  } catch {
+    actionError.value = 'Anfrage konnte nicht bestätigt werden. Bitte versuche es erneut.'
+  }
+}
+
+async function handleDecline(payload: Parameters<typeof declineJoinRequest>[0]) {
+  actionError.value = ''
+  try {
+    await declineJoinRequest(payload)
+  } catch {
+    actionError.value = 'Anfrage konnte nicht abgelehnt werden. Bitte versuche es erneut.'
+  }
 }
 
 watch(open, async (value) => {

@@ -1,10 +1,10 @@
-// server/api/team/requests/[id].approve.post.ts
+// server/api/team/requests/[id]/decline.post.ts
 import { NotificationActionType, NotificationCategory } from '@@/prisma/generated/client'
 import { eventHandler, createError } from 'h3'
-import { prisma } from '../../../utils/prisma'
-import { resolveSession } from '../../../utils/session'
-import { assertCsrf } from '../../../utils/csrf'
-import { createNotification, markNotificationsRead } from '../../../utils/notifications'
+import { prisma } from '../../../../utils/prisma'
+import { resolveSession } from '../../../../utils/session'
+import { assertCsrf } from '../../../../utils/csrf'
+import { createNotification, markNotificationsRead } from '../../../../utils/notifications'
 
 export default eventHandler(async (event) => {
   assertCsrf(event)
@@ -28,7 +28,7 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Du bist in keinem Team.' })
   }
   if (admin.groupRole !== 'ADMIN') {
-    throw createError({ statusCode: 403, message: 'Nur Team-Admins dürfen Anfragen bestätigen.' })
+    throw createError({ statusCode: 403, message: 'Nur Team-Admins dürfen Anfragen ablehnen.' })
   }
 
   const request = await prisma.groupJoinRequest.findUnique({
@@ -43,9 +43,7 @@ export default eventHandler(async (event) => {
           id: true,
           name: true,
           nameId: true,
-          email: true,
           image: true,
-          groupId: true,
           notificationsEnabled: true,
         },
       },
@@ -66,55 +64,14 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 400, message: 'Anfrage wurde bereits bearbeitet.' })
   }
 
-  if (request.user.groupId && request.user.groupId !== admin.groupId) {
-    throw createError({ statusCode: 400, message: 'Nutzer ist bereits in einem anderen Team.' })
-  }
-
-  const group = await prisma.group.findUnique({
-    where: { id: admin.groupId },
-    select: { maxMembers: true },
-  })
-
-  if (!group) {
-    throw createError({ statusCode: 404, message: 'Team nicht gefunden.' })
-  }
-
   const now = new Date()
 
-  const result = await prisma.$transaction(async (tx) => {
-    if (group.maxMembers != null) {
-      const memberCount = await tx.user.count({ where: { groupId: admin.groupId } })
-      if (memberCount >= group.maxMembers) {
-        throw createError({ statusCode: 400, message: 'Dieses Team hat die maximale Größe erreicht.' })
-      }
-    }
-
-    const updatedRequest = await tx.groupJoinRequest.update({
-      where: { id: request.id },
-      data: {
-        status: 'APPROVED',
-        decidedAt: now,
-      },
-    })
-
-    const updatedUser = await tx.user.update({
-      where: { id: request.user.id },
-      data: {
-        groupId: admin.groupId,
-        groupRole: 'MEMBER',
-      },
-      select: {
-        id: true,
-        name: true,
-        nameId: true,
-        email: true,
-        image: true,
-        groupRole: true,
-        createdAt: true,
-      },
-    })
-
-    return { updatedRequest, updatedUser }
+  const updated = await prisma.groupJoinRequest.update({
+    where: { id },
+    data: {
+      status: 'DECLINED',
+      decidedAt: now,
+    },
   })
 
   const groupInfo = request.group ?? {
@@ -125,7 +82,7 @@ export default eventHandler(async (event) => {
 
   const actionPayload = {
     requestId: request.id,
-    status: 'APPROVED' as const,
+    status: 'DECLINED' as const,
     decidedAt: now.toISOString(),
     decidedBy: {
       id: session.user.id,
@@ -144,8 +101,8 @@ export default eventHandler(async (event) => {
   await prisma.notification.updateMany({
     where: { joinRequestId: request.id },
     data: {
-      title: 'Team-Anfrage erledigt',
-      message: `${request.user.name} wurde in das Team aufgenommen.`,
+      title: 'Team-Anfrage abgelehnt',
+      message: `Die Anfrage von ${request.user.name} wurde abgelehnt.`,
       actionType: NotificationActionType.TEAM_JOIN_REQUEST,
       actionPayload,
     },
@@ -168,10 +125,10 @@ export default eventHandler(async (event) => {
     await createNotification(prisma, {
       userId: request.user.id,
       category: NotificationCategory.TEAM,
-      type: 'team.join_request.approved',
-      title: 'Deine Team-Anfrage wurde angenommen',
-      message: `Du bist jetzt Mitglied im Team ${groupInfo.name}.`,
-      link: `/team/${groupInfo.nameId}`,
+      type: 'team.join_request.declined',
+      title: 'Deine Team-Anfrage wurde abgelehnt',
+      message: `Leider hat ${groupInfo.name} deine Anfrage abgelehnt.`,
+      link: '/team/discover',
       data: {
         groupId: groupInfo.id,
         groupName: groupInfo.name,
@@ -187,19 +144,9 @@ export default eventHandler(async (event) => {
   return {
     ok: true,
     request: {
-      id: result.updatedRequest.id,
-      status: 'approved',
-      decidedAt: result.updatedRequest.decidedAt?.toISOString() ?? null,
-    },
-    member: {
-      id: result.updatedUser.id,
-      name: result.updatedUser.name,
-      nameId: result.updatedUser.nameId,
-      email: result.updatedUser.email,
-      image: result.updatedUser.image,
-      role: result.updatedUser.groupRole,
-      roleLabel: result.updatedUser.groupRole === 'ADMIN' ? 'Admin' : 'Mitglied',
-      joinedAt: now.toISOString(),
+      id: updated.id,
+      status: 'declined',
+      decidedAt: updated.decidedAt?.toISOString() ?? null,
     },
   }
 })
