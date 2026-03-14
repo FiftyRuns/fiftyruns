@@ -74,6 +74,8 @@
               </CheckboxField>
           </div>
 
+          <p v-if="serverError" class="mt-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700">{{ serverError }}</p>
+
           <div class="mt-6">
             <FormButton type="submit" variant="primary" :loading="pending" loading-label="Wird erstellt…"
               label="Registrieren" block />
@@ -405,9 +407,7 @@ const slugify = (value: string) =>
     .replace(/^-|-$/g, '')
 
 const syncNameIdFromName = () => {
-  if (!form.nameId) {
-    form.nameId = slugify(form.name).slice(0, 32)
-  }
+  form.nameId = slugify(form.name).slice(0, 32)
 }
 
 const validate = () => {
