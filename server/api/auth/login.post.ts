@@ -1,5 +1,6 @@
 import { eventHandler, getMethod, getHeader, createError, readBody, getCookie, H3Event } from 'h3'
 import * as argon2 from 'argon2'
+import bcrypt from 'bcryptjs'
 import { prisma } from '../../utils/prisma'
 import { createSession, SESSION_MAX_AGE, destroySession } from '../../utils/session'
 import { checkRateLimit } from '../../utils/rateLimit'
@@ -88,9 +89,16 @@ export default eventHandler(async (event) => {
     throw createError({ statusCode: 401, message: 'Benutzer oder Passwort falsch.' })
   }
 
-  const validPassword = await argon2.verify(user.password, password)
+  const validPassword = await verifyPassword(user.password, password)
   if (!validPassword) {
     throw createError({ statusCode: 401, message: 'Benutzer oder Passwort falsch.' })
+  }
+
+  if (isBcryptHash(user.password)) {
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: await argon2.hash(password) },
+    })
   }
 
   if (!user.emailVerified) {
@@ -128,4 +136,15 @@ function parseBoolean(value: unknown) {
     if (['false', '0', 'no', 'off', ''].includes(normalized)) return false
   }
   return false
+}
+
+function isBcryptHash(hash: string) {
+  return hash.startsWith('$2a$') || hash.startsWith('$2b$') || hash.startsWith('$2y$')
+}
+
+async function verifyPassword(storedHash: string, password: string) {
+  if (isBcryptHash(storedHash)) {
+    return bcrypt.compare(password, storedHash)
+  }
+  return argon2.verify(storedHash, password)
 }
